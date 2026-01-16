@@ -20,6 +20,15 @@
     --accent-red: #ff4d4d;
     --accent-green: #4caf50;
     --accent-blue: #2196f3;
+
+    /* Responsive Chip Sizing Strategy */
+    /* Pool: Compact to fit many */
+    --chip-size-pool: clamp(50px, 5vw, 70px);
+    --chip-font-pool: clamp(0.7rem, 0.8vw, 0.85rem);
+
+    /* Active (Queue/Court): Large for visibility */
+    --chip-size-active: clamp(70px, 9vw, 110px);
+    --chip-font-active: clamp(0.8rem, 1.2vw, 1.1rem);
 }
 
 * {
@@ -212,7 +221,8 @@ body {
 
 /* --- Queue --- */
 .queue-panel {
-    width: 260px;
+    width: 340px;
+    /* Widened from 260px */
     flex-shrink: 0;
 }
 
@@ -233,13 +243,23 @@ body {
     border-radius: 12px;
     padding: 12px;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
+    /* Changed to column to stack header and grid */
     gap: 8px;
     cursor: grab;
     position: relative;
     transition: transform 0.2s, border-color 0.2s;
+}
+
+.group-members {
+    display: grid;
+    /* Use max-content to wrap tightly around chips, instead of 1fr which spreads them */
+    grid-template-columns: repeat(2, max-content);
+    justify-content: center;
+    /* Center the grid within the card */
+    gap: 8px;
+    /* Small gap between columns */
+    width: 100%;
 }
 
 .group-card:hover {
@@ -411,7 +431,8 @@ body {
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    overflow: hidden;
+    overflow: auto;
+    /* Allow scrolling if players are out of bounds */
 }
 
 .filter-bar {
@@ -432,19 +453,21 @@ body {
     outline: none;
 }
 
+/* Player Chip Base (Default = Pool/Compact) */
 .player-chip {
-    width: 64px;
-    height: 64px;
+    width: var(--chip-size-pool);
+    height: var(--chip-size-pool);
     background: rgba(45, 45, 50, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
+    border-radius: 12px;
+    /* Slightly smaller radius for small chips */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: grab;
     z-index: 10;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -454,11 +477,42 @@ body {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-.player-chip.small {
-    transform: scale(0.9);
-    box-shadow: none;
-    background: rgba(255, 255, 255, 0.05);
+.player-chip .player-avatar {
+    /* Avatar ratio for pool */
+    width: 50%;
+    height: 50%;
+    font-size: 50%;
+    /* simple relative font size */
+    margin-bottom: 2px;
 }
+
+.player-chip .player-name {
+    font-size: var(--chip-font-pool);
+}
+
+/* Active Chip (In Queue or Court) - The "Large" version */
+.player-chip.active-chip {
+    width: var(--chip-size-active) !important;
+    height: var(--chip-size-active) !important;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    /* Slightly lighter for active */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.player-chip.active-chip .player-avatar {
+    width: 45%;
+    height: 45%;
+    font-size: 40%;
+    margin-bottom: 6px;
+}
+
+.player-chip.active-chip .player-name {
+    font-size: var(--chip-font-active);
+}
+
+/* Remove old .small logic */
+
 
 .player-chip.selected {
     border: 1px solid var(--gold-start);
@@ -494,14 +548,14 @@ body {
 }
 
 .player-avatar {
-    width: 30px;
-    height: 30px;
+    width: calc(var(--chip-size) * 0.45);
+    height: calc(var(--chip-size) * 0.45);
     border-radius: 50%;
     margin-bottom: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: calc(var(--chip-size) * 0.25);
     color: white;
     background: linear-gradient(135deg, #444, #222);
 }
@@ -515,7 +569,7 @@ body {
 }
 
 .player-name {
-    font-size: 0.75rem;
+    font-size: var(--chip-font-size);
     color: #eee;
     text-align: center;
     overflow: hidden;
@@ -544,7 +598,27 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     border-radius: 20px;
-    padding: 24px;
+    padding: 32px;
+    /* Increased padding */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Gap between all internal elements */
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Gap between label and input */
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    /* Wider gap between buttons */
+    margin-top: 20px;
 }
 
 .modal h3 {
@@ -683,9 +757,14 @@ input:checked+.slider:before {
 
 /* --- Responsive Design --- */
 @media (max-width: 768px) {
+
+    html,
     body {
-        height: auto;
-        overflow-y: auto;
+        height: auto !important;
+        overflow-y: auto !important;
+        /* Ensure scrolling works even if JS interferes */
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
     }
 
     .app-header {
@@ -712,7 +791,8 @@ input:checked+.slider:before {
     .queue-panel {
         width: 100%;
         height: auto;
-        max-height: 250px;
+        /* max-height: 250px; Remove limit to allow full page scroll */
+        max-height: none;
         order: 1;
     }
 
@@ -728,13 +808,17 @@ input:checked+.slider:before {
     .group-card {
         width: 100%;
         min-width: 0;
-        flex-direction: row;
-        /* Allow wrapping content */
-        flex-wrap: wrap;
-        /* Chips will float next to each other */
-        align-items: center;
-        gap: 8px;
-        /* Slightly tighter gap */
+        flex-direction: column;
+        /* Keep vertical stack of Header + Grid */
+        /* ... */
+        gap: 4px;
+    }
+
+    .group-members {
+        /* On mobile, use 4 columns to keep them in one row */
+        grid-template-columns: repeat(4, max-content);
+        gap: 4px;
+        justify-content: center;
     }
 
     .court-panel {
@@ -757,15 +841,19 @@ input:checked+.slider:before {
 
     .players-panel {
         width: 100%;
-        height: 60vh;
-        /* Use viewport height instead of fixed pixels */
-        max-height: 600px;
+        height: auto;
+        /* Allow full expansion so body scrolls */
+        min-height: 400px;
+        /* Ensure at least some height */
+        max-height: none;
+        /* Remove cap */
         order: 3;
     }
 
     #playerPool {
-        overflow: auto;
-        /* Enable scrolling in all directions */
+        overflow: visible;
+        /* No inner scrollbar, let it flow */
+        height: auto;
     }
 
     .fab-btn {
