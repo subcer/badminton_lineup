@@ -72,11 +72,27 @@ function releaseLock() {
     if (lockTimeout) clearTimeout(lockTimeout);
 }
 
+function initPresenceSystem() {
+    // 1. Register myself
+    const presenceRef = db.ref('lineup/presence/' + myClientId);
+    presenceRef.onDisconnect().remove();
+    presenceRef.set({
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    // 2. Count online users
+    db.ref('lineup/presence').on('value', snap => {
+        const count = snap.numChildren();
+        $('#onlineCount').text(`🟢 ${count} 人在線`);
+    });
+}
+
 $(function () {
     initListeners();
     initSelectionLogic();
     initDragAndDrop();
     initLockSystem();
+    initPresenceSystem();
 
     requestNotificationPermission();
 
