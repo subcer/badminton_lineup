@@ -73,30 +73,16 @@ function releaseLock() {
 }
 
 function initPresenceSystem() {
-    // 1. Monitor connection state
-    const connectedRef = db.ref('.info/connected');
+    // 1. Register myself
     const presenceRef = db.ref('lineup/presence/' + myClientId);
-
-    connectedRef.on('value', (snap) => {
-        if (snap.val() === true) {
-            // We're connected (or reconnected)!
-
-            // Remove on disconnect (ensure clean state)
-            presenceRef.onDisconnect().remove();
-
-            // Set presence
-            presenceRef.set({
-                lastSeen: firebase.database.ServerValue.TIMESTAMP,
-                clientId: myClientId
-            });
-        }
+    presenceRef.onDisconnect().remove();
+    presenceRef.set({
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
     });
 
     // 2. Count online users
     db.ref('lineup/presence').on('value', snap => {
-        // Filter out stale entries if needed, but for now just count
-        const val = snap.val() || {};
-        const count = Object.keys(val).length;
+        const count = snap.numChildren();
         $('#onlineCount').text(`🟢 ${count} 人在線`);
     });
 }
@@ -136,8 +122,6 @@ function initListeners() {
     // 1. Players
     db.ref('lineup/players').on('value', snapshot => {
         players = snapshot.val() || {};
-        const count = Object.keys(players).length;
-        $('#totalPlayerCount').text(`(${count})`);
         renderPlayerPool();
     });
 
@@ -157,94 +141,39 @@ function initListeners() {
 // --- Render Functions ---
 
 function renderPlayerPool() {
-    // Save scroll positions to prevent jumping
-    const poolScrollTop = $playerPool.scrollTop();
-
-    // Prevent layout collapse by fixing height temporarily
-    // This is critical if the player pool dictates page height on mobile
-    const currentHeight = $playerPool.height();
-    if (currentHeight > 100) {
-        $playerPool.css('min-height', currentHeight + 'px');
-    }
-
     $playerPool.empty();
     const filterText = $('#searchPlayer').val().toLowerCase();
 
     const containerWidth = $playerPool.width() || 300;
+    const containerHeight = $playerPool.height() || 400;
 
-    let occupiedPositions = []; // Track occupancy to prevent overlap
     Object.keys(players).forEach(pid => {
         const p = players[pid];
         if (p.name.toLowerCase().includes(filterText)) {
             const isSelected = selectedPlayers.has(pid);
+            const statusClass = p.status === 'playing' ? 'playing' : (p.status === 'queued' ? 'queued' : '');
 
             if (p.status !== 'idle' && p.status !== undefined) {
                 return; // Skip non-idle players
             }
 
             // Assign position if not set (Grid Layout)
-            // Tighter spacing to match manual layout
-            const itemWidth = 80;
-            const itemHeight = 90;
-            const availableCols = Math.floor(Math.max(containerWidth, 300) / itemWidth);
-            const cols = Math.max(3, availableCols);
-
             let left = p.x;
             let top = p.y;
-            let needsUpdate = false;
 
-            // 1. Initial Bounds Check
-            if (left === undefined || top === undefined || left > containerWidth - 50) {
-                left = null;
-                top = null;
-                needsUpdate = true;
-            }
+            if (left === undefined || top === undefined) {
+                // Find a layout slot based on index or hash to be somewhat deterministic but unique
+                // Simple Grid: 5 columns
+                const cols = 5;
+                const col = Object.keys(players).indexOf(pid) % cols;
+                const row = Math.floor(Object.keys(players).indexOf(pid) / cols);
 
-            // 2. Collision Resolution (ONLY for Reset/New Players)
-            if (left === null || top === null) {
-                let foundSlot = false;
-                let slotIdx = 0;
+                left = 10 + (col * 70);
+                top = 10 + (row * 80);
 
-                while (!foundSlot) {
-                    const c = slotIdx % cols;
-                    const r = Math.floor(slotIdx / cols);
-                    const testX = 10 + (c * itemWidth);
-                    const testY = 10 + (r * itemHeight);
-
-                    let candidateCollides = false;
-                    for (let pos of occupiedPositions) {
-                        const dx = Math.abs(pos.x - testX);
-                        const dy = Math.abs(pos.y - testY);
-                        // Strict check: if any overlap, reject. 
-                        // Chips are approx 80x90.
-                        if (dx < 75 && dy < 85) {
-                            candidateCollides = true;
-                            break;
-                        }
-                    }
-
-                    if (!candidateCollides) {
-                        left = testX;
-                        top = testY;
-                        foundSlot = true;
-                        needsUpdate = true;
-                    }
-                    slotIdx++;
-                    if (slotIdx > 500) break;
-                }
-            }
-
-            // Track this position
-            if (left !== null && top !== null) {
-                occupiedPositions.push({ x: left, y: top });
-            }
-
-            // Update DB if moved
-            if (needsUpdate) {
-                // Avoid tiny jitter updates
-                if (Math.abs(p.x - left) > 1 || Math.abs(p.y - top) > 1) {
-                    db.ref('lineup/players/' + pid).update({ x: left, y: top });
-                }
+                // Save immediately to prevent jumping on next render
+                // Ensure we don't overwrite if only one is missing (rare)
+                db.ref('lineup/players/' + pid).update({ x: left, y: top });
             }
 
             const html = `
@@ -255,33 +184,10 @@ function renderPlayerPool() {
                     <div class="player-avatar"><i class="fas fa-user"></i></div>
                     <div class="player-name">${escapeHtml(p.name)}</div>
                 </div>
-    `;
+            `;
             $playerPool.append(html);
         }
     });
-
-    // 4. Force Container Height for Absolute Layout (Mobile Only)
-    // On Desktop, CSS height:100% + overflow:auto handles it.
-    // On Mobile, we generally want full expansion (unless restricted).
-
-    let maxBottom = 0;
-
-    occupiedPositions.forEach(pos => {
-        const bottom = pos.y + 100;
-        if (bottom > maxBottom) maxBottom = bottom;
-    });
-
-    if (window.innerWidth <= 768) {
-        $playerPool.css('height', 'auto');
-        $playerPool.css('min-height', Math.max(maxBottom + 120, 300) + 'px');
-    } else {
-        // Desktop: Reset inline height to allow CSS (100% or flex) to take over
-        $playerPool.css('height', '');
-        $playerPool.css('min-height', '');
-    }
-
-    // Restore positions
-    if (poolScrollTop > 0) $playerPool.scrollTop(poolScrollTop);
 }
 
 function renderCourts() {
@@ -335,9 +241,9 @@ function renderCourts() {
                 if (!p) return;
 
                 const chip = `
-                    <div class="player-chip active-chip ${p.gender}" style="margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
-                        <div class="player-avatar"><i class="fas fa-user"></i></div>
-                        <div class="player-name">${escapeHtml(p.name)}</div>
+                    <div class="player-chip small ${p.gender}" style="min-width: 50px; width: auto; height: auto; padding: 4px; margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
+                        <div class="player-avatar" style="width:24px;height:24px;margin-bottom:2px;"><i class="fas fa-user"></i></div>
+                        <div class="player-name" style="font-size:0.7rem; white-space:nowrap;">${escapeHtml(p.name)}</div>
                     </div>
                 `;
                 // Position logic (Manual visual placement needed)
@@ -382,22 +288,19 @@ function renderQueue() {
     }
 
     queue.forEach((group, idx) => {
-        const groupSig = group.members.sort().join(',');
         const groupHtml = `
             <div class="group-card" data-gid="${idx}" draggable="true">
                 <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                     <div class="group-title" style="font-size:0.8rem;color:#888;">Group ${idx + 1}</div>
-                    <div class="group-remove" style="position:static;" onclick="event.stopPropagation(); removeFromQueue(${idx}, '${groupSig}')">×</div>
+                    <div class="group-remove" style="position:static;" onclick="removeFromQueue(${idx})">×</div>
                 </div>
-                <div class="group-members">
                 ${group.members.map(pid => {
             const p = players[pid];
-            return `<div class="player-chip active-chip ${p.gender}" style="position:relative;">
-                        <div class="player-avatar"><i class="fas fa-user"></i></div>
-                        <div class="player-name" style="white-space:nowrap; max-width:60px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+            return `<div class="player-chip small ${p.gender}" style="position:relative;">
+                        <div class="player-avatar" style="width:20px;height:20px;font-size:0.6rem;margin-bottom:2px;"><i class="fas fa-user"></i></div>
+                        <div style="white-space:nowrap; font-size:0.7rem; max-width:60px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
                     </div>`;
         }).join('')}
-                </div>
             </div>
         `;
         $queueContainer.append(groupHtml);
@@ -562,6 +465,9 @@ function initDragAndDrop() {
             // If dragging an unselected item, add it to selection (Don't clear others, easier for mobile)
             if (!selectedPlayers.has(pid)) {
                 if (selectedPlayers.size >= 4) {
+                    // If full, maybe clear? Or just ignore?
+                    // Let's clear to allow new start if full, or just replace one?
+                    // Safest: Clear if full, Add if not.
                     selectedPlayers.clear();
                     $('.player-chip').removeClass('selected');
                 }
@@ -572,6 +478,9 @@ function initDragAndDrop() {
             }
 
             // Calculate offsets for drag visual
+            // For standard HTML5 DnD, we can't easily get 'drag' delta continuously
+            // But on Drop we can calculate new position relative to mouse.
+            // We need to know where we grabbed the item relative to its top-left.
             const rect = target.getBoundingClientRect();
             const offsetX = e.clientX - rect.left;
             const offsetY = e.clientY - rect.top;
@@ -583,6 +492,7 @@ function initDragAndDrop() {
                 offsetY: offsetY
             };
             e.dataTransfer.setData('text/plain', JSON.stringify(payload));
+            // e.dataTransfer.setDragImage(target, 0, 0); // Default image
         } else if (groupTarget) {
             // Group Drag
             const gid = groupTarget.dataset.gid;
@@ -622,14 +532,10 @@ function initDragAndDrop() {
                 if (!dataRaw) return;
 
                 const data = JSON.parse(dataRaw);
-                handleDrop(data, zone, e.target, { clientX: e.clientX, clientY: e.clientY });
+                handleDrop(data, zone, e.target);
             }
         });
     });
-
-
-    // Initialize Touch Drag for Mobile
-    initTouchDrag();
 }
 /*
     // Drop Zones (Legacy - Removed for Delegation)
@@ -638,9 +544,10 @@ function initDragAndDrop() {
          // ...
     });
 */
+// End Legacy
 
-function handleDrop(data, zone, targetElement, clientPos) {
-    if (!zone) return;
+
+function handleDrop(data, zone, targetElement) {
     const zoneType = zone.dataset.type; // 'queue', 'pool', 'court'
 
     if (data.type === 'players') {
@@ -657,12 +564,8 @@ function handleDrop(data, zone, targetElement, clientPos) {
             // "Scatter at mouse" is easiest and usually fine.
 
             const rect = $playerPool[0].getBoundingClientRect();
-            // Use provided clientPos or fallback to global event if missing (for safety)
-            const cx = clientPos ? clientPos.clientX : (event.clientX || event.originalEvent.clientX);
-            const cy = clientPos ? clientPos.clientY : (event.clientY || event.originalEvent.clientY);
-
-            let baseX = cx - rect.left - (data.offsetX || 30);
-            let baseY = cy - rect.top - (data.offsetY || 30);
+            let baseX = (event.clientX || event.originalEvent.clientX) - rect.left - (data.offsetX || 30);
+            let baseY = (event.clientY || event.originalEvent.clientY) - rect.top - (data.offsetY || 30);
 
             // Boundary checks
             const w = $playerPool.width();
@@ -829,31 +732,10 @@ $('#confirmAddPlayerBtn').click(() => {
 });
 
 // Edit Player Logic
-// Edit Player Logic
-// Double Click for Desktop
 $playerPool.on('dblclick', '.player-chip', function (e) {
-    if (isSelecting) return;
+    if (isSelecting) return; // Don't trigger if selecting
     e.stopPropagation();
-    openEditModal($(this).data('id'));
-});
-
-// Custom Double Tap for Mobile (Better than standard dblclick on touch devices)
-let lastTap = 0;
-$playerPool.on('touchend', '.player-chip', function (e) {
-    if (isSelecting) return;
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
-
-    // Check for double tap (within 500ms)
-    if (tapLength < 500 && tapLength > 0) {
-        e.preventDefault(); // Prevent zoom
-        e.stopPropagation();
-        openEditModal($(this).data('id'));
-    }
-    lastTap = currentTime;
-});
-
-function openEditModal(pid) {
+    const pid = $(this).data('id');
     const p = players[pid];
     if (!p) return;
 
@@ -863,7 +745,7 @@ function openEditModal(pid) {
     $('#editPlayerLevel').val(p.level);
 
     $('#editModalOverlay').removeClass('hidden');
-}
+});
 
 $('#cancelEditModalBtn').click(() => {
     $('#editModalOverlay').addClass('hidden');
@@ -944,35 +826,12 @@ $('#resetBtn').click(() => {
 });
 
 // Global helpers
-let isDeletingQueue = false; // Cooldown flag
-window.removeFromQueue = function (idx, signature = null, keepStatus = false) {
-    if (isDeletingQueue) return; // Block validation if in cooldown
-    if (!queue[idx]) return;
-
-    // Safety check: Prevent double-deletion of shifting indices
-    // If signature is provided, verify it matches
-    if (signature) {
-        const currentSig = queue[idx].members.sort().join(',');
-        if (currentSig !== signature) {
-            console.warn("Delete blocked: Group signature mismatch. Likely double-click race condition.");
-            return;
-        }
-    }
-
-    // Set cooldown to prevent "Ghost Click" or "UI Shift" accidental second delete
-    isDeletingQueue = true;
-    setTimeout(() => { isDeletingQueue = false; }, 500); // 500ms strict cooldown
-
+window.removeFromQueue = function (idx, keepStatus = false) {
     // Logic to remove group and set players back to idle
     const group = queue[idx];
     if (group && !keepStatus) {
         let updates = {};
-        group.members.forEach(pid => {
-            updates[pid + '/status'] = 'idle';
-            // Reset position so they flow back to the default grid instead of getting stuck on edges
-            updates[pid + '/x'] = null;
-            updates[pid + '/y'] = null;
-        });
+        group.members.forEach(pid => updates[pid + '/status'] = 'idle');
         db.ref('lineup/players').update(updates);
     }
 
@@ -1061,202 +920,4 @@ window.escapeHtml = function (text) {
 
 function requestNotificationPermission() {
     // Reuse specific permission logic if needed
-}
-
-// Custom Touch Drag Implementation for Mobile
-// Custom Touch Drag Implementation for Mobile
-function initTouchDrag() {
-    if (window.isTouchDragInitialized) return;
-    window.isTouchDragInitialized = true;
-
-    let activeDrag = null;
-    let longPressTimer = null;
-    let autoScrollInterval = null;
-
-    document.addEventListener('touchstart', function (e) {
-        // If already dragging, ignore new touches
-        if (activeDrag) return;
-
-        const target = e.target.closest('.player-chip, .group-card');
-        if (!target) return;
-
-        const touch = e.touches[0];
-
-        // Prepare potential drag
-        activeDrag = {
-            source: target,
-            startX: touch.clientX,
-            startY: touch.clientY,
-            currentX: touch.clientX,
-            currentY: touch.clientY,
-            isDragging: false,
-            clone: null,
-            identifier: touch.identifier
-        };
-
-        // Shorter Timer (300ms)
-        longPressTimer = setTimeout(() => {
-            if (!activeDrag) return;
-
-            // Activate Drag Mode
-            activeDrag.isDragging = true;
-            acquireLock();
-
-            // Visual Feedback for "Picked Up"
-            if (window.navigator.vibrate) window.navigator.vibrate(50);
-
-            // Create Clone
-            createDragClone(activeDrag);
-
-        }, 300);
-
-    }, { passive: false });
-
-    // Helper to create clone called by timer
-    function createDragClone(dragObj) {
-        if (dragObj.clone) return;
-
-        const clone = dragObj.source.cloneNode(true);
-        clone.style.position = 'fixed';
-        clone.style.zIndex = '9999';
-        clone.style.pointerEvents = 'none';
-        clone.style.opacity = '0.8';
-        clone.style.width = dragObj.source.offsetWidth + 'px';
-        clone.style.height = dragObj.source.offsetHeight + 'px';
-
-        // Position at current finger location (might have micro-moved)
-        clone.style.left = (dragObj.currentX - 30) + 'px';
-        clone.style.top = (dragObj.currentY - 30) + 'px';
-
-        document.body.appendChild(clone);
-        dragObj.clone = clone;
-
-        // Prepare Payload
-        const pid = dragObj.source.dataset.id;
-        const gid = dragObj.source.dataset.gid;
-
-        if (pid) {
-            if (!selectedPlayers.has(pid)) {
-                selectedPlayers.clear();
-                selectedPlayers.add(pid);
-                $(dragObj.source).addClass('selected');
-            }
-            dragObj.payload = {
-                type: 'players',
-                ids: Array.from(selectedPlayers),
-                offsetX: 30,
-                offsetY: 30
-            };
-        } else if (gid) {
-            dragObj.payload = {
-                type: 'group',
-                gid: gid
-            };
-        }
-    }
-
-    // Auto Scroll Logic
-    function checkAutoScroll(y) {
-        const edgeSize = 60;
-        const scrollSpeed = 15;
-        const windowHeight = window.innerHeight;
-
-        if (autoScrollInterval) {
-            clearInterval(autoScrollInterval);
-            autoScrollInterval = null;
-        }
-
-        if (y < edgeSize) {
-            autoScrollInterval = setInterval(() => window.scrollBy(0, -scrollSpeed), 20);
-        } else if (y > windowHeight - edgeSize) {
-            autoScrollInterval = setInterval(() => window.scrollBy(0, scrollSpeed), 20);
-        }
-    }
-
-    document.addEventListener('touchmove', function (e) {
-        if (!activeDrag) return;
-
-        let touch = null;
-        for (let i = 0; i < e.touches.length; i++) {
-            if (e.touches[i].identifier === activeDrag.identifier) {
-                touch = e.touches[i];
-                break;
-            }
-        }
-        if (!touch) return;
-
-        // Update current position for potential clone creation
-        activeDrag.currentX = touch.clientX;
-        activeDrag.currentY = touch.clientY;
-
-        const dx = touch.clientX - activeDrag.startX;
-        const dy = touch.clientY - activeDrag.startY;
-
-        // Logic:
-        // 1. If isDragging is TRUE: We are dragging. Move clone, prevent default (scroll).
-        // 2. If isDragging is FALSE: Check if moved too much. If so, CANCEL timer. It's a scroll.
-
-        if (activeDrag.isDragging) {
-            e.preventDefault(); // Stop scrolling
-            if (activeDrag.clone) {
-                activeDrag.clone.style.left = (touch.clientX - 30) + 'px';
-                activeDrag.clone.style.top = (touch.clientY - 30) + 'px';
-            }
-            checkAutoScroll(touch.clientY);
-        } else {
-            // Check for movement threshold to CANCEL drag (allow scroll)
-            if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-                // User moved finger before timer fired -> It's a scroll!
-                clearTimeout(longPressTimer);
-                activeDrag = null; // Abort drag intent
-            }
-        }
-    }, { passive: false });
-
-    const endDrag = function (e) {
-        if (longPressTimer) clearTimeout(longPressTimer);
-        if (autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; }
-
-        if (!activeDrag) return;
-
-        // Check if our touch ended
-        let touchEnded = false;
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === activeDrag.identifier) {
-                touchEnded = true;
-                break;
-            }
-        }
-        if (!touchEnded) return;
-
-        if (activeDrag.isDragging) {
-            // Drop Logic
-            if (e.type === 'touchend') {
-                let touch = null;
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === activeDrag.identifier) {
-                        touch = e.changedTouches[i];
-                        break;
-                    }
-                }
-
-                if (touch) {
-                    let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-                    let zone = dropTarget ? dropTarget.closest('.drop-zone') : null;
-
-                    if (zone) {
-                        handleDrop(activeDrag.payload, zone, dropTarget, { clientX: touch.clientX, clientY: touch.clientY });
-                    }
-                }
-            }
-            // Cleanup clone
-            if (activeDrag.clone) activeDrag.clone.remove();
-            releaseLock();
-        }
-
-        activeDrag = null;
-    };
-
-    document.addEventListener('touchend', endDrag);
-    document.addEventListener('touchcancel', endDrag);
 }
