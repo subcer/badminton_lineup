@@ -215,7 +215,9 @@ function renderPlayerPool() {
                     for (let pos of occupiedPositions) {
                         const dx = Math.abs(pos.x - testX);
                         const dy = Math.abs(pos.y - testY);
-                        if (dx < 60 && dy < 60) {
+                        // Strict check: if any overlap, reject. 
+                        // Chips are approx 80x90.
+                        if (dx < 75 && dy < 85) {
                             candidateCollides = true;
                             break;
                         }
@@ -253,17 +255,32 @@ function renderPlayerPool() {
                     <div class="player-avatar"><i class="fas fa-user"></i></div>
                     <div class="player-name">${escapeHtml(p.name)}</div>
                 </div>
-            `;
+    `;
             $playerPool.append(html);
         }
     });
 
-    // Restore layout and scroll
-    // Remove min-height enforcement after render
-    $playerPool.css('min-height', '');
+    // 4. Force Container Height for Absolute Layout (Mobile Only)
+    // On Desktop, CSS height:100% + overflow:auto handles it.
+    // On Mobile, we generally want full expansion (unless restricted).
+
+    let maxBottom = 0;
+
+    occupiedPositions.forEach(pos => {
+        const bottom = pos.y + 100;
+        if (bottom > maxBottom) maxBottom = bottom;
+    });
+
+    if (window.innerWidth <= 768) {
+        $playerPool.css('height', 'auto');
+        $playerPool.css('min-height', Math.max(maxBottom + 120, 300) + 'px');
+    } else {
+        // Desktop: Reset inline height to allow CSS (100% or flex) to take over
+        $playerPool.css('height', '');
+        $playerPool.css('min-height', '');
+    }
 
     // Restore positions
-    // We restore BOTH because we don't know which one is the scroll container
     if (poolScrollTop > 0) $playerPool.scrollTop(poolScrollTop);
 }
 

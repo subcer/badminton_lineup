@@ -757,14 +757,11 @@ input:checked+.slider:before {
 
 /* --- Responsive Design --- */
 @media (max-width: 768px) {
-
-    html,
     body {
-        height: auto !important;
+        /* Allow body to stretch and scroll naturally on mobile */
+        height: auto;
+        min-height: 100%;
         overflow-y: auto !important;
-        /* Ensure scrolling works even if JS interferes */
-        touch-action: pan-y;
-        -webkit-overflow-scrolling: touch;
     }
 
     .app-header {
@@ -791,8 +788,10 @@ input:checked+.slider:before {
     .queue-panel {
         width: 100%;
         height: auto;
-        /* max-height: 250px; Remove limit to allow full page scroll */
-        max-height: none;
+        /* Limit height again as requested, enable internal scrolling */
+        max-height: 320px;
+        display: flex;
+        flex-direction: column;
         order: 1;
     }
 
