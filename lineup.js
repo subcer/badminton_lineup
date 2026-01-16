@@ -102,6 +102,14 @@ $(function () {
         $('.scoreboard').toggle(isChecked);
     });
 
+    // Help Modal
+    $('#helpBtn').click(function () {
+        $('#helpModal').removeClass('hidden');
+    });
+    $('#closeHelpBtn').click(function () {
+        $('#helpModal').addClass('hidden');
+    });
+
     // Search Filter
     $('#searchPlayer').on('input', function () {
         renderPlayerPool();

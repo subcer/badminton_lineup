@@ -775,3 +775,8 @@ input:checked+.slider:before {
         font-size: 0.9rem;
     }
 }
+
+.gold-border {
+    border: 1px solid var(--gold-start);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
