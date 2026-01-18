@@ -80,10 +80,16 @@
     <!-- Right Panel: Player Pool -->
     <aside class="panel players-panel">
       <div class="panel-header">
-        <h2><i class="fas fa-users"></i> 球員名單</h2>
-        <button id="addPlayerBtn" class="icon-btn"><i class="fas fa-user-plus"></i></button>
+        <h2><i class="fas fa-users"></i> 球員名單 <span id="totalPlayerCount"
+            style="margin-left: 5px; font-size: 0.9em; color: #aaa;">(0)</span></h2>
+        <!-- Auto-Sort Refresh Button -->
+        <button id="refreshLayoutBtn" class="icon-btn" title="自動排序 (重新整理)">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <button id="addPlayerBtn" class="icon-btn" title="新增球員">
+          <i class="fas fa-user-plus"></i>
+        </button>
       </div>
-
       <div class="filter-bar">
         <input type="text" id="searchPlayer" placeholder="搜尋姓名...">
       </div>
