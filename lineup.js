@@ -128,6 +128,26 @@ $(function () {
     $('#searchPlayer').on('input', function () {
         renderPlayerPool();
     });
+
+    // --- Theme Toggle LocalStorage ---
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        $('body').addClass('light-mode');
+        $('#themeToggleBtn i').removeClass('fa-sun').addClass('fa-moon');
+    }
+
+    $('#themeToggleBtn').click(function () {
+        $('body').toggleClass('light-mode');
+        const isLight = $('body').hasClass('light-mode');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        
+        const $icon = $(this).find('i');
+        if (isLight) {
+            $icon.removeClass('fa-sun').addClass('fa-moon');
+        } else {
+            $icon.removeClass('fa-moon').addClass('fa-sun');
+        }
+    });
 });
 
 // --- Firebase Listeners ---
@@ -185,10 +205,10 @@ function renderPlayerPool() {
             // Assign position if not set (Grid Layout)
             // Responsive spacing to match Chip Size
             // Mobile Chip: ~64px -> Spacing 80x90
-            // Desktop Chip: ~110px -> Spacing 120x130
+            // Desktop Chip: ~80-100px -> Spacing 95x105 (Very tight for 5 columns)
             const isDesktop = window.innerWidth > 768;
-            const itemWidth = isDesktop ? 120 : 80;
-            const itemHeight = isDesktop ? 130 : 90;
+            const itemWidth = isDesktop ? 95 : 80;
+            const itemHeight = isDesktop ? 105 : 90;
 
             const availableCols = Math.floor(Math.max(containerWidth, isDesktop ? 320 : 300) / itemWidth);
             const cols = Math.max(isDesktop ? 2 : 3, availableCols);
@@ -1037,6 +1057,12 @@ $('#refreshLayoutBtn').off('click').click(function () {
     }
 });
 
+// Sidebar Collapse Toggle
+$('#toggleSidebarBtn').off('click').click(function () {
+    $('.players-panel').toggleClass('collapsed');
+    // Save preference? (Optional, skipping for simplicity unless requested)
+});
+
 // Fix Mobile Long Press being hijacked by Context Menu
 window.addEventListener('contextmenu', function (e) {
     if (e.target.closest('.player-chip') || e.target.closest('.group-card')) {
@@ -1085,7 +1111,8 @@ function tryAutoRotate() {
         db.ref('lineup/players').update(updates);
 
         // Remove from queue (keepStatus = true, players are now fighting)
-        window.removeFromQueue(0, true);
+        // Fix: Pass null for signature so it doesn't fail
+        window.removeFromQueue(0, null, true);
 
         // Auto start timer
         startTimer(targetCourtId);
