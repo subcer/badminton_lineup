@@ -133,11 +133,11 @@ $(function () {
     });
 
     // Smart Pick Events
-    $('.form-toggle-btn').click(function() {
+    $('.form-toggle-btn').click(function () {
         $(this).toggleClass('active');
     });
 
-    $('#smartPickBtn').click(function() {
+    $('#smartPickBtn').click(function () {
         trySmartPick();
     });
 
@@ -157,7 +157,7 @@ $(function () {
         $('body').toggleClass('light-mode');
         const isLight = $('body').hasClass('light-mode');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        
+
         const $icon = $(this).find('i');
         if (isLight) {
             $icon.removeClass('fa-sun').addClass('fa-moon');
@@ -207,7 +207,7 @@ function renderPlayerPool() {
     $playerPool.empty();
     const filterText = $('#searchPlayer').val().toLowerCase();
 
-    const containerWidth = $playerPool.width() || 300;
+    const containerWidth = $playerPool[0].offsetWidth || $playerPool.width() || 300;
 
     let occupiedPositions = []; // Track occupancy to prevent overlap
     Object.keys(players).forEach(pid => {
@@ -235,9 +235,12 @@ function renderPlayerPool() {
             let needsUpdate = false;
 
             // 1. Initial Bounds Check
-            if (left === undefined || top === undefined || left > containerWidth - 20) {
+            if (left === undefined || top === undefined) {
                 left = null;
                 top = null;
+                needsUpdate = true;
+            } else if (left > containerWidth) { // 只處理極端越界，不強制回歸格線，而是貼標
+                left = containerWidth - itemWidth;
                 needsUpdate = true;
             }
 
@@ -288,10 +291,10 @@ function renderPlayerPool() {
                 }
             }
 
-            const avatarHtml = p.avatarUrl 
+            const avatarHtml = p.avatarUrl
                 ? `<img src="${p.avatarUrl}" class="avatar-img">`
                 : `<i class="fas fa-user"></i>`;
-                
+
             const playCount = p.playCount || 0;
 
             const html = `
@@ -382,14 +385,11 @@ function renderCourts() {
                 const p = players[pid];
                 if (!p) return;
 
-                const avatarHtml = p.avatarUrl 
+                const avatarHtml = p.avatarUrl
                     ? `<img src="${p.avatarUrl}" class="avatar-img">`
                     : `<i class="fas fa-user"></i>`;
-                const playCount = p.playCount || 0;
-
                 const chip = `
                     <div class="player-chip active-chip ${p.gender}" style="margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
-                        <div class="play-count-badge" title="上場次數">${playCount}</div>
                         <div class="player-avatar">${avatarHtml}</div>
                         <div class="player-name">${escapeHtml(p.name)}</div>
                     </div>
@@ -446,12 +446,10 @@ function renderQueue() {
                 <div class="group-members">
         ${group.members.map(pid => {
             const p = players[pid];
-            const avatarHtml = p.avatarUrl 
+            const avatarHtml = p.avatarUrl
                 ? `<img src="${p.avatarUrl}" class="avatar-img">`
                 : `<i class="fas fa-user"></i>`;
-            const playCount = p.playCount || 0;
             return `<div class="player-chip active-chip ${p.gender}" style="position:relative;">
-                        <div class="play-count-badge" title="上場次數">${playCount}</div>
                         <div class="player-avatar">${avatarHtml}</div>
                         <div class="player-name" style="white-space:nowrap; max-width:60px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
                     </div>`;
@@ -666,7 +664,7 @@ function initDragAndDrop() {
     dragEvents.forEach(evtName => {
         document.addEventListener(evtName, function (e) {
             let zone = e.target.closest('.drop-zone');
-            
+
             // 如果掉在 FAB 按鈕上，視為掉在 pool 區塊
             if (!zone && e.target.closest('.fab-btn')) {
                 zone = document.querySelector('.players-panel.drop-zone') || document.getElementById('playerPool');
@@ -886,21 +884,22 @@ $('#confirmAddPlayerBtn').click(() => {
         // Find used avatars
         const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url);
         const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
-        
+
         let assignedAvatar = null;
         if (availableAvatars.length > 0) {
             assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
         }
 
-        const newRef = db.ref('lineup/players').push();
-        newRef.set({
-            name: name,
-            gender: gender,
+        db.ref('lineup/players').push({
+            name,
+            gender,
             level: parseInt(level),
-            avatarUrl: assignedAvatar,
+            avatarUrl: assignedAvatar, // Store the random avatar
             status: 'idle',
             playCount: 0,
-            partners: {}
+            wins: 0,
+            losses: 0,
+            created_at: firebase.database.ServerValue.TIMESTAMP
         });
         $('#newPlayerName').val('');
         $('#modalOverlay').addClass('hidden');
@@ -964,19 +963,33 @@ $('#confirmEditPlayerBtn').click(() => {
     }
 });
 
-// Custom Confirm Helper
+// Custom Confirm Helper (確認/取消)
 window.showConfirm = function (title, message, onConfirm) {
     $('#confirmTitle').text(title);
     $('#confirmMessage').text(message);
     $('#confirmModalOverlay').removeClass('hidden');
+    $('#cancelConfirmBtn').removeClass('hidden'); // 確保確認視窗顯示取消按鈕
+    $('#doConfirmBtn').text('確定');
 
-    // Unbind previous clicks to avoid stacking logic
     $('#doConfirmBtn').off('click').on('click', function () {
         onConfirm();
         $('#confirmModalOverlay').addClass('hidden');
     });
 
     $('#cancelConfirmBtn').off('click').on('click', function () {
+        $('#confirmModalOverlay').addClass('hidden');
+    });
+};
+
+// Custom Alert Helper (只有確定)
+window.showAlert = function (title, message) {
+    $('#confirmTitle').html(`<i class="fas fa-check-circle" style="color:var(--accent-green); margin-right:8px;"></i>${title}`);
+    $('#confirmMessage').text(message);
+    $('#confirmModalOverlay').removeClass('hidden');
+    $('#cancelConfirmBtn').addClass('hidden'); // 隱藏取消按鈕
+    $('#doConfirmBtn').text('我知道了');
+
+    $('#doConfirmBtn').off('click').on('click', function () {
         $('#confirmModalOverlay').addClass('hidden');
     });
 };
@@ -988,13 +1001,14 @@ $('#deletePlayerBtn').click(() => {
             db.ref('lineup/players/' + pid).remove();
             selectedPlayers.delete(pid);
             $('#editModalOverlay').addClass('hidden');
+            showAlert('已刪除', '球員已從名單中移除');
         });
     }
 });
 
 // Reset Button Logic
 $('#resetBtn').click(() => {
-    showConfirm('系統重置', '確定要重置所有資料嗎？這將會清空場地、等待列，並重置所有球員為閒置狀態！', () => {
+    showConfirm('系統重置', '確定要重置所有資料嗎？這將會清空場地、等待列，並重置所有球員的上場次數與狀態！', () => {
         // 1. Reset Courts (Keep courts but clear players/score)
         Object.keys(courts).forEach(cid => {
             db.ref('lineup/courts/' + cid + '/players').set([]);
@@ -1007,10 +1021,13 @@ $('#resetBtn').click(() => {
         // 2. Clear Queue
         db.ref('lineup/queue').set([]);
 
-        // 3. Reset All Players to Idle
+        // 3. Reset All Players to Idle and playCount to 0 AND clear partners
         let updates = {};
         Object.keys(players).forEach(pid => {
             updates[pid + '/status'] = 'idle';
+            updates[pid + '/playCount'] = 0;
+            // 這裡直接將 partners 設為 null 以在 Firebase 中刪除
+            updates[pid + '/partners'] = null;
         });
         if (Object.keys(updates).length > 0) {
             db.ref('lineup/players').update(updates);
@@ -1066,25 +1083,28 @@ window.removeCourt = function (id) {
 };
 
 window.endGame = function (courtId) {
-    // Move players back to idle or bottom of queue?
-    // User requirement: "場上的人下來排到隊伍末端" (If auto rotation?)
-    // Usually just back to idle, or separate flow.
-    // For now: Set to Idle
-
-    // NOTE: 'updates' variable is missing in this scope in the original broken code.
-    // Assuming we need to fetch players first?
-    // Actually, 'endGame' doesn't have 'updates' defined unless I define it.
-    // BUT the broken code referred to 'updates'. 
-    // Wait, let's look at previous context. 'endGame' needs to find players on court.
     const c = courts[courtId];
     if (c && c.players) {
         let updates = {};
         const pids = c.players;
-        
-        pids.forEach(pid => {
-            if(!pid) return;
+        const scoreA = c.scoreA || 0;
+        const scoreB = c.scoreB || 0;
+
+        let isPractice = (scoreA === scoreB);
+        let teamAWins = scoreA > scoreB;
+        let teamBWins = scoreB > scoreA;
+
+        pids.forEach((pid, idx) => {
+            if (!pid) return;
             updates[pid + '/status'] = 'idle';
             updates[pid + '/playCount'] = firebase.database.ServerValue.increment(1);
+
+            if (!isPractice) {
+                if ((idx === 0 || idx === 1) && teamAWins) updates[pid + '/wins'] = firebase.database.ServerValue.increment(1);
+                if ((idx === 0 || idx === 1) && teamBWins) updates[pid + '/losses'] = firebase.database.ServerValue.increment(1);
+                if ((idx === 2 || idx === 3) && teamBWins) updates[pid + '/wins'] = firebase.database.ServerValue.increment(1);
+                if ((idx === 2 || idx === 3) && teamAWins) updates[pid + '/losses'] = firebase.database.ServerValue.increment(1);
+            }
         });
 
         // 紀錄搭檔歷史：前兩個 pids (0,1) 一隊，後兩個 pids (2,3) 一隊
@@ -1100,9 +1120,22 @@ window.endGame = function (courtId) {
         if (Object.keys(updates).length > 0) {
             db.ref('lineup/players').update(updates);
         }
+
+        // 儲存總表對戰歷史紀錄
+        if (!isPractice && pids.length >= 2) {
+            const historyRef = db.ref('lineup/history').push();
+            historyRef.set({
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                courtName: c.name || courtId, // 如果沒有名字就用 ID
+                teamA: [pids[0] || null, pids[1] || null].filter(Boolean),
+                teamB: [pids[2] || null, pids[3] || null].filter(Boolean),
+                scoreA: scoreA,
+                scoreB: scoreB
+            });
+        }
     }
 
-    // Remove game status or reset timer?
+    // Remove game status or reset timer
     db.ref('lineup/courts/' + courtId + '/startTime').remove();
     db.ref('lineup/courts/' + courtId + '/scoreA').set(0);
     db.ref('lineup/courts/' + courtId + '/scoreB').set(0);
@@ -1195,15 +1228,15 @@ function trySmartPick() {
     const allowMD = $('#toggleMD').hasClass('active');
     const allowWD = $('#toggleWD').hasClass('active');
     const allowXD = $('#toggleXD').hasClass('active');
-    
+
     // 若全都沒開，預設視為全部允許
     const allowAll = (!allowMD && !allowWD && !allowXD);
 
     // 取出所有閒置球員
     const idleIds = Object.keys(players).filter(pid => (players[pid].status === 'idle' || !players[pid].status));
-    
+
     if (idleIds.length < 4) {
-        alert("閒置球員不足 4 名，無法進行自動補人！");
+        showAlert("人數不足", "閒置球員不足 4 名，無法進行自動補人！");
         return;
     }
 
@@ -1217,7 +1250,7 @@ function trySmartPick() {
 
     // 為了效能與確保抓到最欠缺上場的人，只取前 12 名作為候選人 (12取4組合約495種)
     const candidates = idleIds.slice(0, 12);
-    
+
     // Helper: 產生組合
     function getCombinations(arr, size) {
         let result = [];
@@ -1241,13 +1274,18 @@ function trySmartPick() {
     let validCombinations = [];
 
     allCombos.forEach(combo => {
-        let mCount = 0;
-        let fCount = 0;
+        // 計算性別分佈
+        let males = [];
+        let females = [];
         combo.forEach(pid => {
-            if (players[pid].gender === 'male') mCount++;
-            else fCount++;
+            const p = players[pid];
+            const g = (p.gender || '').toLowerCase(); // 支援 male, female, 男, 女
+            if (g === 'male' || g === '男' || g.startsWith('m')) males.push(pid);
+            else females.push(pid);
         });
 
+        const mCount = males.length;
+        const fCount = females.length;
         const isMD = mCount === 4;
         const isWD = fCount === 4;
         const isXD = mCount === 2 && fCount === 2;
@@ -1255,15 +1293,15 @@ function trySmartPick() {
         if (allowAll || (allowMD && isMD) || (allowWD && isWD) || (allowXD && isXD)) {
             // 合法組合！開始評分 (越低越好)
             let score = 0;
-            
+
             // 1. 上場次數懲罰：確保盡量排到絕對次數最低的人
             let totalPlays = combo.reduce((sum, pid) => sum + (players[pid].playCount || 0), 0);
             score += totalPlays * 100;
 
-            // 2. 避免重複搭檔懲罰
-            // 一組 4 人有三種配對方式：(0,1)vs(2,3), (0,2)vs(1,3), (0,3)vs(1,2)
-            let minOverlap = 999;
+            // 2. 避免重複搭檔懲罰與性別失衡懲罰
+            let minPairScore = 999999;
             let bestPairing = null;
+            let bestOverlap = 0;
 
             const pairings = [
                 [[combo[0], combo[1]], [combo[2], combo[3]]],
@@ -1272,29 +1310,46 @@ function trySmartPick() {
             ];
 
             pairings.forEach(pair => {
-                let validPair = true;
-                if (isXD) {
-                    // 混雙必須兩邊都是 1男1女
-                    const s1m = (players[pair[0][0]].gender === 'male' ? 1 : 0) + (players[pair[0][1]].gender === 'male' ? 1 : 0);
-                    const s2m = (players[pair[1][0]].gender === 'male' ? 1 : 0) + (players[pair[1][1]].gender === 'male' ? 1 : 0);
-                    if (s1m !== 1 || s2m !== 1) validPair = false;
-                }
+                const getM = (p) => (players[p] && (players[p].gender || '').toLowerCase() === 'male' ? 1 : 0);
+                const s1m = getM(pair[0][0]) + getM(pair[0][1]);
+                const s2m = getM(pair[1][0]) + getM(pair[1][1]);
 
-                if (validPair) {
-                    let overlap1 = (players[pair[0][0]].partners && players[pair[0][0]].partners[pair[0][1]]) || 0;
-                    let overlap2 = (players[pair[1][0]].partners && players[pair[1][0]].partners[pair[1][1]]) || 0;
-                    let totalOverlap = overlap1 + overlap2;
-                    if (totalOverlap < minOverlap) {
-                        minOverlap = totalOverlap;
-                        bestPairing = pair;
-                    }
+                // 計算性別失衡程度 (兩邊男生人數差距)
+                let balancePenalty = Math.abs(s1m - s2m);
+                
+                // 核心邏輯：不論總人數分佈，配對時優先追求性別平衡
+                // 除非是 4男 或 4女，否則不平衡的配對將被給予巨大的懲罰
+                let overlap1 = (players[pair[0][0]].partners && players[pair[0][0]].partners[pair[0][1]]) || 0;
+                let overlap2 = (players[pair[1][0]].partners && players[pair[1][0]].partners[pair[1][1]]) || 0;
+                let totalOverlap = overlap1 + overlap2;
+
+                // 性別權重設為極大值 (10000)，確保它優於任何搭檔紀錄 (10)
+                let currentPairScore = totalOverlap * 10 + balancePenalty * 10000;
+
+                if (currentPairScore < minPairScore) {
+                    minPairScore = currentPairScore;
+                    bestPairing = pair;
+                    bestOverlap = totalOverlap;
                 }
             });
 
             if (bestPairing) {
-                score += minOverlap * 10;
+                // --- 萬能性別拆分邏輯 ---
+                // 不管是不是完美的 2男2女，只要這 4 個人裡面有男有女，就強制把第一對排成 1男1女
+                let finalMembers;
+                if (males.length > 0 && females.length > 0) {
+                    // 萬能配對法：一隊拿 [第一個男, 第一個女]，另一隊拿剩下的
+                    const team1 = [males[0], females[0]];
+                    const remaining = combo.filter(id => id !== males[0] && id !== females[0]);
+                    finalMembers = [team1[0], team1[1], remaining[0], remaining[1]];
+                } else {
+                    // 全男或全女，維持原始最佳配對
+                    finalMembers = [bestPairing[0][0], bestPairing[0][1], bestPairing[1][0], bestPairing[1][1]];
+                }
+
+                score += bestOverlap * 10;
                 validCombinations.push({
-                    members: bestPairing[0].concat(bestPairing[1]),
+                    members: finalMembers,
                     score: score
                 });
             }
@@ -1302,14 +1357,14 @@ function trySmartPick() {
     });
 
     if (validCombinations.length === 0) {
-        alert("目前的閒置名單無法湊出您指定的陣型（男/女/混雙）！請放寬條件或手動拖曳。");
+        showAlert("配對失敗", "目前的閒置名單無法湊出您指定的陣型！請放寬條件或手動拖曳。");
         return;
     }
 
     // 取分數最低（上場最少且較沒搭檔過）的組合
     validCombinations.sort((a, b) => a.score - b.score);
     const best = validCombinations[0];
-    
+
     // 加入等待列
     const newGroup = { members: best.members };
     const newQ = [...queue, newGroup];
@@ -1541,4 +1596,154 @@ window.addEventListener('resize', () => {
             renderPlayerPool();
         }
     }, 200);
+});
+
+// --- Leaderboard & History Logic ---
+$(document).ready(function () {
+    $('#leaderboardBtn').click(function () {
+        $('#leaderboardModalOverlay').removeClass('hidden');
+        renderLeaderboard();
+        // Trigger history load if it hasn't loaded yet
+        if (!window.historyLoaded) {
+            db.ref('lineup/history').limitToLast(50).on('value', snap => {
+                const data = snap.val() || {};
+                renderHistory(data);
+                window.historyLoaded = true;
+            });
+        }
+    });
+
+    $('#closeLeaderboardBtn').click(function () {
+        $('#leaderboardModalOverlay').addClass('hidden');
+    });
+
+    // Clear Leaderboard Data Logic
+    $('#clearLeaderboardBtn').click(() => {
+        showConfirm('清除全球紀錄', '警告：此操作將會「永久清除」所有球員的勝場、敗場、與歷史對戰比分，確定要執行嗎？', () => {
+            const entriesUpdates = {};
+            Object.keys(players).forEach(pid => {
+                entriesUpdates[pid + '/wins'] = null;     // 使用 null 徹底在 DB 刪除該欄位
+                entriesUpdates[pid + '/losses'] = null;
+                entriesUpdates[pid + '/partners'] = null; // 清除戰績時通常也代表重開一季，順便清搭檔
+            });
+            
+            // 執行批次更新與刪除歷史紀錄
+            db.ref('lineup/players').update(entriesUpdates);
+            db.ref('lineup/history').remove();
+            
+            // 強制關閉視窗讓使用者看到數據已清空
+            $('#leaderboardModalOverlay').addClass('hidden');
+            showAlert('清理完成', '所有數據已成功清除！');
+            
+            // 提示成功 (選擇性)
+            console.log("Leaderboard and history cleared.");
+            
+            // 立即重新渲染 (因為 Firebase 是非同步，監聽器會觸發，但這裡可以關閉視窗或切回首頁)
+        });
+    });
+
+    $('.lb-tab').click(function () {
+        $('.lb-tab').removeClass('active');
+        $('.lb-content').removeClass('active').addClass('hidden');
+        
+        $(this).addClass('active');
+        const target = $(this).data('tab');
+        $('#' + target).removeClass('hidden').addClass('active');
+    });
+
+    function renderLeaderboard() {
+        const lbTbody = $('#leaderboardTbody');
+        lbTbody.empty();
+
+        let lbData = [];
+        Object.keys(players).forEach(pid => {
+            const p = players[pid];
+            const wins = p.wins || 0;
+            const losses = p.losses || 0;
+            const total = wins + losses;
+            const winRate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
+
+            lbData.push({
+                pid,
+                name: p.name,
+                avatar: p.avatarUrl,
+                total,
+                wins,
+                losses,
+                winRate: parseFloat(winRate)
+            });
+        });
+
+        // Sort by winRate desc, then total desc, then wins desc
+        lbData.sort((a, b) => {
+            if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+            if (b.total !== a.total) return b.total - a.total;
+            return b.wins - a.wins;
+        });
+
+        lbData.forEach((d, index) => {
+            const rank = index + 1;
+            let rankHtml = `<span class="rank-badge">${rank}</span>`;
+            if (rank === 1) rankHtml = `<span class="rank-badge rank-1"><i class="fas fa-crown"></i></span>`;
+            else if (rank === 2) rankHtml = `<span class="rank-badge rank-2">2</span>`;
+            else if (rank === 3) rankHtml = `<span class="rank-badge rank-3">3</span>`;
+
+            const avatarHtml = d.avatar 
+                ? `<img src="${d.avatar}" alt="${d.name}">`
+                : `<div class="avatar-icon" style="width:36px; height:36px; border-radius:50%; background:#ddd; display:flex; justify-content:center; align-items:center;"><i class="fas fa-user"></i></div>`;
+
+            const html = `
+                <tr>
+                    <td>${rankHtml}</td>
+                    <td><div class="lb-player">${avatarHtml} ${d.name}</div></td>
+                    <td>${d.total}</td>
+                    <td><span style="color:var(--gold-start)">${d.wins}</span> / <span style="color:var(--text-muted)">${d.losses}</span></td>
+                    <td style="font-weight:bold;">${d.winRate}%</td>
+                </tr>
+            `;
+            lbTbody.append(html);
+        });
+    }
+
+    function renderHistory(historyData) {
+        const container = $('#historyListContainer');
+        container.empty();
+
+        const entries = Object.keys(historyData).map(k => historyData[k]);
+        entries.sort((a, b) => b.timestamp - a.timestamp); // newest first
+
+        if (entries.length === 0) {
+            container.append('<div style="text-align:center; padding:20px; color:#888;">尚未有比賽紀錄</div>');
+            return;
+        }
+
+        entries.forEach(entry => {
+            const date = new Date(entry.timestamp);
+            const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            
+            const renderPlayerRow = (pid) => {
+                const p = players[pid];
+                if (!p) return '';
+                const avatar = p.avatarUrl 
+                    ? `<img src="${p.avatarUrl}">`
+                    : `<div class="avatar-icon"><i class="fas fa-user"></i></div>`;
+                return `<div class="history-player">${avatar} <span>${p.name}</span></div>`;
+            };
+
+            const teamAHtml = (entry.teamA || []).map(pid => renderPlayerRow(pid)).join('');
+            const teamBHtml = (entry.teamB || []).map(pid => renderPlayerRow(pid)).join('');
+
+            const html = `
+                <div class="history-item">
+                    <div class="history-meta">${timeStr} · 📍 <span>${entry.courtName}</span></div>
+                    <div class="history-teams-layout">
+                        <div class="history-team-side">${teamAHtml}</div>
+                        <div class="history-score-center">${entry.scoreA} : ${entry.scoreB}</div>
+                        <div class="history-team-side side-right">${teamBHtml}</div>
+                    </div>
+                </div>
+            `;
+            container.append(html);
+        });
+    }
 });

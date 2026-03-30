@@ -1335,3 +1335,189 @@ input:checked+.slider:before {
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+.lb-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.lb-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.lb-tab:hover {
+    color: var(--text-main);
+    background: var(--bg-silver);
+}
+
+.lb-tab.active {
+    color: var(--gold-start);
+    border-bottom: 3px solid var(--gold-start);
+}
+
+.lb-content {
+    display: none;
+}
+
+.lb-content.active {
+    display: block;
+}
+
+.lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.lb-table th, .lb-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.lb-table th {
+    color: var(--gold-end);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.lb-table tr:hover {
+    background: rgba(212, 175, 55, 0.05);
+}
+
+/* Rank Medals */
+.rank-badge {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-weight: 900;
+    color: #fff;
+    background: #bbb; /* Default silver-ish gray */
+}
+
+.rank-1 {
+    background: linear-gradient(135deg, #FFDF73, #D4AF37);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.5);
+}
+
+.rank-2 {
+    background: linear-gradient(135deg, #E0E0E0, #9E9E9E);
+    box-shadow: 0 2px 8px rgba(158, 158, 158, 0.4);
+}
+
+.rank-3 {
+    background: linear-gradient(135deg, #FFB74D, #a46e2f);
+    box-shadow: 0 2px 8px rgba(164, 110, 47, 0.5);
+}
+
+.lb-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+}
+
+.lb-player img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold-start);
+}
+
+/* History List */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.history-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: bold;
+}
+
+.history-teams-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.history-team-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.history-team-side.side-right {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.history-player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.history-team-side.side-right .history-player {
+    flex-direction: row-reverse;
+}
+
+.history-player img, .history-player .avatar-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #e8e4e1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+}
+
+.history-score-center {
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--brand-end);
+    background: rgba(133, 59, 81, 0.1);
+    padding: 6px 16px;
+    border-radius: 12px;
+    white-space: nowrap;
+    min-width: 90px;
+    text-align: center;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+}
