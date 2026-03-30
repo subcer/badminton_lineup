@@ -64,10 +64,20 @@
 
     <!-- Left Panel: Waiting Queue -->
     <aside class="panel queue-panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-hourglass-half"></i> 等待列 (Queue)</h2>
-        <div class="queue-stats">
-          <span id="queueCount">0</span> 組等待中
+      <div class="panel-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2><i class="fas fa-hourglass-half"></i> 等待列 (Queue)</h2>
+          <div class="queue-stats">
+            <span id="queueCount">0</span> 組等待中
+          </div>
+        </div>
+        <div class="smart-pick-controls" style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 4px 6px; background: var(--bg-color-dark);">
+          <div class="formation-toggles" style="display: flex; gap: 4px;">
+            <button id="toggleMD" class="form-toggle-btn" data-type="MD" title="優先配男雙">男雙</button>
+            <button id="toggleWD" class="form-toggle-btn" data-type="WD" title="優先配女雙">女雙</button>
+            <button id="toggleXD" class="form-toggle-btn" data-type="XD" title="優先配混雙">混雙</button>
+          </div>
+          <button id="smartPickBtn" class="btn btn-danger btn-sm" style="border-radius: 12px; box-shadow: 0 2px 4px rgba(133,59,81,0.3); padding: 4px 10px; font-size: 0.8rem;"><i class="fas fa-magic"></i> 智能補人</button>
         </div>
       </div>
       <div id="queueContainer" class="queue-list drop-zone" data-type="queue">
@@ -90,7 +100,7 @@
     </main>
 
     <!-- Right Panel: Player Pool -->
-    <aside class="panel players-panel">
+    <aside class="panel players-panel drop-zone" data-type="pool">
       <div class="panel-header">
         <h2><i class="fas fa-users"></i> 球員名單</h2>
         <button id="addPlayerBtn" class="icon-btn"><i class="fas fa-user-plus"></i></button>

@@ -132,6 +132,15 @@ $(function () {
         $('#helpModal').addClass('hidden');
     });
 
+    // Smart Pick Events
+    $('.form-toggle-btn').click(function() {
+        $(this).toggleClass('active');
+    });
+
+    $('#smartPickBtn').click(function() {
+        trySmartPick();
+    });
+
     // Search Filter
     $('#searchPlayer').on('input', function () {
         renderPlayerPool();
@@ -226,7 +235,7 @@ function renderPlayerPool() {
             let needsUpdate = false;
 
             // 1. Initial Bounds Check
-            if (left === undefined || top === undefined || left > containerWidth - 50) {
+            if (left === undefined || top === undefined || left > containerWidth - 20) {
                 left = null;
                 top = null;
                 needsUpdate = true;
@@ -282,12 +291,15 @@ function renderPlayerPool() {
             const avatarHtml = p.avatarUrl 
                 ? `<img src="${p.avatarUrl}" class="avatar-img">`
                 : `<i class="fas fa-user"></i>`;
+                
+            const playCount = p.playCount || 0;
 
             const html = `
                 <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''}" 
                      id="player-${pid}" data-id="${pid}" draggable="true"
                      style="left: ${left}px; top: ${top}px; position: absolute;">
-                    <div class="player-level">${p.level}</div>
+                    <div class="play-count-badge" title="上場次數">${playCount}</div>
+                    <div class="player-level" title="程度">${p.level}</div>
                     <div class="player-avatar">${avatarHtml}</div>
                     <div class="player-name">${escapeHtml(p.name)}</div>
                 </div>
@@ -373,9 +385,11 @@ function renderCourts() {
                 const avatarHtml = p.avatarUrl 
                     ? `<img src="${p.avatarUrl}" class="avatar-img">`
                     : `<i class="fas fa-user"></i>`;
+                const playCount = p.playCount || 0;
 
                 const chip = `
                     <div class="player-chip active-chip ${p.gender}" style="margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
+                        <div class="play-count-badge" title="上場次數">${playCount}</div>
                         <div class="player-avatar">${avatarHtml}</div>
                         <div class="player-name">${escapeHtml(p.name)}</div>
                     </div>
@@ -430,12 +444,14 @@ function renderQueue() {
                     <div class="group-remove" style="position:static;" onclick="event.stopPropagation(); removeFromQueue(${idx}, '${groupSig}')">×</div>
                 </div>
                 <div class="group-members">
-                ${group.members.map(pid => {
+        ${group.members.map(pid => {
             const p = players[pid];
             const avatarHtml = p.avatarUrl 
                 ? `<img src="${p.avatarUrl}" class="avatar-img">`
                 : `<i class="fas fa-user"></i>`;
+            const playCount = p.playCount || 0;
             return `<div class="player-chip active-chip ${p.gender}" style="position:relative;">
+                        <div class="play-count-badge" title="上場次數">${playCount}</div>
                         <div class="player-avatar">${avatarHtml}</div>
                         <div class="player-name" style="white-space:nowrap; max-width:60px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
                     </div>`;
@@ -649,7 +665,13 @@ function initDragAndDrop() {
 
     dragEvents.forEach(evtName => {
         document.addEventListener(evtName, function (e) {
-            const zone = e.target.closest('.drop-zone');
+            let zone = e.target.closest('.drop-zone');
+            
+            // 如果掉在 FAB 按鈕上，視為掉在 pool 區塊
+            if (!zone && e.target.closest('.fab-btn')) {
+                zone = document.querySelector('.players-panel.drop-zone') || document.getElementById('playerPool');
+            }
+
             if (!zone) return;
 
             if (evtName === 'dragover') {
@@ -707,9 +729,9 @@ function handleDrop(data, zone, targetElement, clientPos) {
             let baseX = cx - rect.left - (data.offsetX || 30);
             let baseY = cy - rect.top - (data.offsetY || 30);
 
-            // Boundary checks
-            const w = $playerPool.width();
-            const h = $playerPool.height();
+            // Boundary checks using offsetWidth to include padding and avoid aggressive left-clamping
+            const w = $playerPool[0].offsetWidth;
+            const h = $playerPool[0].offsetHeight;
 
             let updates = {};
             pids.forEach((pid, idx) => {
@@ -717,9 +739,9 @@ function handleDrop(data, zone, targetElement, clientPos) {
                 let x = baseX + (idx * 5);
                 let y = baseY + (idx * 5);
 
-                // Clamp
-                x = Math.max(0, Math.min(x, w - 60));
-                y = Math.max(0, Math.min(y, h - 60));
+                // Clamp less aggressively (allow touching right padding)
+                x = Math.max(0, Math.min(x, w - 70));
+                y = Math.max(0, Math.min(y, h - 70));
 
                 updates[pid + '/x'] = x;
                 updates[pid + '/y'] = y;
@@ -846,6 +868,7 @@ $('#addCourtBtn').click(() => {
     });
 });
 
+
 $('#addPlayerBtn').click(() => {
     $('#modalOverlay').removeClass('hidden');
 });
@@ -875,7 +898,9 @@ $('#confirmAddPlayerBtn').click(() => {
             gender: gender,
             level: parseInt(level),
             avatarUrl: assignedAvatar,
-            status: 'idle'
+            status: 'idle',
+            playCount: 0,
+            partners: {}
         });
         $('#newPlayerName').val('');
         $('#modalOverlay').addClass('hidden');
@@ -1054,7 +1079,24 @@ window.endGame = function (courtId) {
     const c = courts[courtId];
     if (c && c.players) {
         let updates = {};
-        c.players.forEach(pid => updates[pid + '/status'] = 'idle');
+        const pids = c.players;
+        
+        pids.forEach(pid => {
+            if(!pid) return;
+            updates[pid + '/status'] = 'idle';
+            updates[pid + '/playCount'] = firebase.database.ServerValue.increment(1);
+        });
+
+        // 紀錄搭檔歷史：前兩個 pids (0,1) 一隊，後兩個 pids (2,3) 一隊
+        if (pids[0] && pids[1]) {
+            updates[pids[0] + '/partners/' + pids[1]] = firebase.database.ServerValue.increment(1);
+            updates[pids[1] + '/partners/' + pids[0]] = firebase.database.ServerValue.increment(1);
+        }
+        if (pids[2] && pids[3]) {
+            updates[pids[2] + '/partners/' + pids[3]] = firebase.database.ServerValue.increment(1);
+            updates[pids[3] + '/partners/' + pids[2]] = firebase.database.ServerValue.increment(1);
+        }
+
         if (Object.keys(updates).length > 0) {
             db.ref('lineup/players').update(updates);
         }
@@ -1146,6 +1188,136 @@ function tryAutoRotate() {
         // Auto start timer
         startTimer(targetCourtId);
     }
+}
+
+function trySmartPick() {
+    // 取得目前啟用的陣型開關
+    const allowMD = $('#toggleMD').hasClass('active');
+    const allowWD = $('#toggleWD').hasClass('active');
+    const allowXD = $('#toggleXD').hasClass('active');
+    
+    // 若全都沒開，預設視為全部允許
+    const allowAll = (!allowMD && !allowWD && !allowXD);
+
+    // 取出所有閒置球員
+    const idleIds = Object.keys(players).filter(pid => (players[pid].status === 'idle' || !players[pid].status));
+    
+    if (idleIds.length < 4) {
+        alert("閒置球員不足 4 名，無法進行自動補人！");
+        return;
+    }
+
+    // 將閒置球員依上場次數由小到大排序（若次數相同，稍微打亂增加新鮮感）
+    idleIds.sort((a, b) => {
+        const pA = players[a].playCount || 0;
+        const pB = players[b].playCount || 0;
+        if (pA !== pB) return pA - pB;
+        return Math.random() - 0.5;
+    });
+
+    // 為了效能與確保抓到最欠缺上場的人，只取前 12 名作為候選人 (12取4組合約495種)
+    const candidates = idleIds.slice(0, 12);
+    
+    // Helper: 產生組合
+    function getCombinations(arr, size) {
+        let result = [];
+        let temp = [];
+        function recurse(start) {
+            if (temp.length === size) {
+                result.push([...temp]);
+                return;
+            }
+            for (let i = start; i < arr.length; i++) {
+                temp.push(arr[i]);
+                recurse(i + 1);
+                temp.pop();
+            }
+        }
+        recurse(0);
+        return result;
+    }
+
+    const allCombos = getCombinations(candidates, 4);
+    let validCombinations = [];
+
+    allCombos.forEach(combo => {
+        let mCount = 0;
+        let fCount = 0;
+        combo.forEach(pid => {
+            if (players[pid].gender === 'male') mCount++;
+            else fCount++;
+        });
+
+        const isMD = mCount === 4;
+        const isWD = fCount === 4;
+        const isXD = mCount === 2 && fCount === 2;
+
+        if (allowAll || (allowMD && isMD) || (allowWD && isWD) || (allowXD && isXD)) {
+            // 合法組合！開始評分 (越低越好)
+            let score = 0;
+            
+            // 1. 上場次數懲罰：確保盡量排到絕對次數最低的人
+            let totalPlays = combo.reduce((sum, pid) => sum + (players[pid].playCount || 0), 0);
+            score += totalPlays * 100;
+
+            // 2. 避免重複搭檔懲罰
+            // 一組 4 人有三種配對方式：(0,1)vs(2,3), (0,2)vs(1,3), (0,3)vs(1,2)
+            let minOverlap = 999;
+            let bestPairing = null;
+
+            const pairings = [
+                [[combo[0], combo[1]], [combo[2], combo[3]]],
+                [[combo[0], combo[2]], [combo[1], combo[3]]],
+                [[combo[0], combo[3]], [combo[1], combo[2]]]
+            ];
+
+            pairings.forEach(pair => {
+                let validPair = true;
+                if (isXD) {
+                    // 混雙必須兩邊都是 1男1女
+                    const s1m = (players[pair[0][0]].gender === 'male' ? 1 : 0) + (players[pair[0][1]].gender === 'male' ? 1 : 0);
+                    const s2m = (players[pair[1][0]].gender === 'male' ? 1 : 0) + (players[pair[1][1]].gender === 'male' ? 1 : 0);
+                    if (s1m !== 1 || s2m !== 1) validPair = false;
+                }
+
+                if (validPair) {
+                    let overlap1 = (players[pair[0][0]].partners && players[pair[0][0]].partners[pair[0][1]]) || 0;
+                    let overlap2 = (players[pair[1][0]].partners && players[pair[1][0]].partners[pair[1][1]]) || 0;
+                    let totalOverlap = overlap1 + overlap2;
+                    if (totalOverlap < minOverlap) {
+                        minOverlap = totalOverlap;
+                        bestPairing = pair;
+                    }
+                }
+            });
+
+            if (bestPairing) {
+                score += minOverlap * 10;
+                validCombinations.push({
+                    members: bestPairing[0].concat(bestPairing[1]),
+                    score: score
+                });
+            }
+        }
+    });
+
+    if (validCombinations.length === 0) {
+        alert("目前的閒置名單無法湊出您指定的陣型（男/女/混雙）！請放寬條件或手動拖曳。");
+        return;
+    }
+
+    // 取分數最低（上場最少且較沒搭檔過）的組合
+    validCombinations.sort((a, b) => a.score - b.score);
+    const best = validCombinations[0];
+    
+    // 加入等待列
+    const newGroup = { members: best.members };
+    const newQ = [...queue, newGroup];
+    db.ref('lineup/queue').set(newQ);
+
+    let updates = {};
+    best.members.forEach(pid => updates[pid + '/status'] = 'queued');
+    db.ref('lineup/players').update(updates);
 }
 
 window.escapeHtml = function (text) {
@@ -1337,6 +1509,10 @@ function initTouchDrag() {
                 if (touch) {
                     let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
                     let zone = dropTarget ? dropTarget.closest('.drop-zone') : null;
+
+                    if (!zone && dropTarget && dropTarget.closest('.fab-btn')) {
+                        zone = document.querySelector('.players-panel.drop-zone') || document.getElementById('playerPool');
+                    }
 
                     if (zone) {
                         handleDrop(activeDrag.payload, zone, dropTarget, { clientX: touch.clientX, clientY: touch.clientY });
