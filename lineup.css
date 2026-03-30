@@ -844,9 +844,27 @@ body::after {
     align-items: center;
     justify-content: center;
     font-size: calc(var(--chip-size) * 0.25);
+    position: relative;
     background: #e8e4e1;
     color: transparent;
+
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    /* Cover the background paw badge if image exists */
+}
+
+.player-avatar i {
     position: relative;
+    z-index: 1;
 }
 
 /* Inner big faint paw */

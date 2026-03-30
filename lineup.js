@@ -20,6 +20,14 @@ let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let timers = {}; // Stores interval IDs for courts
 
+const AVATAR_POOL = [
+    'avatars/cat_1.png', 'avatars/cat_2.png', 'avatars/cat_3.png', 'avatars/cat_4.png',
+    'avatars/cat_5.png', 'avatars/cat_6.png', 'avatars/cat_7.png', 'avatars/cat_8.png',
+    'avatars/cat_9.png', 'avatars/cat_10.png', 'avatars/cat_11.png', 'avatars/cat_12.png',
+    'avatars/cat_13.png', 'avatars/cat_14.png', 'avatars/cat_15.png', 'avatars/cat_16.png',
+    'avatars/cat_17.png'
+];
+
 // DOM Elements
 const $courtsContainer = $('#courtsContainer');
 const $playerPool = $('#playerPool');
@@ -271,12 +279,16 @@ function renderPlayerPool() {
                 }
             }
 
+            const avatarHtml = p.avatarUrl 
+                ? `<img src="${p.avatarUrl}" class="avatar-img">`
+                : `<i class="fas fa-user"></i>`;
+
             const html = `
                 <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''}" 
                      id="player-${pid}" data-id="${pid}" draggable="true"
                      style="left: ${left}px; top: ${top}px; position: absolute;">
                     <div class="player-level">${p.level}</div>
-                    <div class="player-avatar"><i class="fas fa-user"></i></div>
+                    <div class="player-avatar">${avatarHtml}</div>
                     <div class="player-name">${escapeHtml(p.name)}</div>
                 </div>
     `;
@@ -358,9 +370,13 @@ function renderCourts() {
                 const p = players[pid];
                 if (!p) return;
 
+                const avatarHtml = p.avatarUrl 
+                    ? `<img src="${p.avatarUrl}" class="avatar-img">`
+                    : `<i class="fas fa-user"></i>`;
+
                 const chip = `
                     <div class="player-chip active-chip ${p.gender}" style="margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
-                        <div class="player-avatar"><i class="fas fa-user"></i></div>
+                        <div class="player-avatar">${avatarHtml}</div>
                         <div class="player-name">${escapeHtml(p.name)}</div>
                     </div>
                 `;
@@ -416,8 +432,11 @@ function renderQueue() {
                 <div class="group-members">
                 ${group.members.map(pid => {
             const p = players[pid];
+            const avatarHtml = p.avatarUrl 
+                ? `<img src="${p.avatarUrl}" class="avatar-img">`
+                : `<i class="fas fa-user"></i>`;
             return `<div class="player-chip active-chip ${p.gender}" style="position:relative;">
-                        <div class="player-avatar"><i class="fas fa-user"></i></div>
+                        <div class="player-avatar">${avatarHtml}</div>
                         <div class="player-name" style="white-space:nowrap; max-width:60px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
                     </div>`;
         }).join('')}
@@ -841,11 +860,21 @@ $('#confirmAddPlayerBtn').click(() => {
     const level = $('#newPlayerLevel').val();
 
     if (name) {
+        // Find used avatars
+        const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url);
+        const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
+        
+        let assignedAvatar = null;
+        if (availableAvatars.length > 0) {
+            assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+        }
+
         const newRef = db.ref('lineup/players').push();
         newRef.set({
             name: name,
             gender: gender,
             level: parseInt(level),
+            avatarUrl: assignedAvatar,
             status: 'idle'
         });
         $('#newPlayerName').val('');
