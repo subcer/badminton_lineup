@@ -184,11 +184,9 @@ body.light-mode #systemLockOverlay .modal {
     border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-/* Court gradient in light mode */
 body.light-mode .court-visual {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
-    background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
+    border: none;
+    box-shadow: none;
 }
 
 * {
@@ -494,19 +492,19 @@ body::after {
 .court-card {
     background: #ffffff;
     border-radius: 40px;
-    border: none;
-    padding: 16px;
+    border: none !important;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     transition: all 0.3s;
-    min-height: 300px;
+    min-height: 480px;
     box-shadow: 0 10px 30px rgba(133, 59, 81, 0.05);
 }
 
 /* Active State - Subtle Glow */
 .court-card.active {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.05), inset 0 0 20px rgba(212, 175, 55, 0.02);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
 }
 
 .court-header {
@@ -539,24 +537,24 @@ body::after {
 .court-body {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     position: relative;
-    padding-bottom: 24px;
-    /* for overlapping scoreboard */
+    padding-bottom: 0;
 }
 
 .court-visual {
     width: 100%;
-    height: 100%;
-    min-height: 180px;
-    background: #22441e;
+    height: auto;
+    min-height: 280px;
+    background: #22441e !important;
     border-radius: 40px;
-    border: none;
+    border: none !important;
     position: relative;
     display: grid;
     grid-template-rows: 1fr auto 1fr;
     box-shadow: none;
+    margin-bottom: 44px;
 }
 
 .court-net {
@@ -585,35 +583,36 @@ body::after {
 
 .scoreboard {
     position: absolute;
-    bottom: -15px;
+    bottom: -28px;
     left: 50%;
     transform: translateX(-50%);
     background: #ffffff;
     padding: 10px 40px;
     border-radius: 40px;
-    box-shadow: 0 10px 20px rgba(133, 59, 81, 0.15);
+    box-shadow: 0 6px 16px rgba(133, 59, 81, 0.15);
     z-index: 5;
     display: flex;
     gap: 16px;
     align-items: center;
     font-size: 2.2rem;
     font-weight: 800;
-    color: var(--gold-start);
+    color: #933853;
 }
 
 .score {
-    color: var(--gold-start);
+    color: #933853;
     cursor: pointer;
     min-width: 32px;
     text-align: center;
 }
 
 .scoreboard span {
-    color: rgba(133, 59, 81, 0.4);
+    color: #bfa1ac;
 }
 
 .court-actions {
-    padding: 24px 0 0 0;
+    padding: 0;
+    margin-top: 0;
     background: transparent;
     display: flex;
     justify-content: center;
@@ -764,20 +763,21 @@ body::after {
 
 /* Red Box 2: Horizontal layout and white text inside Court */
 .court-card .player-chip {
-    flex-direction: row;
+    flex-direction: row !important;
     gap: 8px;
     padding: 4px;
 }
 
 .court-card .player-chip .player-avatar {
-    margin-bottom: 0;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    box-shadow: none;
+    margin-bottom: 0 !important;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .court-card .player-chip .player-name {
     color: #ffffff;
     text-align: left;
+    white-space: nowrap;
 }
 
 /* Remove old .small logic */
