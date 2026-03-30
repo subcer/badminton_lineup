@@ -61,6 +61,9 @@
       </div>
       <button id="themeToggleBtn" class="icon-btn" title="切換風格主題"
         style="width: 38px; height: 38px; font-size: 1.1rem;"><i class="fas fa-sun"></i></button>
+      <button id="leaderboardBtn" class="btn btn-silver" title="戰績排行榜">
+        <i class="fas fa-trophy" style="color:var(--gold-start)"></i> 排行榜
+      </button>
       <button id="helpBtn" class="btn btn-silver"><i class="fas fa-question-circle"></i> 說明</button>
       <button id="resetBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> 重置</button>
     </div>
@@ -197,7 +200,7 @@
   </div>
 
   <!-- Confirm Modal -->
-  <div id="confirmModalOverlay" class="modal-overlay hidden">
+  <div id="confirmModalOverlay" class="modal-overlay hidden" style="z-index: 3000;">
     <div class="modal gold-border" style="width: 400px;">
       <h3 id="confirmTitle" style="margin-top:0;">確認</h3>
       <p id="confirmMessage" style="color:#ddd; margin-bottom:20px;">內容</p>
@@ -211,6 +214,52 @@
   <!-- Floating Action Button for Mobile/Quick Add -->
   <div id="quickAddBtn" class="fab-btn hidden">
     <i class="fas fa-plus"></i> 加入列隊
+  </div>
+
+  <!-- Leaderboard Modal -->
+  <div id="leaderboardModalOverlay" class="modal-overlay hidden">
+    <div class="modal gold-border" style="width: 600px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;"><i class="fas fa-trophy" style="color:var(--gold-start)"></i> 賽果與排行榜</h2>
+        <div style="display: flex; gap: 8px;">
+          <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="清除所有戰績歷史" style="padding: 4px 10px; font-size: 0.8rem;">
+            <i class="fas fa-trash-alt"></i> 清除紀錄
+          </button>
+          <button id="closeLeaderboardBtn" class="btn btn-silver" style="padding: 4px 10px; font-size: 1.1rem;"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-tab="tab-leaderboard">勝率排行榜</button>
+        <button class="lb-tab" data-tab="tab-history">歷史比分</button>
+      </div>
+
+      <!-- Tab Content: Leaderboard -->
+      <div id="tab-leaderboard" class="lb-content active" style="flex: 1; overflow-y: auto;">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>名次</th>
+              <th>球員</th>
+              <th>總計</th>
+              <th>勝 / 敗</th>
+              <th>勝率</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTbody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab Content: History -->
+      <div id="tab-history" class="lb-content hidden" style="flex: 1; overflow-y: auto;">
+        <div id="historyListContainer" class="history-list">
+            <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- System Lock Overlay -->
