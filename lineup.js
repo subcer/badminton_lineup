@@ -193,7 +193,7 @@ $(function () {
                 db.ref('lineup/players').update(updates);
                 
                 // Remove from queue (keep status)
-                const groupSig = group.members.sort().join(',');
+                const groupSig = [...group.members].sort().join(',');
                 window.removeFromQueue(idx, groupSig, true);
                 
                 // Start timer
@@ -481,7 +481,7 @@ function renderQueue() {
 
     queue.forEach((group, idx) => {
         const isMobile = window.innerWidth <= 768;
-        const groupSig = group.members.sort().join(',');
+        const groupSig = [...group.members].sort().join(',');
         const groupHtml = `
             <div class="group-card" data-gid="${idx}" draggable="${!isMobile}">
                 <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1096,7 +1096,7 @@ window.removeFromQueue = function (idx, signature = null, keepStatus = false) {
     // Safety check: Prevent double-deletion of shifting indices
     // If signature is provided, verify it matches
     if (signature) {
-        const currentSig = queue[idx].members.sort().join(',');
+        const currentSig = [...queue[idx].members].sort().join(',');
         if (currentSig !== signature) {
             console.warn("Delete blocked: Group signature mismatch. Likely double-click race condition.");
             return;
@@ -1322,13 +1322,18 @@ function trySmartPick() {
     let validCombinations = [];
 
     allCombos.forEach(combo => {
-        // 計算性別分佈
+        // --- 核心輔助：性別偵測與分組 ---
+        const isMale = (pid) => {
+            const p = players[pid];
+            if (!p || !p.gender) return false;
+            const g = p.gender.toLowerCase();
+            return (g === 'male' || g === '男' || g.startsWith('m'));
+        };
+
         let males = [];
         let females = [];
         combo.forEach(pid => {
-            const p = players[pid];
-            const g = (p.gender || '').toLowerCase(); // 支援 male, female, 男, 女
-            if (g === 'male' || g === '男' || g.startsWith('m')) males.push(pid);
+            if (isMale(pid)) males.push(pid);
             else females.push(pid);
         });
 
@@ -1358,9 +1363,8 @@ function trySmartPick() {
             ];
 
             pairings.forEach(pair => {
-                const getM = (p) => (players[p] && (players[p].gender || '').toLowerCase() === 'male' ? 1 : 0);
-                const s1m = getM(pair[0][0]) + getM(pair[0][1]);
-                const s2m = getM(pair[1][0]) + getM(pair[1][1]);
+                const s1m = (isMale(pair[0][0]) ? 1 : 0) + (isMale(pair[0][1]) ? 1 : 0);
+                const s2m = (isMale(pair[1][0]) ? 1 : 0) + (isMale(pair[1][1]) ? 1 : 0);
 
                 // 計算性別失衡程度 (兩邊男生人數差距)
                 let balancePenalty = Math.abs(s1m - s2m);
@@ -1382,16 +1386,20 @@ function trySmartPick() {
             });
 
             if (bestPairing) {
-                // --- 萬能性別拆分邏輯 ---
-                // 不管是不是完美的 2男2女，只要這 4 個人裡面有男有女，就強制把第一對排成 1男1女
+                // --- 混雙與性別排序邏輯 ---
+                // 核心目的：確保 Team 1 是 (0,1)，Team 2 是 (2,3)
+                // 如果偵測到 2男2女 (混雙)，強制排成 [男1, 女1, 男2, 女2]
                 let finalMembers;
-                if (males.length > 0 && females.length > 0) {
-                    // 萬能配對法：一隊拿 [第一個男, 第一個女]，另一隊拿剩下的
+                if (males.length === 2 && females.length === 2) {
+                    // 強制混合排列！
+                    finalMembers = [males[0], females[0], males[1], females[1]];
+                } else if (males.length > 0 && females.length > 0) {
+                    // 若不是完美 2男2女，但有混和，則盡量讓第一對是混雙
                     const team1 = [males[0], females[0]];
                     const remaining = combo.filter(id => id !== males[0] && id !== females[0]);
                     finalMembers = [team1[0], team1[1], remaining[0], remaining[1]];
                 } else {
-                    // 全男或全女，維持原始最佳配對
+                    // 全男或全女，維持原始最佳配對順序 [A, B, C, D]
                     finalMembers = [bestPairing[0][0], bestPairing[0][1], bestPairing[1][0], bestPairing[1][1]];
                 }
 
