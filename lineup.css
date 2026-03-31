@@ -175,6 +175,11 @@ body.light-mode #systemLockOverlay {
     backdrop-filter: blur(8px);
 }
 
+#systemLockOverlay h3 {
+    color: var(--gold-start);
+    font-weight: 800;
+}
+
 body.light-mode #systemLockOverlay h3 {
     color: var(--text-main) !important;
     font-weight: 800;
