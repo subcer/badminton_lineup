@@ -737,8 +737,10 @@ function initDragAndDrop() {
     });
 
 
-    // Initialize Touch Drag for Mobile
-    initTouchDrag();
+    // Initialize Touch Drag for Mobile (Only if not already blocked)
+    if (window.innerWidth > 768) {
+        initTouchDrag();
+    }
 }
 /*
     // Drop Zones (Legacy - Removed for Delegation)

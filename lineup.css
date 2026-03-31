@@ -1335,6 +1335,10 @@ input:checked+.slider:before {
     }
 
     /* --- Mobile Selection Enhancements --- */
+    .player-chip * {
+        pointer-events: none; /* Make the whole chip a unified hit target */
+    }
+
     .player-chip.selected {
         transform: scale(1.1) !important;
         z-index: 30;
