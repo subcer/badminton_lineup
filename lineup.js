@@ -335,13 +335,19 @@ function renderPlayerPool() {
 
             const playCount = p.playCount || 0;
 
+            const isMobile = window.innerWidth <= 768;
+            const selectedMark = (isSelected && isMobile) ? `<div class="selected-mark"><i class="fas fa-check"></i></div>` : '';
+
             const html = `
                 <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''}" 
-                     id="player-${pid}" data-id="${pid}" draggable="true"
+                     id="player-${pid}" data-id="${pid}" draggable="${!isMobile}"
                      style="left: ${left}px; top: ${top}px; position: absolute;">
                     <div class="play-count-badge" title="上場次數">${playCount}</div>
                     <div class="player-level" title="程度">${p.level}</div>
-                    <div class="player-avatar">${avatarHtml}</div>
+                    <div class="player-avatar">
+                        ${avatarHtml}
+                        ${selectedMark}
+                    </div>
                     <div class="player-name">${escapeHtml(p.name)}</div>
                 </div>
     `;
