@@ -165,6 +165,44 @@ $(function () {
             $icon.removeClass('fa-moon').addClass('fa-sun');
         }
     });
+
+    // --- Mobile Click-to-Start match logic for Queue ---
+    $queueContainer.on('click', '.group-card', function (e) {
+        if (window.innerWidth > 768) return; // Desktop still uses drag-and-drop
+        if (e.target.closest('.group-remove')) return; // Ignore if user clicked the delete button
+
+        const idx = $(this).data('gid');
+        const group = queue[idx];
+        if (!group) return;
+
+        // Find first empty court
+        const emptyCourtId = Object.keys(courts).find(cid => {
+            const c = courts[cid];
+            return !c.players || c.players.length === 0;
+        });
+
+        if (emptyCourtId) {
+            const courtName = courts[emptyCourtId].name || emptyCourtId;
+            window.showConfirm("準備開賽", `確定要在「場地 ${courtName}」進行下場比賽嗎？`, () => {
+                // Assign group to court
+                db.ref('lineup/courts/' + emptyCourtId + '/players').set(group.members);
+                
+                // Update player status to fighting
+                let updates = {};
+                group.members.forEach(pid => updates[pid + '/status'] = 'fighting');
+                db.ref('lineup/players').update(updates);
+                
+                // Remove from queue (keep status)
+                const groupSig = group.members.sort().join(',');
+                window.removeFromQueue(idx, groupSig, true);
+                
+                // Start timer
+                window.startTimer(emptyCourtId);
+            });
+        } else {
+            window.showAlert("場地全滿", "目前所有場地皆在比賽中，請稍候。");
+        }
+    });
 });
 
 // --- Firebase Listeners ---
@@ -436,9 +474,10 @@ function renderQueue() {
     }
 
     queue.forEach((group, idx) => {
+        const isMobile = window.innerWidth <= 768;
         const groupSig = group.members.sort().join(',');
         const groupHtml = `
-            <div class="group-card" data-gid="${idx}" draggable="true">
+            <div class="group-card" data-gid="${idx}" draggable="${!isMobile}">
                 <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                     <div class="group-title" style="font-size:0.8rem;color:#888;">Group ${idx + 1}</div>
                     <div class="group-remove" style="position:static;" onclick="event.stopPropagation(); removeFromQueue(${idx}, '${groupSig}')">×</div>
@@ -607,6 +646,7 @@ function initDragAndDrop() {
     // HTML5 drag events bubble.
 
     document.addEventListener('dragstart', function (e) {
+        if (window.innerWidth <= 768) return; // Block dragging on mobile
         const target = e.target.closest('.player-chip');
         const groupTarget = e.target.closest('.group-card');
 

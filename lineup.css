@@ -160,6 +160,7 @@ body.light-mode .slider {
     background-color: rgba(0, 0, 0, 0.15);
 }
 
+body.light-mode #confirmTitle,
 body.light-mode #confirmMessage {
     color: var(--text-main) !important;
 }
@@ -1252,8 +1253,8 @@ input:checked+.slider:before {
         width: 100%;
         min-width: 0;
         flex-direction: column;
-        /* Keep vertical stack of Header + Grid */
-        /* ... */
+        cursor: pointer; /* Changed from grab for better mobile experience */
+        touch-action: pan-y; /* Ensure vertical scrolling takes priority */
         gap: 4px;
     }
 
