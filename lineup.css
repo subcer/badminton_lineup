@@ -1199,9 +1199,14 @@ input:checked+.slider:before {
         bottom: -10px;
         right: -10px;
     }
+
+    .panel {
+        padding: 0px !important;
+    }
 }
 
 @media (max-width: 768px) {
+
     body {
         /* Allow body to stretch and scroll naturally on mobile */
         height: auto;
@@ -1258,8 +1263,10 @@ input:checked+.slider:before {
         width: 100%;
         min-width: 0;
         flex-direction: column;
-        cursor: pointer; /* Changed from grab for better mobile experience */
-        touch-action: pan-y; /* Ensure vertical scrolling takes priority */
+        cursor: pointer;
+        /* Changed from grab for better mobile experience */
+        touch-action: pan-y;
+        /* Ensure vertical scrolling takes priority */
         gap: 4px;
     }
 
@@ -1287,6 +1294,8 @@ input:checked+.slider:before {
     .court-card {
         min-height: 280px;
     }
+
+
 
     .players-panel {
         width: 100%;
@@ -1324,9 +1333,20 @@ input:checked+.slider:before {
     }
 
     @keyframes fabPulse {
-        0% { transform: scale(1); box-shadow: 0 8px 32px rgba(133, 59, 81, 0.4); }
-        50% { transform: scale(1.05); box-shadow: 0 8px 45px rgba(133, 59, 81, 0.6); }
-        100% { transform: scale(1); box-shadow: 0 8px 32px rgba(133, 59, 81, 0.4); }
+        0% {
+            transform: scale(1);
+            box-shadow: 0 8px 32px rgba(133, 59, 81, 0.4);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 8px 45px rgba(133, 59, 81, 0.6);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 8px 32px rgba(133, 59, 81, 0.4);
+        }
     }
 
     .player-avatar::after {
@@ -1336,7 +1356,8 @@ input:checked+.slider:before {
 
     /* --- Mobile Selection Enhancements --- */
     .player-chip * {
-        pointer-events: none; /* Make the whole chip a unified hit target */
+        pointer-events: none;
+        /* Make the whole chip a unified hit target */
     }
 
     .player-chip.selected {
@@ -1364,14 +1385,19 @@ input:checked+.slider:before {
         justify-content: center;
         font-size: 0.8rem;
         z-index: 25;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         border: 2px solid white;
         animation: popCheck 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     @keyframes popCheck {
-        0% { transform: scale(0); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(0);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 }
 
