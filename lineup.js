@@ -37,9 +37,9 @@ async function processImage(file) {
         }
 
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const dataUrl = e.target.result;
-            
+
             // If GIF, don't resize to keep animation
             if (file.type === "image/gif") {
                 resolve(dataUrl);
@@ -48,7 +48,7 @@ async function processImage(file) {
 
             // For JPG/PNG, resize to 200x200
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const size = 200;
@@ -59,7 +59,7 @@ async function processImage(file) {
                 const minDim = Math.min(img.width, img.height);
                 const sx = (img.width - minDim) / 2;
                 const sy = (img.height - minDim) / 2;
-                
+
                 ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
                 resolve(canvas.toDataURL('image/jpeg', 0.8));
             };
@@ -265,16 +265,16 @@ $(function () {
             window.showConfirm("準備開賽", `確定要在「場地 ${courtName}」進行下場比賽嗎？`, () => {
                 // Assign group to court
                 db.ref('lineup/courts/' + emptyCourtId + '/players').set(group.members);
-                
+
                 // Update player status to fighting
                 let updates = {};
                 group.members.forEach(pid => updates[pid + '/status'] = 'fighting');
                 db.ref('lineup/players').update(updates);
-                
+
                 // Remove from queue (keep status)
                 const groupSig = [...group.members].sort().join(',');
                 window.removeFromQueue(idx, groupSig, true);
-                
+
                 // Start timer
                 window.startTimer(emptyCourtId);
             });
@@ -284,7 +284,7 @@ $(function () {
     });
 
     // --- Avatar Preview Listeners ---
-    $('#newPlayerPhoto').change(async function(e) {
+    $('#newPlayerPhoto').change(async function (e) {
         const file = e.target.files[0];
         if (!file) return;
         try {
@@ -298,7 +298,7 @@ $(function () {
         }
     });
 
-    $('#editPlayerPhoto').change(async function(e) {
+    $('#editPlayerPhoto').change(async function (e) {
         const file = e.target.files[0];
         if (!file) return;
         try {
@@ -312,7 +312,7 @@ $(function () {
         }
     });
 
-    $('#removePhotoBtn').click(function() {
+    $('#removePhotoBtn').click(function () {
         window.tempEditAvatar = null;
         $('#editPlayerPreview').attr('src', '').addClass('hidden');
         $('#editPlayerPlaceholder').removeClass('hidden');
@@ -560,19 +560,19 @@ function renderCourts() {
             });
         }
     });
-    
+
     // Update Status Legend Dynamic Display
     const totalCourts = Object.keys(courts).length;
     const activeMatchCount = Object.values(courts).filter(c => c.players && c.players.length > 0).length;
     const $legend = $('#matchStatusLegend');
-    
+
     if (totalCourts > 0 && activeMatchCount === totalCourts) {
-        $legend.css('color', '#ef4444'); // Red for Full
-        $legend.find('i').css('color', '#ef4444').addClass('pulse-ripple');
+        $legend.css('color', '#f38989ff'); // Red for Full
+        $legend.find('i').css('color', '#f38989ff').addClass('pulse-ripple');
         $legend.find('span').text('場地全滿');
     } else if (activeMatchCount > 0) {
-        $legend.css('color', 'var(--accent-green)');
-        $legend.find('i').css('color', 'var(--accent-green)').addClass('pulse-ripple');
+        $legend.css('color', '#55AE71');
+        $legend.find('i').css('color', '#55AE71').addClass('pulse-ripple');
         $legend.find('span').text(`${activeMatchCount} 場比賽中`);
     } else {
         $legend.css('color', 'var(--text-muted)');
@@ -1070,7 +1070,7 @@ $('#confirmAddPlayerBtn').click(() => {
 
     if (name) {
         let assignedAvatar = window.tempNewAvatar;
-        
+
         // If NO manual upload, pick a random cat
         if (!assignedAvatar) {
             const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
@@ -1164,17 +1164,17 @@ $('#confirmEditPlayerBtn').click(() => {
 
         // If photo was removed (or never existed), and no new upload, ensure a random cat exists
         if (!window.tempEditAvatar) {
-             const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
-             const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
-             let assignedAvatar;
-             if (availableAvatars.length > 0) {
-                 assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
-             } else {
-                 assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
-             }
-             updateData.avatarUrl = assignedAvatar;
+            const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
+            const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
+            let assignedAvatar;
+            if (availableAvatars.length > 0) {
+                assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+            } else {
+                assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+            }
+            updateData.avatarUrl = assignedAvatar;
         } else {
-             updateData.avatarUrl = window.tempEditAvatar;
+            updateData.avatarUrl = window.tempEditAvatar;
         }
 
         db.ref('lineup/players/' + pid).update(updateData);
@@ -1188,7 +1188,7 @@ window.showConfirm = function (title, message, onConfirm) {
     $('#confirmTitle').text(title);
     $('#confirmMessage').text(message);
     $('#confirmModalOverlay').removeClass('hidden');
-    $('#cancelConfirmBtn').removeClass('hidden'); 
+    $('#cancelConfirmBtn').removeClass('hidden');
     $('#doConfirmBtn').text('確定').removeClass('btn-silver').addClass('btn-gold');
 
     $('#doConfirmBtn').off('click').on('click', function () {
@@ -1204,7 +1204,7 @@ window.showConfirm = function (title, message, onConfirm) {
 // Custom Alert Helper (只有確定)
 window.showAlert = function (title, message, type = 'success') {
     const $icon = $('#alertIcon');
-    
+
     // Set icon based on type
     $icon.removeClass('hidden alert-warning alert-error alert-success');
     if (type === 'warning') {
@@ -1220,7 +1220,7 @@ window.showAlert = function (title, message, type = 'success') {
     $('#confirmTitle').text(title);
     $('#confirmMessage').text(message);
     $('#confirmModalOverlay').removeClass('hidden');
-    $('#cancelConfirmBtn').addClass('hidden'); 
+    $('#cancelConfirmBtn').addClass('hidden');
     $('#doConfirmBtn').text('我知道了').removeClass('btn-gold').addClass('btn-silver');
 
     $('#doConfirmBtn').off('click').on('click', function () {
@@ -1554,7 +1554,7 @@ function trySmartPick() {
 
                 // 計算性別失衡程度 (兩邊男生人數差距)
                 let balancePenalty = Math.abs(s1m - s2m);
-                
+
                 // 核心邏輯：不論總人數分佈，配對時優先追求性別平衡
                 // 除非是 4男 或 4女，否則不平衡的配對將被給予巨大的懲罰
                 let overlap1 = (players[pair[0][0]].partners && players[pair[0][0]].partners[pair[0][1]]) || 0;
@@ -1868,18 +1868,18 @@ $(document).ready(function () {
                 entriesUpdates[pid + '/losses'] = null;
                 entriesUpdates[pid + '/partners'] = null; // 清除戰績時通常也代表重開一季，順便清搭檔
             });
-            
+
             // 執行批次更新與刪除歷史紀錄
             db.ref('lineup/players').update(entriesUpdates);
             db.ref('lineup/history').remove();
-            
+
             // 強制關閉視窗讓使用者看到數據已清空
             $('#leaderboardModalOverlay').addClass('hidden');
             showAlert('清理完成', '所有數據已成功清除！');
-            
+
             // 提示成功 (選擇性)
             console.log("Leaderboard and history cleared.");
-            
+
             // 立即重新渲染 (因為 Firebase 是非同步，監聽器會觸發，但這裡可以關閉視窗或切回首頁)
         });
     });
@@ -1887,7 +1887,7 @@ $(document).ready(function () {
     $('.lb-tab').click(function () {
         $('.lb-tab').removeClass('active');
         $('.lb-content').removeClass('active').addClass('hidden');
-        
+
         $(this).addClass('active');
         const target = $(this).data('tab');
         $('#' + target).removeClass('hidden').addClass('active');
@@ -1930,7 +1930,7 @@ $(document).ready(function () {
             else if (rank === 2) rankHtml = `<span class="rank-badge rank-2">2</span>`;
             else if (rank === 3) rankHtml = `<span class="rank-badge rank-3">3</span>`;
 
-            const avatarHtml = d.avatar 
+            const avatarHtml = d.avatar
                 ? `<img src="${d.avatar}" alt="${d.name}">`
                 : `<div class="avatar-icon" style="width:36px; height:36px; border-radius:50%; background:#ddd; display:flex; justify-content:center; align-items:center;"><i class="fas fa-user"></i></div>`;
 
@@ -1961,12 +1961,12 @@ $(document).ready(function () {
 
         entries.forEach(entry => {
             const date = new Date(entry.timestamp);
-            const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            
+            const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
             const renderPlayerRow = (pid) => {
                 const p = players[pid];
                 if (!p) return '';
-                const avatar = p.avatarUrl 
+                const avatar = p.avatarUrl
                     ? `<img src="${p.avatarUrl}">`
                     : `<div class="avatar-icon"><i class="fas fa-user"></i></div>`;
                 return `<div class="history-player">${avatar} <span>${p.name}</span></div>`;
@@ -2001,7 +2001,7 @@ $(document).ready(function () {
             console.warn("偵測到本機檔案路徑，QR Code 僅供測試。");
         }
         const checkinUrl = baseUrl + "checkin.html";
-        
+
         $('#qrUrlDisplay').text(checkinUrl);
         $('#qrModalOverlay').removeClass('hidden');
 
