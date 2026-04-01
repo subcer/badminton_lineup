@@ -231,6 +231,20 @@ body::after {
     display: none !important;
 }
 
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 1200px) {
+    .mobile-only {
+        display: inline-flex !important;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+}
+
 .gold-text {
     background: var(--brand-gradient);
     -webkit-background-clip: text;
@@ -1205,8 +1219,17 @@ input:checked+.slider:before {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
+    .app-header .controls > *:not(.mobile-only):not(#addCourtBtn) {
+        display: none !important;
+    }
 
+    #mobileMenuBtn {
+        display: inline-flex !important;
+    }
+}
+
+@media (max-width: 768px) {
     body {
         /* Allow body to stretch and scroll naturally on mobile */
         height: auto;
@@ -1227,10 +1250,23 @@ input:checked+.slider:before {
     }
 
     .app-header .controls {
-        width: 100%;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    /* Hide specific controls in the header on mobile as they're now in the drawer */
+    .app-header .controls > *:not(.mobile-only):not(#addCourtBtn) {
+        display: none !important;
+    }
+
+    #addCourtBtn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    #addCourtBtn span {
+        display: none; /* Hide text if any, or just keep it short */
     }
 
     .main-container {
@@ -1667,4 +1703,140 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* --- Mobile Drawer Styles --- */
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 3000;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: -320px; /* Hidden by default */
+    width: 320px;
+    height: 100%;
+    background: var(--bg-dark);
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+    z-index: 3001;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(133, 59, 81, 0.1);
+}
+
+@media (min-width: 769px) {
+    .mobile-drawer {
+        width: 400px;
+        right: -400px;
+    }
+}
+
+.mobile-drawer.open {
+    right: 0;
+}
+
+.drawer-header {
+    padding: 20px;
+    background: var(--brand-gradient);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.drawer-logo {
+    font-weight: 900;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.drawer-content {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.drawer-section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 800;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 8px;
+}
+
+.drawer-status-item {
+    background: white;
+    padding: 12px 15px;
+    border-radius: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.drawer-toggle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 12px 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.drawer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.drawer-btn {
+    background: white;
+    border: 1px solid rgba(133, 59, 81, 0.1);
+    padding: 15px 10px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.drawer-btn i {
+    font-size: 1.4rem;
+    color: var(--gold-start);
+}
+
+.drawer-btn:active {
+    transform: scale(0.95);
+    background: #fefefe;
+}
+
+.danger-section {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 20px;
 }

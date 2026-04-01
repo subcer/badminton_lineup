@@ -148,6 +148,7 @@ function initPresenceSystem() {
         const val = snap.val() || {};
         const count = Object.keys(val).length;
         $('#onlineCount').text(`🟢 ${count} 人在線`);
+        $('#drawerOnlineCount .count').text(count);
     });
 }
 
@@ -195,22 +196,58 @@ $(function () {
         $('#themeToggleBtn i').removeClass('fa-sun').addClass('fa-moon');
     }
 
-    $('#themeToggleBtn').click(function () {
+    $('#themeToggleBtn, #themeToggleBtnMobile').click(function () {
         $('body').toggleClass('light-mode');
         const isLight = $('body').hasClass('light-mode');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
 
-        const $icon = $(this).find('i');
+        const $icons = $('#themeToggleBtn i, #themeToggleBtnMobile i');
+        const $text = $('#themeToggleBtnMobile span');
+
         if (isLight) {
-            $icon.removeClass('fa-sun').addClass('fa-moon');
+            $icons.removeClass('fa-sun').addClass('fa-moon');
+            $text.text('切換深色');
         } else {
-            $icon.removeClass('fa-moon').addClass('fa-sun');
+            $icons.removeClass('fa-moon').addClass('fa-sun');
+            $text.text('切換淺色');
         }
     });
 
+    // --- Mobile Drawer Logic ---
+    $('#mobileMenuBtn').click(function () {
+        $('#mobileDrawer').addClass('open');
+        $('#drawerOverlay').removeClass('hidden');
+    });
+
+    $('#closeDrawerBtn, #drawerOverlay').click(function () {
+        $('#mobileDrawer').removeClass('open');
+        $('#drawerOverlay').addClass('hidden');
+    });
+
+    // Sync Toggles between Drawer and Main Header
+    $('#autoModeToggleMobile').change(function () {
+        $('#autoModeToggle').prop('checked', $(this).is(':checked')).trigger('change');
+    });
+    $('#autoModeToggle').change(function () {
+        $('#autoModeToggleMobile').prop('checked', $(this).is(':checked'));
+    });
+
+    $('#scoreModeToggleMobile').change(function () {
+        $('#scoreModeToggle').prop('checked', $(this).is(':checked')).trigger('change');
+    });
+    $('#scoreModeToggle').on('change', function () {
+        $('#scoreModeToggleMobile').prop('checked', $(this).is(':checked'));
+    });
+
+    // Drawer Buttons mapping to original buttons
+    $('#qrBtnMobile').click(() => { $('#qrBtn').click(); $('#closeDrawerBtn').click(); });
+    $('#leaderboardBtnMobile').click(() => { $('#leaderboardBtn').click(); $('#closeDrawerBtn').click(); });
+    $('#helpBtnMobile').click(() => { $('#helpBtn').click(); $('#closeDrawerBtn').click(); });
+    $('#resetBtnMobile').click(() => { $('#resetBtn').click(); $('#closeDrawerBtn').click(); });
+
     // --- Mobile Click-to-Start match logic for Queue ---
     $queueContainer.on('click', '.group-card', function (e) {
-        if (window.innerWidth > 768) return; // Desktop still uses drag-and-drop
+        if (window.innerWidth > 1200) return; // Desktop still uses drag-and-drop
         if (e.target.closest('.group-remove')) return; // Ignore if user clicked the delete button
 
         const idx = $(this).data('gid');

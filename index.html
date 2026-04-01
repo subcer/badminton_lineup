@@ -70,6 +70,11 @@
       </button>
       <button id="helpBtn" class="btn btn-silver"><i class="fas fa-question-circle"></i> 說明</button>
       <button id="resetBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> 重置</button>
+      
+      <!-- Mobile Menu Button (Hamburger) -->
+      <button id="mobileMenuBtn" class="icon-btn mobile-only" title="開啟選單">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </header>
 
@@ -375,6 +380,74 @@
       </div>
       <div class="modal-actions" style="margin-top:20px; text-align:center;">
         <button id="closeHelpBtn" class="btn btn-silver" style="width:100%;">我知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Drawer Overlay -->
+  <div id="drawerOverlay" class="drawer-overlay hidden"></div>
+
+  <!-- Mobile Side Drawer -->
+  <div id="mobileDrawer" class="mobile-drawer">
+    <div class="drawer-header">
+      <div class="drawer-logo">
+        <i class="fa-solid fa-paw"></i> 貓羽掌功能選單
+      </div>
+      <button id="closeDrawerBtn" class="icon-btn"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div class="drawer-content">
+      <div class="drawer-section">
+        <h3 class="drawer-section-title">系統狀態</h3>
+        <div id="drawerOnlineCount" class="drawer-status-item">
+          🟢 <span class="count">1</span> 人在線
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <h3 class="drawer-section-title">模式切換</h3>
+        <div class="drawer-toggle-item">
+          <span>自動輪轉</span>
+          <label class="switch">
+            <input type="checkbox" id="autoModeToggleMobile">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="drawer-toggle-item">
+          <span>計分板開關</span>
+          <label class="switch">
+            <input type="checkbox" id="scoreModeToggleMobile" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <h3 class="drawer-section-title">常用操作</h3>
+        <div class="drawer-grid">
+          <button id="qrBtnMobile" class="drawer-btn">
+            <i class="fas fa-qrcode"></i>
+            <span>QR 報到</span>
+          </button>
+          <button id="leaderboardBtnMobile" class="drawer-btn">
+            <i class="fas fa-trophy"></i>
+            <span>排行榜</span>
+          </button>
+          <button id="themeToggleBtnMobile" class="drawer-btn">
+            <i class="fas fa-moon"></i>
+            <span>切換主題</span>
+          </button>
+          <button id="helpBtnMobile" class="drawer-btn">
+            <i class="fas fa-question-circle"></i>
+            <span>操作說明</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer-section danger-section" style="margin-top: auto;">
+        <button id="resetBtnMobile" class="btn btn-danger" style="width: 100%; justify-content: center; gap: 12px; padding: 15px;">
+          <i class="fas fa-trash-alt"></i> 重置所有資料
+        </button>
       </div>
     </div>
   </div>
