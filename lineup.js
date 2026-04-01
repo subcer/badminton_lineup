@@ -560,6 +560,25 @@ function renderCourts() {
             });
         }
     });
+    
+    // Update Status Legend Dynamic Display
+    const totalCourts = Object.keys(courts).length;
+    const activeMatchCount = Object.values(courts).filter(c => c.players && c.players.length > 0).length;
+    const $legend = $('#matchStatusLegend');
+    
+    if (totalCourts > 0 && activeMatchCount === totalCourts) {
+        $legend.css('color', '#ef4444'); // Red for Full
+        $legend.find('i').css('color', '#ef4444').addClass('pulse-ripple');
+        $legend.find('span').text('場地全滿');
+    } else if (activeMatchCount > 0) {
+        $legend.css('color', 'var(--accent-green)');
+        $legend.find('i').css('color', 'var(--accent-green)').addClass('pulse-ripple');
+        $legend.find('span').text(`${activeMatchCount} 場比賽中`);
+    } else {
+        $legend.css('color', 'var(--text-muted)');
+        $legend.find('i').css('color', '#ccc').removeClass('pulse-ripple');
+        $legend.find('span').text('目前暫無比賽');
+    }
 
     // Add "New Court" button at the end if needed, or just let header button do it
     updateTimers();
