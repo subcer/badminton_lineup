@@ -1917,4 +1917,38 @@ $(document).ready(function () {
             container.append(html);
         });
     }
+
+    // --- QR Code Logic ---
+    let qrcode = null;
+
+    $('#qrBtn').click(function () {
+        const currentUrl = window.location.href;
+        // 取得目錄路徑並串接 checkin.html
+        let baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+        if (baseUrl.startsWith('file:///')) {
+            // 如果是本機檔案，提示使用者
+            console.warn("偵測到本機檔案路徑，QR Code 僅供測試。");
+        }
+        const checkinUrl = baseUrl + "checkin.html";
+        
+        $('#qrUrlDisplay').text(checkinUrl);
+        $('#qrModalOverlay').removeClass('hidden');
+
+        // 清除舊的 QR Code
+        $('#qrcode').empty();
+
+        // 產生新的 QR Code
+        qrcode = new QRCode(document.getElementById("qrcode"), {
+            text: checkinUrl,
+            width: 256,
+            height: 256,
+            colorDark: "#853b51",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    });
+
+    $('#closeQrBtn').click(function () {
+        $('#qrModalOverlay').addClass('hidden');
+    });
 });

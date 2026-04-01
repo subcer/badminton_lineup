@@ -22,6 +22,7 @@
   <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
 
   <link rel="stylesheet" href="lineup.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -63,6 +64,9 @@
         style="width: 38px; height: 38px; font-size: 1.1rem;"><i class="fas fa-sun"></i></button>
       <button id="leaderboardBtn" class="btn btn-silver" title="戰績排行榜">
         <i class="fas fa-trophy" style="color:var(--gold-start)"></i> 排行榜
+      </button>
+      <button id="qrBtn" class="btn btn-silver" title="顯示報到 QR Code">
+        <i class="fas fa-qrcode"></i> QR 報到
       </button>
       <button id="helpBtn" class="btn btn-silver"><i class="fas fa-question-circle"></i> 說明</button>
       <button id="resetBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> 重置</button>
@@ -282,6 +286,26 @@
         <div id="historyListContainer" class="history-list">
             <!-- Dynamically populated -->
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div id="qrModalOverlay" class="modal-overlay hidden">
+    <div class="modal gold-border" style="width: 400px; text-align: center;">
+      <h2 style="margin-top: 0; color: var(--gold-start);"><i class="fas fa-qrcode"></i> 自助報到碼</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">請球員掃描下方 QR Code 進行報到</p>
+      
+      <div id="qrcode" style="display: flex; justify-content: center; background: white; padding: 15px; border-radius: 20px; margin-bottom: 20px;">
+        <!-- QR Code will be rendered here -->
+      </div>
+      
+      <div style="background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px; font-size: 0.8rem; word-break: break-all; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05);">
+        網址：<span id="qrUrlDisplay">loading...</span>
+      </div>
+
+      <div class="modal-actions">
+        <button id="closeQrBtn" class="btn btn-silver" style="width: 100%;">關閉視窗</button>
       </div>
     </div>
   </div>

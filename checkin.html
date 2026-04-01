@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>球員自助報到 - 貓羽掌</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #faf4f0;
+            --brand-gradient: linear-gradient(135deg, #853b51 0%, #9e4f68 100%);
+            --text-main: #2d2a26;
+            --text-muted: #8b8581;
+            --gold-start: #853b51;
+            --q-shadow: 0 8px 24px rgba(133, 59, 81, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .checkin-card {
+            background: white;
+            padding: 30px;
+            border-radius: 40px;
+            box-shadow: var(--q-shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(133, 59, 81, 0.1);
+        }
+
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            background: var(--brand-gradient);
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(-5deg);
+            margin-bottom: 15px;
+            box-shadow: 0 8px 20px rgba(133, 59, 81, 0.2);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            color: var(--gold-start);
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 800;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 15px;
+            border: 2px solid #eee;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+            box-sizing: border-box; /* 關鍵：確保 padding 不會撐開總寬度 */
+        }
+
+        .input-group input:focus {
+            border-color: var(--gold-start);
+        }
+
+        /* 自訂程度拉條樣式 */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+            margin: 20px 0;
+            padding: 0;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: var(--gold-start);
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -9px;
+            box-shadow: 0 4px 10px rgba(133, 59, 81, 0.3);
+            border: 3px solid #fff;
+        }
+
+        input[type=range]:active::-webkit-slider-thumb {
+            transform: scale(1.1);
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .level-badge {
+            background: var(--brand-gradient);
+            color: white;
+            padding: 2px 15px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: 3px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-preview i {
+            font-size: 2rem;
+            color: #999;
+        }
+
+        .btn-submit {
+            background: var(--brand-gradient);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(133, 59, 81, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        #successMessage {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+        }
+
+        #successMessage i {
+            font-size: 4rem;
+            color: #4ade80;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="checkin-card">
+        <div id="formContent">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-paw" style="color: white; transform: rotate(-40deg); font-size: 2rem;"></i>
+                </div>
+                <h1>球員報到</h1>
+                <p class="subtitle">歡迎來到貓羽掌羽球團！</p>
+            </div>
+
+            <div class="avatar-upload">
+                <div class="avatar-preview" onclick="document.getElementById('playerPhoto').click()">
+                    <img id="previewImg" class="hidden">
+                    <i class="fas fa-camera" id="previewIcon"></i>
+                </div>
+                <span style="font-size: 0.8rem; color: #888;">點擊上傳頭像 (可選)</span>
+                <input type="file" id="playerPhoto" accept="image/*" class="hidden">
+            </div>
+
+            <div class="input-group">
+                <label>您的姓名</label>
+                <input type="text" id="playerName" placeholder="請輸入參與名稱">
+            </div>
+
+            <div class="input-group">
+                <label>您的性別</label>
+                <select id="playerGender">
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>羽球程度 (0-18)</label>
+                <input type="range" id="playerLevel" min="0" max="18" value="5"
+                    oninput="$('#levelVal').text(this.value)">
+                <div class="level-info">
+                    <span style="font-size: 0.8rem; color: #aaa;">初階 (0)</span>
+                    <div class="level-badge" id="levelVal">5</div>
+                    <span style="font-size: 0.8rem; color: #aaa;">高階 (18)</span>
+                </div>
+            </div>
+
+            <button id="submitBtn" class="btn-submit">確認報到</button>
+        </div>
+
+        <div id="successMessage">
+            <i class="fas fa-check-circle"></i>
+            <h2>報到成功！</h2>
+            <p>您的名字已出現在主揪名單中。</p>
+            <p style="font-size: 0.9rem; color: #888; margin-top: 20px;">祝您打球愉快！🏸</p>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Config
+        const config = {
+            databaseURL: "https://fir-60db1.firebaseio.com/"
+        };
+        firebase.initializeApp(config);
+        const db = firebase.database();
+
+        let tempAvatar = null;
+
+        // Image Processing (Same as main app but simpler)
+        $('#playerPhoto').change(function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert("圖片太大囉，請選 2MB 以下的。");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const dataUrl = event.target.result;
+
+                // For simplified mobile check-in, we'll try to compress JPG/PNG
+                if (file.type === "image/gif") {
+                    tempAvatar = dataUrl;
+                    $('#previewImg').attr('src', dataUrl).removeClass('hidden');
+                    $('#previewIcon').addClass('hidden');
+                } else {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const size = 200;
+                        canvas.width = size;
+                        canvas.height = size;
+                        const minDim = Math.min(img.width, img.height);
+                        ctx.drawImage(img, (img.width - minDim) / 2, (img.height - minDim) / 2, minDim, minDim, 0, 0, size, size);
+                        tempAvatar = canvas.toDataURL('image/jpeg', 0.8);
+                        $('#previewImg').attr('src', tempAvatar).removeClass('hidden');
+                        $('#previewIcon').addClass('hidden');
+                    };
+                    img.src = dataUrl;
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Submit Logic
+        $('#submitBtn').click(function () {
+            const name = $('#playerName').val().trim();
+            const gender = $('#playerGender').val();
+            const level = $('#playerLevel').val();
+
+            if (!name) {
+                alert("請輸入姓名喔！");
+                return;
+            }
+
+            // Fallback for avatar pool (will be handled by main app's random cat logic if needed, 
+            // but for check-in we can just push it and the main app will render it.)
+
+            $("#submitBtn").prop('disabled', true).text("報報中...");
+
+            db.ref('lineup/players').push({
+                name,
+                gender,
+                level: parseInt(level),
+                avatarUrl: tempAvatar || null,
+                status: 'idle',
+                playCount: 0,
+                wins: 0,
+                losses: 0,
+                created_at: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                $('#formContent').fadeOut(400, function () {
+                    $('#successMessage').fadeIn().css('display', 'flex');
+                });
+            }).catch(err => {
+                alert("報到失敗，請檢查網路：" + err);
+                $("#submitBtn").prop('disabled', false).text("確認報到");
+            });
+        });
+    </script>
+</body>
+
+</html>
