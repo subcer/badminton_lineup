@@ -692,7 +692,7 @@ function initSelectionLogic() {
             // Let's assume Drag.
 
             if (selectedPlayers.size > 4) {
-                alert("最多只能選 4 人一組！");
+                window.showAlert("人數過多", "最多只能選 4 人一組！", "warning");
                 // Trim selection
                 const arr = Array.from(selectedPlayers).slice(0, 4);
                 selectedPlayers = new Set(arr);
@@ -711,7 +711,7 @@ function initSelectionLogic() {
             $(this).removeClass('selected');
         } else {
             if (selectedPlayers.size >= 4) {
-                alert("一組最多 4 人");
+                window.showAlert("組隊上限", "一組最多只能選 4 人喔！", "warning");
                 return;
             }
             selectedPlayers.add(pid);
@@ -925,7 +925,7 @@ function handleDrop(data, zone, targetElement, clientPos) {
                 if (targetGroup) {
                     // Check limit
                     if (targetGroup.members.length + pids.length > 4) {
-                        alert("該組人數已滿 (最多4人)");
+                        window.showAlert("人數限制", "該組人數已滿，最多只能 4 人一組。", "warning");
                         return;
                     }
 
@@ -967,7 +967,7 @@ function handleDrop(data, zone, targetElement, clientPos) {
             // Check occupancy
             const court = courts[courtId];
             if (court.players && court.players.length + pids.length > 4) {
-                alert("場地已滿或人數過多！");
+                window.showAlert("場地限制", "場地人數過多，請先結束目前比賽或減少組員。", "error");
                 return;
             }
 
@@ -1165,11 +1165,12 @@ $('#confirmEditPlayerBtn').click(() => {
 
 // Custom Confirm Helper (確認/取消)
 window.showConfirm = function (title, message, onConfirm) {
+    $('#alertIcon').addClass('hidden'); // Confirm normally doesn't need huge icon
     $('#confirmTitle').text(title);
     $('#confirmMessage').text(message);
     $('#confirmModalOverlay').removeClass('hidden');
-    $('#cancelConfirmBtn').removeClass('hidden'); // 確保確認視窗顯示取消按鈕
-    $('#doConfirmBtn').text('確定');
+    $('#cancelConfirmBtn').removeClass('hidden'); 
+    $('#doConfirmBtn').text('確定').removeClass('btn-silver').addClass('btn-gold');
 
     $('#doConfirmBtn').off('click').on('click', function () {
         onConfirm();
@@ -1182,12 +1183,26 @@ window.showConfirm = function (title, message, onConfirm) {
 };
 
 // Custom Alert Helper (只有確定)
-window.showAlert = function (title, message) {
-    $('#confirmTitle').html(`<i class="fas fa-check-circle" style="color:var(--accent-green); margin-right:8px;"></i>${title}`);
+window.showAlert = function (title, message, type = 'success') {
+    const $icon = $('#alertIcon');
+    
+    // Set icon based on type
+    $icon.removeClass('hidden alert-warning alert-error alert-success');
+    if (type === 'warning') {
+        $icon.addClass('alert-warning').html('<i class="fas fa-exclamation-triangle"></i>');
+    } else if (type === 'error') {
+        $icon.addClass('alert-error').html('<i class="fas fa-times-circle"></i>');
+    } else if (type === 'success') {
+        $icon.addClass('alert-success').html('<i class="fas fa-check-circle"></i>');
+    } else {
+        $icon.addClass('hidden');
+    }
+
+    $('#confirmTitle').text(title);
     $('#confirmMessage').text(message);
     $('#confirmModalOverlay').removeClass('hidden');
-    $('#cancelConfirmBtn').addClass('hidden'); // 隱藏取消按鈕
-    $('#doConfirmBtn').text('我知道了');
+    $('#cancelConfirmBtn').addClass('hidden'); 
+    $('#doConfirmBtn').text('我知道了').removeClass('btn-gold').addClass('btn-silver');
 
     $('#doConfirmBtn').off('click').on('click', function () {
         $('#confirmModalOverlay').addClass('hidden');
