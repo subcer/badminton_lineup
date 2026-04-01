@@ -84,13 +84,16 @@
             <span id="queueCount">0</span> 組等待中
           </div>
         </div>
-        <div class="smart-pick-controls" style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 4px 6px; background: var(--bg-color-dark);">
+        <div class="smart-pick-controls"
+          style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 4px 6px; background: var(--bg-color-dark);">
           <div class="formation-toggles" style="display: flex; gap: 4px;">
             <button id="toggleMD" class="form-toggle-btn" data-type="MD" title="優先配男雙">男雙</button>
             <button id="toggleWD" class="form-toggle-btn" data-type="WD" title="優先配女雙">女雙</button>
             <button id="toggleXD" class="form-toggle-btn" data-type="XD" title="優先配混雙">混雙</button>
           </div>
-          <button id="smartPickBtn" class="btn btn-danger btn-sm" style="border-radius: 12px; box-shadow: 0 2px 4px rgba(133,59,81,0.3); padding: 4px 10px; font-size: 0.8rem;"><i class="fas fa-magic"></i> 智能補人</button>
+          <button id="smartPickBtn" class="btn btn-danger btn-sm"
+            style="border-radius: 12px; box-shadow: 0 2px 4px rgba(133,59,81,0.3); padding: 4px 10px; font-size: 0.8rem;"><i
+              class="fas fa-magic"></i> 智能補人</button>
         </div>
       </div>
       <div id="queueContainer" class="queue-list drop-zone" data-type="queue">
@@ -174,8 +177,8 @@
         </select>
       </div>
       <div class="input-group">
-        <label>程度 (1-10)</label>
-        <input type="number" id="newPlayerLevel" min="1" max="10" value="5">
+        <label>程度 (0-18)</label>
+        <input type="number" id="newPlayerLevel" min="0" max="18" value="5">
       </div>
       <div class="modal-actions">
         <button id="cancelModalBtn" class="btn btn-silver">取消</button>
@@ -203,7 +206,8 @@
           </div>
         </div>
         <input type="file" id="editPlayerPhoto" accept="image/*" class="hidden">
-        <button id="removePhotoBtn" class="btn btn-silver btn-sm" style="margin-top:10px; font-size:0.75rem;">移除照片 (恢復貓咪)</button>
+        <button id="removePhotoBtn" class="btn btn-silver btn-sm" style="margin-top:10px; font-size:0.75rem;">移除照片
+          (恢復貓咪)</button>
       </div>
       <div class="input-group">
         <label>姓名</label>
@@ -246,14 +250,17 @@
 
   <!-- Leaderboard Modal -->
   <div id="leaderboardModalOverlay" class="modal-overlay hidden">
-    <div class="modal gold-border" style="width: 600px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="modal gold-border"
+      style="width: 600px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0;"><i class="fas fa-trophy" style="color:var(--gold-start)"></i> 賽果與排行榜</h2>
         <div style="display: flex; gap: 8px;">
-          <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="清除所有戰績歷史" style="padding: 4px 10px; font-size: 0.8rem;">
+          <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="清除所有戰績歷史"
+            style="padding: 4px 10px; font-size: 0.8rem;">
             <i class="fas fa-trash-alt"></i> 清除紀錄
           </button>
-          <button id="closeLeaderboardBtn" class="btn btn-silver" style="padding: 4px 10px; font-size: 1.1rem;"><i class="fas fa-times"></i></button>
+          <button id="closeLeaderboardBtn" class="btn btn-silver" style="padding: 4px 10px; font-size: 1.1rem;"><i
+              class="fas fa-times"></i></button>
         </div>
       </div>
 
@@ -284,7 +291,7 @@
       <!-- Tab Content: History -->
       <div id="tab-history" class="lb-content hidden" style="flex: 1; overflow-y: auto;">
         <div id="historyListContainer" class="history-list">
-            <!-- Dynamically populated -->
+          <!-- Dynamically populated -->
         </div>
       </div>
     </div>
@@ -295,12 +302,14 @@
     <div class="modal gold-border" style="width: 400px; text-align: center;">
       <h2 style="margin-top: 0; color: var(--gold-start);"><i class="fas fa-qrcode"></i> 自助報到碼</h2>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">請球員掃描下方 QR Code 進行報到</p>
-      
-      <div id="qrcode" style="display: flex; justify-content: center; background: white; padding: 15px; border-radius: 20px; margin-bottom: 20px;">
+
+      <div id="qrcode"
+        style="display: flex; justify-content: center; background: white; padding: 15px; border-radius: 20px; margin-bottom: 20px;">
         <!-- QR Code will be rendered here -->
       </div>
-      
-      <div style="background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px; font-size: 0.8rem; word-break: break-all; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05);">
+
+      <div
+        style="background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px; font-size: 0.8rem; word-break: break-all; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05);">
         網址：<span id="qrUrlDisplay">loading...</span>
       </div>
 
