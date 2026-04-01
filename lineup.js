@@ -81,6 +81,13 @@ const myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
 let lockTimeout = null;
 
 function initLockSystem() {
+    // Prevent any click or touch from dismissing or bypassing the lock screen
+    $('#systemLockOverlay').on('click mousedown mouseup touchstart', (e) => {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+    });
+
     // Monitor Lock
     db.ref('lineup/lock').on('value', snap => {
         const val = snap.val();

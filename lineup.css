@@ -1862,6 +1862,8 @@ input:checked+.slider:before {
 /* System lock should be absolute top */
 #systemLockOverlay {
     z-index: 9999;
+    pointer-events: auto !important;
+    user-select: none;
 }
 
 .modal-overlay.hidden {
