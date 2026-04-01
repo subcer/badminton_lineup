@@ -517,9 +517,9 @@ function renderCourts() {
                     <div class="court-visual">
                         <div class="court-side top"></div>
                         <div class="scoreboard" style="${$('#scoreModeToggle').is(':checked') ? '' : 'display:none'}">
-                            <div class="score" onclick="updateScore('${cid}', 'A', 1)">${c.scoreA || 0}</div>
+                            <div class="score" onclick="updateScore('${cid}', 'A', 1, event)">${c.scoreA || 0}</div>
                             <span>:</span>
-                            <div class="score" onclick="updateScore('${cid}', 'B', 1)">${c.scoreB || 0}</div>
+                            <div class="score" onclick="updateScore('${cid}', 'B', 1, event)">${c.scoreB || 0}</div>
                         </div>
                         <div class="court-net"></div>
                         <div class="court-side bottom"></div>
@@ -1409,7 +1409,7 @@ window.addEventListener('contextmenu', function (e) {
     }
 }, { passive: false });
 
-window.updateScore = function (cid, side, delta) {
+window.updateScore = function (cid, side, delta, event) {
     const c = courts[cid];
     let s = (side === 'A' ? c.scoreA : c.scoreB) || 0;
     if (delta === -999) s = 0;
@@ -1417,6 +1417,25 @@ window.updateScore = function (cid, side, delta) {
     if (s < 0) s = 0;
 
     db.ref('lineup/courts/' + cid + '/score' + side).set(s);
+
+    // --- Cat Paw Hit Animation ---
+    if (event) {
+        const $target = $(event.currentTarget);
+        
+        // 1. Score Bounce
+        $target.addClass('score-pop');
+        setTimeout(() => $target.removeClass('score-pop'), 400);
+
+        // 2. Spawn Paw at Click Position
+        const x = event.clientX;
+        const y = event.clientY;
+        const $paw = $('<div class="paw-hit-effect"><i class="fas fa-paw"></i></div>');
+        $paw.css({ left: x + 'px', top: y + 'px' });
+        $('body').append($paw);
+
+        // 3. Cleanup Element
+        setTimeout(() => $paw.remove(), 600);
+    }
 };
 
 window.startTimer = function (cid) {
