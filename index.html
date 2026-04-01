@@ -146,6 +146,18 @@
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal gold-border">
       <h3>新增球員</h3>
+      <div class="input-group" style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
+        <label>球員大頭貼 (可選)</label>
+        <div class="avatar-upload-container" onclick="document.getElementById('newPlayerPhoto').click()">
+          <img id="newPlayerPreview" src="" class="hidden">
+          <div id="newPlayerPlaceholder" class="avatar-placeholder">
+            <i class="fas fa-camera"></i>
+            <span>上傳照片</span>
+          </div>
+        </div>
+        <input type="file" id="newPlayerPhoto" accept="image/*" class="hidden">
+        <p style="font-size:0.7rem; color:var(--text-muted); margin-top:5px;">支援 JPG, PNG, GIF (最大 2MB)</p>
+      </div>
       <div class="input-group">
         <label>姓名</label>
         <input type="text" id="newPlayerName" placeholder="輸入姓名">
@@ -158,7 +170,7 @@
         </select>
       </div>
       <div class="input-group">
-        <label>程度 (1-18)</label>
+        <label>程度 (1-10)</label>
         <input type="number" id="newPlayerLevel" min="1" max="10" value="5">
       </div>
       <div class="modal-actions">
@@ -177,6 +189,18 @@
           style="font-size:0.8rem; padding:4px 8px;">刪除</button>
       </h3>
       <input type="hidden" id="editPlayerId">
+      <div class="input-group" style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
+        <label>球員大頭貼</label>
+        <div class="avatar-upload-container" onclick="document.getElementById('editPlayerPhoto').click()">
+          <img id="editPlayerPreview" src="" class="hidden">
+          <div id="editPlayerPlaceholder" class="avatar-placeholder">
+            <i class="fas fa-camera"></i>
+            <span>更換照片</span>
+          </div>
+        </div>
+        <input type="file" id="editPlayerPhoto" accept="image/*" class="hidden">
+        <button id="removePhotoBtn" class="btn btn-silver btn-sm" style="margin-top:10px; font-size:0.75rem;">移除照片 (恢復貓咪)</button>
+      </div>
       <div class="input-group">
         <label>姓名</label>
         <input type="text" id="editPlayerName" placeholder="輸入姓名">

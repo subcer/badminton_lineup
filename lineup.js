@@ -28,6 +28,48 @@ const AVATAR_POOL = [
     'avatars/cat_17.png'
 ];
 
+// --- Image Processing & Validation ---
+async function processImage(file) {
+    return new Promise((resolve, reject) => {
+        if (file.size > 2 * 1024 * 1024) {
+            reject("檔案太大囉！請選擇小於 2MB 的圖片。");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            
+            // If GIF, don't resize to keep animation
+            if (file.type === "image/gif") {
+                resolve(dataUrl);
+                return;
+            }
+
+            // For JPG/PNG, resize to 200x200
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const size = 200;
+                canvas.width = size;
+                canvas.height = size;
+
+                // Square Crop & Resize
+                const minDim = Math.min(img.width, img.height);
+                const sx = (img.width - minDim) / 2;
+                const sy = (img.height - minDim) / 2;
+                
+                ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+                resolve(canvas.toDataURL('image/jpeg', 0.8));
+            };
+            img.src = dataUrl;
+        };
+        reader.onerror = () => reject("讀取圖片失敗");
+        reader.readAsDataURL(file);
+    });
+}
+
 // DOM Elements
 const $courtsContainer = $('#courtsContainer');
 const $playerPool = $('#playerPool');
@@ -202,6 +244,42 @@ $(function () {
         } else {
             window.showAlert("場地全滿", "目前所有場地皆在比賽中，請稍候。");
         }
+    });
+
+    // --- Avatar Preview Listeners ---
+    $('#newPlayerPhoto').change(async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const processedData = await processImage(file);
+            $('#newPlayerPreview').attr('src', processedData).removeClass('hidden');
+            $('#newPlayerPlaceholder').addClass('hidden');
+            window.tempNewAvatar = processedData;
+        } catch (err) {
+            window.showAlert("上傳失敗", err);
+            $(this).val('');
+        }
+    });
+
+    $('#editPlayerPhoto').change(async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const processedData = await processImage(file);
+            $('#editPlayerPreview').attr('src', processedData).removeClass('hidden');
+            $('#editPlayerPlaceholder').addClass('hidden');
+            window.tempEditAvatar = processedData;
+        } catch (err) {
+            window.showAlert("上傳失敗", err);
+            $(this).val('');
+        }
+    });
+
+    $('#removePhotoBtn').click(function() {
+        window.tempEditAvatar = null;
+        $('#editPlayerPreview').attr('src', '').addClass('hidden');
+        $('#editPlayerPlaceholder').removeClass('hidden');
+        $('#editPlayerPhoto').val('');
     });
 });
 
@@ -916,6 +994,12 @@ $('#addCourtBtn').click(() => {
 
 
 $('#addPlayerBtn').click(() => {
+    // Reset Modal
+    $('#newPlayerName').val('');
+    $('#newPlayerPhoto').val('');
+    $('#newPlayerPreview').addClass('hidden');
+    $('#newPlayerPlaceholder').removeClass('hidden');
+    window.tempNewAvatar = null;
     $('#modalOverlay').removeClass('hidden');
 });
 
@@ -929,27 +1013,30 @@ $('#confirmAddPlayerBtn').click(() => {
     const level = $('#newPlayerLevel').val();
 
     if (name) {
-        // Find used avatars
-        const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url);
-        const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
-
-        let assignedAvatar = null;
-        if (availableAvatars.length > 0) {
-            assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+        let assignedAvatar = window.tempNewAvatar;
+        
+        // If NO manual upload, pick a random cat
+        if (!assignedAvatar) {
+            const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
+            const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
+            if (availableAvatars.length > 0) {
+                assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+            } else {
+                assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+            }
         }
 
         db.ref('lineup/players').push({
             name,
             gender,
             level: parseInt(level),
-            avatarUrl: assignedAvatar, // Store the random avatar
+            avatarUrl: assignedAvatar,
             status: 'idle',
             playCount: 0,
             wins: 0,
             losses: 0,
             created_at: firebase.database.ServerValue.TIMESTAMP
         });
-        $('#newPlayerName').val('');
         $('#modalOverlay').addClass('hidden');
     }
 });
@@ -988,6 +1075,17 @@ function openEditModal(pid) {
     $('#editPlayerGender').val(p.gender);
     $('#editPlayerLevel').val(p.level);
 
+    // Load existing avatar preview
+    window.tempEditAvatar = p.avatarUrl;
+    if (p.avatarUrl) {
+        $('#editPlayerPreview').attr('src', p.avatarUrl).removeClass('hidden');
+        $('#editPlayerPlaceholder').addClass('hidden');
+    } else {
+        $('#editPlayerPreview').addClass('hidden');
+        $('#editPlayerPlaceholder').removeClass('hidden');
+    }
+    $('#editPlayerPhoto').val('');
+
     $('#editModalOverlay').removeClass('hidden');
 }
 
@@ -1002,11 +1100,28 @@ $('#confirmEditPlayerBtn').click(() => {
     const level = $('#editPlayerLevel').val();
 
     if (pid && name) {
-        db.ref('lineup/players/' + pid).update({
+        let updateData = {
             name: name,
             gender: gender,
             level: parseInt(level)
-        });
+        };
+
+        // If photo was removed (or never existed), and no new upload, ensure a random cat exists
+        if (!window.tempEditAvatar) {
+             const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
+             const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
+             let assignedAvatar;
+             if (availableAvatars.length > 0) {
+                 assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+             } else {
+                 assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+             }
+             updateData.avatarUrl = assignedAvatar;
+        } else {
+             updateData.avatarUrl = window.tempEditAvatar;
+        }
+
+        db.ref('lineup/players/' + pid).update(updateData);
         $('#editModalOverlay').addClass('hidden');
     }
 });
