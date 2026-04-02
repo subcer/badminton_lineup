@@ -419,36 +419,49 @@
   </style>
 
   <!-- Help Modal -->
-  <div id="helpModal" class="modal-overlay hidden" style="z-index: 2200;">
+  <div id="helpModal" class="modal-overlay hidden">
     <div class="modal gold-border" style="width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
       <div class="modal-header"
         style="text-align:center; padding-bottom:10px; border-bottom:var(--dark-glass-border); margin-bottom:15px;">
         <h2 style="margin:0; color: var(--gold-start); font-size: 1.5rem;"><i class="fas fa-book-reader"></i> 使用說明</h2>
       </div>
       <div class="modal-body" style="text-align: left; line-height: 1.6; font-size: 0.95rem;">
-        <h3 style="margin-bottom:5px; margin-top:0;">1. 新增球員</h3>
-        <p style="margin-bottom:15px; margin-top:0;">點擊右上角 <i class="fas fa-plus"></i> 或手機浮動按鈕。輸入姓名與性別即可。</p>
+        <!-- 基礎操作 -->
+        <div class="help-section" style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
+            <i class="fas fa-paw"></i> 基礎操作 (Core)
+          </h3>
+          <ul style="padding-left: 20px; margin: 0;">
+            <li style="margin-bottom: 8px;"><b>新增球員：</b>點擊右上角或手機浮動按鈕 <i class="fas fa-plus"></i>。輸入姓名與性別即可。</li>
+            <li style="margin-bottom: 8px;"><b>建立列隊：</b>在名單中點擊頭像或<b>框選</b>球員(最多4人)，再擊<b>「加入列隊」</b>。建議湊滿 4 人以求最佳體驗。</li>
+            <li style="margin-bottom: 8px;"><b>安排開賽：</b>將「等待組別」<b>拖曳</b>到場地。<b>手機版直接點擊</b>組別卡片即可快速補場。</li>
+            <li style="margin-bottom: 8px;"><b>結束輪轉：</b>比賽結束點「結束」。開啟<b>「自動輪轉」</b>時，系統會自動遞補下一組上場。</li>
+          </ul>
+        </div>
 
-        <h3 style="margin-bottom:5px;">2. 建立排隊 (Queue)</h3>
-        <p style="margin-bottom:15px; margin-top:0;">在球員名單中，用滑鼠<b>框選</b>球員(最多4人)，或單點選取，再點擊「加入列隊」。手機版可直接點選頭像。</p>
+        <!-- 進階工具 -->
+        <div class="help-section" style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
+            <i class="fas fa-magic"></i> 進階工具 (Advanced)
+          </h3>
+          <ul style="padding-left: 20px; margin: 0;">
+            <li style="margin-bottom: 8px;"><b>智能補人：</b>開啟「男/女/混雙」開關後點擊<b>「智能補人」</b>，系統會依上場次數自動分配最佳組合。</li>
+            <li style="margin-bottom: 8px;"><b>QR 報到：</b>點擊<b>「QR 報到」</b>產出專屬條碼，讓球友掃描後自行輸入姓名加入名單。</li>
+            <li style="margin-bottom: 8px;"><b>整理名單：</b>若名單重疊或跑版，點擊名單旁的 <i class="fas fa-sync-alt"></i> 即可自動校對格線。</li>
+          </ul>
+        </div>
 
-        <h3 style="margin-bottom:5px;">3. 上場比賽</h3>
-        <p style="margin-bottom:15px; margin-top:0;">將「等待列」的組別<b>拖曳</b>到場地上。<b>手機版點擊組別卡片</b>即可快速補入空場地。</p>
-
-        <h3 style="margin-bottom:5px;">4. 結束/輪轉</h3>
-        <p style="margin-bottom:15px; margin-top:0;">比賽結束點擊「結束」。開啟「自動輪轉」時，結束後會自動把下一組排上去。</p>
-
-        <h3 style="margin-bottom:5px;">5. 防衝突系統</h3>
-        <p style="margin-bottom:15px; margin-top:0;">當看到「其他使用者操作中」畫面時，請稍候幾秒，這是防止多人同時操作造成資料錯亂。</p>
-
-        <h3 style="margin-bottom:5px;">6. 智能補人</h3>
-        <p style="margin-bottom:15px; margin-top:0;">開啟「男雙/女雙/混雙」開關後點擊<b>智能補人</b>，系統會從閒置球員中依上場次數自動分配最佳組合。</p>
-
-        <h3 style="margin-bottom:5px;">7. 手機版操作優化</h3>
-        <p style="margin-bottom:15px; margin-top:0;">手機版已移除拖曳球員功能，請直接<b>點擊球員頭像</b>（選滿4人）後，點擊右下角出現的<b>「加入列隊」</b>按鈕。</p>
-
-        <h3 style="margin-bottom:5px;">8. 排行榜與紀錄</h3>
-        <p style="margin-bottom:10px; margin-top:0;">點擊<b>「排行榜」</b>可查看所有球員的勝率統計，<b>「歷史紀錄」</b>則可以追溯過去每場比賽的具體分數。</p>
+        <!-- 數據與趣味 -->
+        <div class="help-section">
+          <h3 style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
+            <i class="fas fa-chart-line"></i> 統計與趣味 (Fun)
+          </h3>
+          <ul style="padding-left: 20px; margin: 0;">
+            <li style="margin-bottom: 8px;"><b>戰績排行：</b>點擊<b>「排行榜」</b>查看今日與生涯勝率。數據會永久保存在伺服器中。</li>
+            <li style="margin-bottom: 8px;"><b>星座分析：</b>在排行榜中切換至「星座分析」分頁，查看本團最強勢的星座势力！</li>
+            <li style="margin-bottom: 8px;"><b>防衝撞系統：</b>當看到「其他使用者操作中」，代表系統正在鎖定保護中，請稍候片刻。</li>
+          </ul>
+        </div>
       </div>
       <div class="modal-actions" style="margin-top:20px; text-align:center;">
         <button id="closeHelpBtn" class="btn btn-silver" style="width:100%;">我知道了</button>

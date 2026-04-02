@@ -199,10 +199,10 @@ $(function () {
     });
 
     // Help Modal
-    $('#helpBtn').click(function () {
+    $(document).on('click', '#helpBtn', function () {
         $('#helpModal').removeClass('hidden');
     });
-    $('#closeHelpBtn').click(function () {
+    $(document).on('click', '#closeHelpBtn', function () {
         $('#helpModal').addClass('hidden');
     });
 
@@ -212,7 +212,12 @@ $(function () {
     });
 
     $('#smartPickBtn').click(function () {
+        acquireLock();
         trySmartPick();
+        // The trySmartPick itself might be async or have its own flow, 
+        // but generally we release after the action or if it fails.
+        // For simplicity, we release after a short delay or within the function if it has a callback.
+        setTimeout(releaseLock, 2000);
     });
 
     // Search Filter
@@ -293,6 +298,7 @@ $(function () {
 
         if (emptyCourtId) {
             const courtName = courts[emptyCourtId].name || emptyCourtId;
+            acquireLock(); // Lock immediately when starting the flow
             window.showConfirm("準備開賽", `確定要在「場地 ${courtName}」進行下場比賽嗎？`, () => {
                 // Assign group to court
                 db.ref('lineup/courts/' + emptyCourtId + '/players').set(group.members);
@@ -308,6 +314,9 @@ $(function () {
 
                 // Start timer
                 window.startTimer(emptyCourtId);
+                releaseLock(); // Release after success
+            }, () => {
+                releaseLock(); // Release if canceled
             });
         } else {
             window.showAlert("場地全滿", "目前所有場地皆在比賽中，請稍候。");
@@ -1305,7 +1314,7 @@ $('#confirmEditPlayerBtn').click(() => {
 });
 
 // Custom Confirm Helper (確認/取消)
-window.showConfirm = function (title, message, onConfirm) {
+window.showConfirm = function (title, message, onConfirm, onCancel) {
     $('#alertIcon').addClass('hidden'); // Confirm normally doesn't need huge icon
     $('#confirmTitle').text(title);
     $('#confirmMessage').text(message);
@@ -1314,11 +1323,12 @@ window.showConfirm = function (title, message, onConfirm) {
     $('#doConfirmBtn').text('確定').removeClass('btn-silver').addClass('btn-gold');
 
     $('#doConfirmBtn').off('click').on('click', function () {
-        onConfirm();
+        if (onConfirm) onConfirm();
         $('#confirmModalOverlay').addClass('hidden');
     });
 
     $('#cancelConfirmBtn').off('click').on('click', function () {
+        if (onCancel) onCancel();
         $('#confirmModalOverlay').addClass('hidden');
     });
 };
@@ -2405,7 +2415,7 @@ window.speakMatch = function (courtId) {
     if (pNames.length >= 2) {
         const teamA = pNames.slice(0, 2).join('、');
         const teamB = pNames.slice(2, 4).join('、');
-        text += `由 ${teamA} ${teamB ? '對戰 ' + teamB : ''}，請進場比賽。`;
+        text += `由 ${teamA} ${teamB ? '對戰 ' + teamB : ''}，請颯氣a進場比賽。`;
     } else {
         text += `請 ${pNames.join('、')} 準備進場。`;
     }
