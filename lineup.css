@@ -786,7 +786,13 @@ body::after {
 }
 
 .player-chip .player-name.long-name {
-    font-size: calc(var(--chip-font-pool) * 0.85); /* 稍微縮小字體 */
+    font-size: calc(var(--chip-font-pool) * 0.95);
+    /* 稍微縮小字體 */
+}
+
+.player-chip .player-name.extra-long-name {
+    font-size: calc(var(--chip-font-pool) * 0.85);
+    /* 針對極限長名字再縮小 */
 }
 
 /* Active Chip (In Queue or Court) - The "Large" version */
@@ -811,7 +817,13 @@ body::after {
 }
 
 .player-chip.active-chip .player-name.long-name {
-    font-size: calc(var(--chip-font-active) * 0.82); /* 針對大圈圈的長名字縮小 */
+    font-size: calc(var(--chip-font-active) * 0.82);
+    /* 針對大圈圈的長名字縮小 */
+}
+
+.player-chip.active-chip .player-name.extra-long-name {
+    font-size: calc(var(--chip-font-active) * 0.68);
+    /* 極限長度更細放 */
 }
 
 /* Red Box 2: Horizontal layout and white text inside Court */
@@ -833,7 +845,13 @@ body::after {
 }
 
 .court-card .player-chip .player-name.long-name {
-    font-size: 0.85rem; /* 確保場地內的長名字不擋到分數 */
+    font-size: 0.85rem;
+    /* 確保場地內的長名字不擋到分數 */
+}
+
+.court-card .player-chip .player-name.extra-long-name {
+    font-size: 0.72rem;
+    /* 場地內極限長度縮減 */
 }
 
 /* Remove old .small logic */
@@ -1234,7 +1252,7 @@ input:checked+.slider:before {
 }
 
 @media (max-width: 1200px) {
-    .app-header .controls > *:not(.mobile-only):not(#addCourtBtn) {
+    .app-header .controls>*:not(.mobile-only):not(#addCourtBtn) {
         display: none !important;
     }
 
@@ -1270,7 +1288,7 @@ input:checked+.slider:before {
     }
 
     /* Hide specific controls in the header on mobile as they're now in the drawer */
-    .app-header .controls > *:not(.mobile-only):not(#addCourtBtn) {
+    .app-header .controls>*:not(.mobile-only):not(#addCourtBtn) {
         display: none !important;
     }
 
@@ -1280,7 +1298,8 @@ input:checked+.slider:before {
     }
 
     #addCourtBtn span {
-        display: none; /* Hide text if any, or just keep it short */
+        display: none;
+        /* Hide text if any, or just keep it short */
     }
 
     .main-container {
@@ -1735,7 +1754,8 @@ input:checked+.slider:before {
 .mobile-drawer {
     position: fixed;
     top: 0;
-    right: -320px; /* Hidden by default */
+    right: -320px;
+    /* Hidden by default */
     width: 320px;
     height: 100%;
     background: var(--bg-dark);
@@ -1947,9 +1967,17 @@ input:checked+.slider:before {
     justify-content: center;
 }
 
-.alert-warning i { color: #facc15; }
-.alert-error i   { color: #f87171; }
-.alert-success i { color: #4ade80; }
+.alert-warning i {
+    color: #facc15;
+}
+
+.alert-error i {
+    color: #f87171;
+}
+
+.alert-success i {
+    color: #4ade80;
+}
 
 @media (max-width: 768px) {
     .modal {
@@ -1957,7 +1985,7 @@ input:checked+.slider:before {
         width: 85%;
         border-radius: 24px;
     }
-    
+
     .modal h3 {
         font-size: 1.3rem;
     }
@@ -1987,7 +2015,9 @@ input:checked+.slider:before {
         transform: scale(0.8);
         opacity: 0.7;
     }
-    80%, 100% {
+
+    80%,
+    100% {
         transform: scale(3.5);
         opacity: 0;
     }
@@ -2015,10 +2045,12 @@ input:checked+.slider:before {
         opacity: 0;
         transform: translate(-50%, 0) scale(0.4) rotate(-30deg);
     }
+
     30% {
         opacity: 1;
         transform: translate(-50%, -40px) scale(1.3) rotate(5deg);
     }
+
     100% {
         opacity: 0;
         transform: translate(-50%, -80px) scale(1) rotate(15deg);
@@ -2031,7 +2063,17 @@ input:checked+.slider:before {
 }
 
 @keyframes score-pop-anim {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.5); color: var(--gold-start); text-shadow: 0 0 20px rgba(133, 59, 81, 0.5); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.5);
+        color: var(--gold-start);
+        text-shadow: 0 0 20px rgba(133, 59, 81, 0.5);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }

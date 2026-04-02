@@ -159,6 +159,29 @@ function initPresenceSystem() {
     });
 }
 
+// --- Name Helper: Get weighted length class ---
+function getNameLenClass(name) {
+    if (!name) return '';
+    let weight = 0;
+    let hasFullWidth = false;
+    for (let char of name) {
+        const isFullWidth = !!char.match(/[^\x00-\xff]/);
+        if (isFullWidth) hasFullWidth = true;
+        weight += isFullWidth ? 2 : 1;
+    }
+
+    // 中文較大，上限 6 字 (12分)，但視覺寬度不需縮到極限
+    if (hasFullWidth) {
+        if (weight > 8) return 'long-name'; // 5-6 個中文字
+        return '';
+    }
+    
+    // 純英文/數字，上限 12 字 (12分)，需採取階梯縮放防止切邊
+    if (weight > 10) return 'extra-long-name'; // 11-12 字
+    if (weight > 8) return 'long-name';       // 9-10 字
+    return '';
+}
+
 $(function () {
     initListeners();
     initSelectionLogic();
@@ -471,7 +494,7 @@ function renderPlayerPool() {
                         ${avatarHtml}
                         ${selectedMark}
                     </div>
-                    <div class="player-name ${(p.name && p.name.length > 4) ? 'long-name' : ''}">${escapeHtml(p.name)}</div>
+                    <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
                 </div>
     `;
             $playerPool.append(html);
@@ -558,7 +581,7 @@ function renderCourts() {
                 const chip = `
                     <div class="player-chip active-chip ${p.gender}" style="margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
                         <div class="player-avatar">${avatarHtml}</div>
-                        <div class="player-name ${(p.name && p.name.length > 4) ? 'long-name' : ''}">${escapeHtml(p.name)}</div>
+                        <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
                     </div>
                 `;
                 // Position logic (Manual visual placement needed)
@@ -638,7 +661,7 @@ function renderQueue() {
                 : `<i class="fas fa-user"></i>`;
             return `<div class="player-chip active-chip ${p.gender}" style="position:relative;">
                         <div class="player-avatar">${avatarHtml}</div>
-                        <div class="player-name" style="white-space:nowrap; max-width:60px; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+                        <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
                     </div>`;
         }).join('')}
                 </div>
