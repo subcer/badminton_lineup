@@ -2270,6 +2270,33 @@ input:checked+.slider:before {
     gap: 12px;
 }
 
+/* Honorary Titles */
+.honors-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.honor-tag {
+    background: white;
+    border: 1px solid var(--gold-start);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--brand-maroon);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 4px 10px rgba(133, 59, 81, 0.05);
+}
+
+.honor-tag b {
+    color: var(--gold-start);
+}
+
 .stat-row {
     display: flex;
     justify-content: space-between;

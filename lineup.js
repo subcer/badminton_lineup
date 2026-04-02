@@ -2212,9 +2212,32 @@ async function exportLeaderboardImage() {
     renderPodium(1, 'podium2');
     renderPodium(2, 'podium3');
 
-    // 4. Populate Stats Grid (Top 4-10)
+    // 4. Calculate Honorary Titles
+    const $honors = $('#exportHonors');
+    $honors.empty();
+    
+    const titles = [];
+    // A. 今日戰神 (勝場最多)
+    const mostWins = [...lbData].sort((a,b) => b.wins - a.wins)[0];
+    if (mostWins && mostWins.wins > 0) titles.push({ icon: '🏆', title: '今日戰神', name: mostWins.name });
+    
+    // B. 勞動楷模 (總場數最多)
+    const mostTotal = [...lbData].sort((a,b) => b.total - a.total)[0];
+    if (mostTotal && mostTotal.total > 0 && mostTotal.pid !== (mostWins ? mostWins.pid : null)) {
+        titles.push({ icon: '💪', title: '勞動楷模', name: mostTotal.name });
+    }
+
+    // C. 全勝神話 (100% 勝率且 > 1 場)
+    const perfect = lbData.find(p => p.winRate === 100 && p.total >= 2);
+    if (perfect) titles.push({ icon: '🔥', title: '全勝神話', name: perfect.name });
+
+    titles.forEach(t => {
+        $honors.append(`<div class="honor-tag">${t.icon} ${t.title}: <b>${t.name}</b></div>`);
+    });
+
+    // 5. Populate Stats Grid (Show ALL remaining players)
     $grid.empty();
-    const otherPlayers = lbData.slice(3, 11); // Take up to 8 more
+    const otherPlayers = lbData.slice(3); // 取出第 4 名之後的所有球員
     if (otherPlayers.length === 0) {
         $grid.append('<div style="grid-column: span 2; text-align: center; color: #aaa; font-size: 0.8rem; padding: 10px;">目前尚無更多戰績紀錄</div>');
     } else {
