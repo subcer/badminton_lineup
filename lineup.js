@@ -1174,22 +1174,30 @@ $playerPool.on('dblclick', '.player-chip', function (e) {
 let lastTap = 0;
 let lastTapId = null;
 $playerPool.on('touchend', '.player-chip', function (e) {
-    if (isSelecting) return;
+    // 如果正在「選取中」，絕對禁用法！
+    if (isSelecting || selectedPlayers.size > 0) return;
+
     const currentTime = new Date().getTime();
     const currentPid = $(this).data('id');
     const tapLength = currentTime - lastTap;
 
-    // 只有在【同一個球員】身上 500ms 內點兩下才觸發
-    if (tapLength < 500 && tapLength > 0 && lastTapId === currentPid) {
-        e.preventDefault(); // Prevent zoom
+    // 只有在【同一個球員】身上 300ms 內點兩下才觸發 (更精確)
+    if (tapLength < 300 && tapLength > 0 && lastTapId === currentPid) {
+        e.preventDefault(); 
         e.stopPropagation();
         openEditModal(currentPid);
     }
     lastTap = currentTime;
-    lastTapId = currentPid; // 記錄最後點選的球員 ID
+    lastTapId = currentPid; 
 });
 
 function openEditModal(pid) {
+    // 加強防呆：選人中絕對不准跳窗
+    if (isSelecting || (typeof selectedPlayers !== 'undefined' && selectedPlayers.size > 0)) {
+        console.log("Blocking Modal: We are in selection mode.");
+        return;
+    }
+    
     const p = players[pid];
     if (!p) return;
 
