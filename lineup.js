@@ -2158,6 +2158,9 @@ $(document).ready(function () {
                     window.historyLoaded = true;
                 });
             }
+        } else if (target === 'tab-zodiac') {
+            // 觸發星座統計渲染
+            renderZodiacStats();
         }
     });
 
@@ -2553,4 +2556,100 @@ async function exportLeaderboardImage() {
             showAlert('匯出失敗', '抱歉，製作圖片時發生錯誤。請確認網路連線或稍後再試。', 'error');
         }
     }, 800); // 延長到 800ms 確保渲染完成
+}
+
+// --- Zodiac (Stars) Logic ---
+const ZODIAC_DATA = [
+    { name: '摩羯座', range: [1222, 119], emoji: '♑\uFE0E', color: '#607d8b' },
+    { name: '水瓶座', range: [120, 218], emoji: '♒\uFE0E', color: '#03a9f4' },
+    { name: '雙魚座', range: [219, 320], emoji: '♓\uFE0E', color: '#26c6da' },
+    { name: '白羊座', range: [321, 419], emoji: '♈\uFE0E', color: '#ff5252' },
+    { name: '金牛座', range: [420, 520], emoji: '♉\uFE0E', color: '#8bc34a' },
+    { name: '雙子座', range: [521, 621], emoji: '♊\uFE0E', color: '#fdd835' },
+    { name: '巨蟹座', range: [622, 722], emoji: '♋\uFE0E', color: '#64b5f6' },
+    { name: '獅子座', range: [723, 822], emoji: '♌\uFE0E', color: '#ffa726' },
+    { name: '處女座', range: [823, 922], emoji: '♍\uFE0E', color: '#4caf50' },
+    { name: '天秤座', range: [923, 1023], emoji: '♎\uFE0E', color: '#f06292' },
+    { name: '天蠍座', range: [1024, 1122], emoji: '♏\uFE0E', color: '#9c27b0' },
+    { name: '射手座', range: [1123, 1221], emoji: '♐\uFE0E', color: '#ff9800' }
+];
+
+function getZodiacInfo(mmdd) {
+    if (!mmdd || mmdd.length !== 4) return null;
+    const num = parseInt(mmdd);
+    if (num >= 1222 || num <= 119) return ZODIAC_DATA[0];
+    return ZODIAC_DATA.find(z => num >= z.range[0] && num <= z.range[1]) || null;
+}
+
+function renderZodiacStats() {
+    const grid = $('#zodiacChartGrid');
+    const banner = $('#zodiacStatsSummary');
+    
+    grid.empty().append('<div class="loading-stars"><i class="fas fa-spinner fa-spin"></i> 正在夜觀星象...</div>');
+
+    db.ref('lineup/registry').once('value', snap => {
+        const allRecords = snap.val() || {};
+        let statsMap = {};
+        ZODIAC_DATA.forEach(z => {
+            statsMap[z.name] = { count: 0, totalWins: 0, totalLosses: 0, info: z };
+        });
+
+        Object.values(allRecords).forEach(p => {
+            const zInfo = getZodiacInfo(p.birthday);
+            if (zInfo) {
+                statsMap[zInfo.name].count++;
+                statsMap[zInfo.name].totalWins += (p.totalWins || 0);
+                statsMap[zInfo.name].totalLosses += (p.totalLosses || 0);
+            }
+        });
+
+        const sorted = Object.values(statsMap).sort((a,b) => b.count - a.count);
+        const top = sorted[0];
+        
+        if (top && top.count > 0) {
+            banner.html(`
+                <div class="zodiac-top-banner" style="background: linear-gradient(135deg, ${top.info.color}15, #ffffff); border: 2px solid ${top.info.color}22; padding: 10px 20px;">
+                    <div class="z-top-icon" style="background: ${top.info.color}15; color: ${top.info.color}; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                        ${top.info.emoji}
+                    </div>
+                    <div class="banner-text" style="gap: 2px; margin-left: 10px;">
+                        <strong style="font-size: 1.15rem; color: ${top.info.color};">本隊霸主：${top.info.name}</strong>
+                        <span style="font-size: 0.85rem; color: #666;">目前共有 ${top.count} 位${top.info.name}成員活躍中！</span>
+                    </div>
+                </div>
+            `);
+        } else {
+            banner.html('<div class="empty-state">尚無腳本或生日資料...</div>');
+        }
+
+        grid.empty();
+        sorted.forEach(s => {
+            const total = s.totalWins + s.totalLosses;
+            const winRate = total > 0 ? Math.round((s.totalWins / total) * 100) : 0;
+            
+            const card = $(`
+                <div class="zodiac-card" style="background: white; border: 1px solid #f2f2f2; padding: 14px 18px !important;">
+                    <div class="zodiac-card-main">
+                        <div class="zodiac-icon-wrapper" style="background: ${s.info.color}15; color: ${s.info.color}; font-size: 1.5rem; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            ${s.info.emoji}
+                        </div>
+                        <div class="z-meta">
+                            <span class="zodiac-name" style="font-size: 1.1rem !important; color: ${s.info.color}; font-weight: 800;">${s.info.name}</span>
+                            <span class="zodiac-tag" style="opacity: 0.6; font-size: 0.8rem;">${s.count} 人活躍</span>
+                        </div>
+                    </div>
+                    <div class="zodiac-card-footer">
+                        <div class="z-rate-bar" style="height: 6px; background: #eee;">
+                            <div class="z-rate-fill" style="width: ${winRate}%; background: ${s.info.color};"></div>
+                        </div>
+                        <div class="z-rate-text">
+                            <span style="font-size: 0.75rem; color: #999;">勝率</span>
+                            <strong style="font-size: 0.9rem; color: ${s.info.color};">${winRate}%</strong>
+                        </div>
+                    </div>
+                </div>
+            `);
+            grid.append(card);
+        });
+    });
 }

@@ -287,28 +287,27 @@
 
   <!-- Leaderboard Modal -->
   <div id="leaderboardModalOverlay" class="modal-overlay hidden">
-    <div class="modal gold-border"
-      style="width: 600px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0;"><i class="fas fa-trophy" style="color:var(--gold-start)"></i> 賽果與排行榜</h2>
-        <div style="display: flex; gap: 8px;">
-          <button id="exportLeaderboardBtn" class="btn btn-gold btn-sm" title="匯出精美戰績圖"
-            style="padding: 4px 12px; font-size: 0.9rem; background: var(--brand-gradient); color: white;">
-            <i class="fas fa-share-alt"></i> 分享戰績圖
+    <div class="modal gold-border leaderboard-modal">
+      <div class="lb-header">
+        <h2 class="lb-title"><i class="fas fa-trophy"></i> 賽果與排行榜</h2>
+        <div class="lb-header-actions">
+          <button id="exportLeaderboardBtn" class="btn btn-gold btn-share" title="匯出精美戰績圖">
+            <i class="fas fa-share-alt"></i> <span>分享戰績圖</span>
           </button>
-          <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="結束今日場次並重置排行榜 (生涯數據會保留)"
-            style="padding: 4px 10px; font-size: 0.8rem;">
-            <i class="fas fa-flag-checkered"></i> 結算今日場次
+          <button id="clearLeaderboardBtn" class="btn btn-danger btn-settle" title="結束今日場次並重置排行榜 (生涯數據會保留)">
+            <i class="fas fa-flag-checkered"></i> <span>結算今日</span>
           </button>
-          <button id="closeLeaderboardBtn" class="btn btn-silver" style="padding: 4px 10px; font-size: 1.1rem;"><i
-              class="fas fa-times"></i></button>
+          <button id="closeLeaderboardBtn" class="btn btn-close-x" title="關閉視窗">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
       </div>
 
       <div class="lb-tabs">
-        <button class="lb-tab active" data-tab="tab-leaderboard">今日排行榜</button>
+        <button class="lb-tab" data-tab="tab-leaderboard">今日排行榜</button>
         <button class="lb-tab" data-tab="tab-registry"><i class="fas fa-medal"></i> 全球名人堂</button>
         <button class="lb-tab" data-tab="tab-history">近期比賽紀錄</button>
+        <button class="lb-tab" data-tab="tab-zodiac"><i class="fas fa-magic"></i> 星座分析</button>
       </div>
 
       <!-- Tab Content: Leaderboard -->
@@ -355,6 +354,19 @@
       <div id="tab-history" class="lb-content" style="flex: 1; overflow-y: auto; display: none;">
         <div id="historyListContainer" class="history-list">
           <!-- 比賽歷史 -->
+        </div>
+      </div>
+
+      <!-- Tab Content: Zodiac (Stars) -->
+      <div id="tab-zodiac" class="lb-content" style="flex: 1; overflow-y: auto; display: none; padding: 15px;">
+        <div id="zodiacStatsSummary" class="zodiac-summary-banner">
+          <!-- 統計摘要：本團最大勢力 -->
+        </div>
+        <div id="zodiacChartGrid" class="zodiac-grid">
+          <!-- 12 星座統計卡片 -->
+        </div>
+        <div id="zodiacFunAnalysis" style="margin-top: 20px; font-size: 0.85rem; color: #888; text-align: center; font-style: italic;">
+          數據僅供球友間趣味討論，切莫因此對特定星座球友進行「排擠」喔 xdd
         </div>
       </div>
     </div>
