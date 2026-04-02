@@ -165,6 +165,7 @@ $(function () {
     initDragAndDrop();
     initLockSystem();
     initPresenceSystem();
+    initNameLengthValidators();
 
     requestNotificationPermission();
 
@@ -470,7 +471,7 @@ function renderPlayerPool() {
                         ${avatarHtml}
                         ${selectedMark}
                     </div>
-                    <div class="player-name">${escapeHtml(p.name)}</div>
+                    <div class="player-name ${(p.name && p.name.length > 4) ? 'long-name' : ''}">${escapeHtml(p.name)}</div>
                 </div>
     `;
             $playerPool.append(html);
@@ -557,7 +558,7 @@ function renderCourts() {
                 const chip = `
                     <div class="player-chip active-chip ${p.gender}" style="margin: 0 5px; display:flex; flex-direction:column; align-items:center;">
                         <div class="player-avatar">${avatarHtml}</div>
-                        <div class="player-name">${escapeHtml(p.name)}</div>
+                        <div class="player-name ${(p.name && p.name.length > 4) ? 'long-name' : ''}">${escapeHtml(p.name)}</div>
                     </div>
                 `;
                 // Position logic (Manual visual placement needed)
@@ -2049,3 +2050,28 @@ $(document).ready(function () {
         $('#qrModalOverlay').addClass('hidden');
     });
 });
+
+// --- Name Length Validators (Weighted: Chinese=2, English=1) ---
+function initNameLengthValidators() {
+    const applyLimit = ($input, max = 12) => {
+        $input.on('input', function () {
+            let val = $(this).val();
+            let currentWeight = 0;
+            let result = '';
+            for (let char of val) {
+                // Determine if char is Full-width/Chinese (Non-ASCII)
+                const weight = char.match(/[^\x00-\xff]/) ? 2 : 1;
+                if (currentWeight + weight <= max) {
+                    currentWeight += weight;
+                    result += char;
+                } else {
+                    break;
+                }
+            }
+            if (val !== result) $(this).val(result);
+        });
+    };
+
+    applyLimit($('#newPlayerName'));
+    applyLimit($('#editPlayerName'));
+}

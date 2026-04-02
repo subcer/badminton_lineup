@@ -782,6 +782,11 @@ body::after {
 
 .player-chip .player-name {
     font-size: var(--chip-font-pool);
+    white-space: nowrap;
+}
+
+.player-chip .player-name.long-name {
+    font-size: calc(var(--chip-font-pool) * 0.85); /* 稍微縮小字體 */
 }
 
 /* Active Chip (In Queue or Court) - The "Large" version */
@@ -802,6 +807,11 @@ body::after {
 
 .player-chip.active-chip .player-name {
     font-size: var(--chip-font-active);
+    white-space: nowrap;
+}
+
+.player-chip.active-chip .player-name.long-name {
+    font-size: calc(var(--chip-font-active) * 0.82); /* 針對大圈圈的長名字縮小 */
 }
 
 /* Red Box 2: Horizontal layout and white text inside Court */
@@ -820,6 +830,10 @@ body::after {
     color: #ffffff;
     text-align: left;
     white-space: nowrap;
+}
+
+.court-card .player-chip .player-name.long-name {
+    font-size: 0.85rem; /* 確保場地內的長名字不擋到分數 */
 }
 
 /* Remove old .small logic */

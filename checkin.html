@@ -343,6 +343,23 @@
             reader.readAsDataURL(file);
         });
 
+        // Name Length Limit (Weighted: Chinese=2, English=1, Max=12)
+        $('#playerName').on('input', function () {
+            let val = $(this).val();
+            let currentWeight = 0;
+            let result = '';
+            for (let char of val) {
+                const weight = char.match(/[^\x00-\xff]/) ? 2 : 1;
+                if (currentWeight + weight <= 12) {
+                    currentWeight += weight;
+                    result += char;
+                } else {
+                    break;
+                }
+            }
+            if (val !== result) $(this).val(result);
+        });
+
         // Submit Logic
         $('#submitBtn').click(function () {
             const name = $('#playerName').val().trim();
