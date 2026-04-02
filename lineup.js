@@ -1172,18 +1172,21 @@ $playerPool.on('dblclick', '.player-chip', function (e) {
 
 // Custom Double Tap for Mobile (Better than standard dblclick on touch devices)
 let lastTap = 0;
+let lastTapId = null;
 $playerPool.on('touchend', '.player-chip', function (e) {
     if (isSelecting) return;
     const currentTime = new Date().getTime();
+    const currentPid = $(this).data('id');
     const tapLength = currentTime - lastTap;
 
-    // Check for double tap (within 500ms)
-    if (tapLength < 500 && tapLength > 0) {
+    // 只有在【同一個球員】身上 500ms 內點兩下才觸發
+    if (tapLength < 500 && tapLength > 0 && lastTapId === currentPid) {
         e.preventDefault(); // Prevent zoom
         e.stopPropagation();
-        openEditModal($(this).data('id'));
+        openEditModal(currentPid);
     }
     lastTap = currentTime;
+    lastTapId = currentPid; // 記錄最後點選的球員 ID
 });
 
 function openEditModal(pid) {
