@@ -1114,32 +1114,50 @@ $('#confirmAddPlayerBtn').click(() => {
     }
 
     if (name) {
-        let assignedAvatar = window.tempNewAvatar;
+        const rid = getRegistryId(name, birthday);
+        
+        // 1. 先去 Registry 抓抓看有沒有老朋友資料
+        db.ref('lineup/registry/' + rid).once('value', snap => {
+            const regData = snap.val();
+            let assignedAvatar = window.tempNewAvatar;
 
-        // If NO manual upload, pick a random cat
-        if (!assignedAvatar) {
-            const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
-            const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
-            if (availableAvatars.length > 0) {
-                assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
-            } else {
-                assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+            // 如果沒上傳新照片，但 Registry 有舊照片，就用舊的
+            if (!assignedAvatar && regData && regData.avatarUrl) {
+                assignedAvatar = regData.avatarUrl;
             }
-        }
 
-        db.ref('lineup/players').push({
-            name,
-            birthday, // 儲存生日
-            gender,
-            level: parseInt(level),
-            avatarUrl: assignedAvatar,
-            status: 'idle',
-            playCount: 0,
-            wins: 0,
-            losses: 0,
-            created_at: firebase.database.ServerValue.TIMESTAMP
+            // 如果兩者都沒有，才去抓貓咪池
+            if (!assignedAvatar) {
+                const usedAvatars = Object.values(players).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
+                const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
+                if (availableAvatars.length > 0) {
+                    assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+                } else {
+                    assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+                }
+            }
+
+            const playerData = {
+                name,
+                birthday,
+                gender,
+                level: parseInt(level),
+                avatarUrl: assignedAvatar,
+                status: 'idle',
+                playCount: 0,
+                wins: 0,
+                losses: 0,
+                created_at: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // 寫入今日名單
+            db.ref('lineup/players').push(playerData);
+            
+            // 同步回 Registry (確保 registry 中也有這一筆，或更新最新資料)
+            syncToRegistry(playerData);
+
+            $('#modalOverlay').addClass('hidden');
         });
-        $('#modalOverlay').addClass('hidden');
     }
 });
 
@@ -1190,6 +1208,34 @@ function openEditModal(pid) {
     $('#editPlayerPhoto').val('');
 
     $('#editModalOverlay').removeClass('hidden');
+
+    // --- 抓取生涯數據庫 (NEW) ---
+    const rid = getRegistryId(p.name, p.birthday);
+    if (rid) {
+        db.ref('lineup/registry/' + rid).once('value', snap => {
+            const reg = snap.val();
+            if (reg) {
+                $('#careerStatsSection').removeClass('hidden');
+                $('#careerWinsText').text(reg.totalWins || 0);
+                $('#careerLossesText').text(reg.totalLosses || 0);
+                
+                const total = (reg.totalWins || 0) + (reg.totalLosses || 0);
+                const rate = total > 0 ? Math.round((reg.totalWins || 0) / total * 100) : 0;
+                $('#careerRateText').text(rate + '%');
+                
+                if (reg.lastSeen) {
+                    const d = new Date(reg.lastSeen);
+                    $('#careerJoinDate').text(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`);
+                } else {
+                    $('#careerJoinDate').text('較早前註冊');
+                }
+            } else {
+                $('#careerStatsSection').addClass('hidden');
+            }
+        });
+    } else {
+        $('#careerStatsSection').addClass('hidden');
+    }
 }
 
 $('#cancelEditModalBtn').click(() => {
@@ -1232,6 +1278,10 @@ $('#confirmEditPlayerBtn').click(() => {
         }
 
         db.ref('lineup/players/' + pid).update(updateData);
+        
+        // 同步回 Registry
+        syncToRegistry(updateData);
+
         $('#editModalOverlay').addClass('hidden');
     }
 });
@@ -1326,6 +1376,44 @@ $('#resetBtn').click(() => {
         $('.player-chip').removeClass('selected');
     });
 });
+
+// --- Registry (Permanent Records) Logic ---
+// 根據「姓名 + 生日」生成唯一的 Registry ID
+function getRegistryId(name, birthday) {
+    if (!name || !birthday) return null;
+    return (name + "_" + birthday).replace(/[.#$[\]]/g, ""); // 清理 Firebase 不合規字元
+}
+
+// 將今日球員資料同步到永久檔案室
+function syncToRegistry(player) {
+    const rid = getRegistryId(player.name, player.birthday);
+    if (!rid) return;
+
+    const registryRef = db.ref('lineup/registry/' + rid);
+    registryRef.update({
+        name: player.name,
+        birthday: player.birthday,
+        gender: player.gender || 'male',
+        level: parseInt(player.level) || 5,
+        avatarUrl: player.avatarUrl || null,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+}
+
+// 當比賽結束時，額外更新永久檔案室的勝負紀錄
+function syncMatchResultToRegistry(pid, isWin) {
+    const p = players[pid];
+    if (!p) return;
+    const rid = getRegistryId(p.name, p.birthday);
+    if (!rid) return;
+
+    const ref = db.ref('lineup/registry/' + rid);
+    if (isWin) {
+        ref.child('totalWins').set(firebase.database.ServerValue.increment(1));
+    } else {
+        ref.child('totalLosses').set(firebase.database.ServerValue.increment(1));
+    }
+}
 
 // Global helpers
 let isDeletingQueue = false; // Cooldown flag
@@ -1433,23 +1521,96 @@ window.endGame = function (courtId) {
         db.ref('lineup/courts/' + courtId + '/players').set([]);
         db.ref('lineup/courts/' + courtId + '/status').set('active');
 
+        // --- 同步至永久檔案室 (Registry) ---
+        pids.forEach((pid, idx) => {
+            if (!pid) return;
+            const p = players[pid];
+            if (!p) return;
+            
+            // 更新生涯總勝敗數
+            if (!isPractice) {
+                const isWin = ((idx === 0 || idx === 1) && teamAWins) || ((idx === 2 || idx === 3) && teamBWins);
+                syncMatchResultToRegistry(pid, isWin);
+            }
+            // 每次比賽結束也同步一次基本屬性 (保險起見)
+            syncToRegistry(p);
+        });
+
         // Auto Rotation Trigger
         setTimeout(tryAutoRotate, 500);
     });
 };
 
-// Refresh Layout Button
-$('#refreshLayoutBtn').off('click').click(function () {
-    // Reset ALL player positions to null, forcing re-layout
+// --- Reset Session (主力重整：清場、解散、場次歸零) ---
+function resetSession() {
+    showConfirm('重整版面', '您確定要清空目前的所有場地、列隊，並將全體今日場次與勝率歸零嗎？(已報到人員會保留)', () => {
+        // 1. 重設所有球員資料庫中的狀態與今日數據
+        let playerUpdates = {};
+        Object.keys(players).forEach(pid => {
+            playerUpdates[pid + '/status'] = 'idle';
+            playerUpdates[pid + '/playCount'] = 0;
+            playerUpdates[pid + '/wins'] = 0;
+            playerUpdates[pid + '/losses'] = 0;
+            playerUpdates[pid + '/x'] = null;
+            playerUpdates[pid + '/y'] = null;
+        });
+        
+        if (Object.keys(playerUpdates).length > 0) {
+            db.ref('lineup/players').update(playerUpdates);
+        }
+
+        // 2. 清空等待列隊
+        db.ref('lineup/queue').remove();
+
+        // 3. 清空所有場地、重設比分與狀態
+        db.ref('lineup/courts').once('value', snap => {
+            const allCourts = snap.val() || {};
+            let courtUpdates = {};
+            Object.keys(allCourts).forEach(cid => {
+                courtUpdates[cid + '/players'] = [];
+                courtUpdates[cid + '/scoreA'] = 0;
+                courtUpdates[cid + '/scoreB'] = 0;
+                courtUpdates[cid + '/status'] = 'active';
+                courtUpdates[cid + '/startTime'] = null;
+            });
+            db.ref('lineup/courts').update(courtUpdates);
+        });
+
+        // 4. 清理前端本地狀態
+        if (typeof selectedPlayers !== 'undefined') selectedPlayers.clear();
+        $('.player-chip').removeClass('active-chip');
+
+        showAlert('重整成功', '全場數據已重設，所有人已回歸待命。', 'success');
+    });
+}
+
+// --- Refresh Layout (輔助整理：僅重設球員圖標位置) ---
+function refreshLayout() {
     let updates = {};
     Object.keys(players).forEach(pid => {
         updates[pid + '/x'] = null;
         updates[pid + '/y'] = null;
     });
+    
     if (Object.keys(updates).length > 0) {
         db.ref('lineup/players').update(updates);
     }
-});
+
+    // 強制重繪前端，讓球員跳回格位
+    if (typeof renderPlayerPool === 'function') {
+        renderPlayerPool();
+    }
+    
+    // 側邊小按鈕不跳大視窗，改用 Console 紀錄或輕提示
+    console.log("Layout refreshed (coordinates reset)");
+}
+
+// 綁定大按鈕 (resetBtn, resetBtnMobile) 執行「主力重整」
+$('#resetBtn').off('click').click(resetSession);
+$('#resetBtnMobile').off('click').click(resetSession);
+
+// 綁定名單旁小按鈕 (refreshLayoutBtn) 僅執行「輔助整理」
+$('#refreshLayoutBtn').off('click').click(refreshLayout);
 
 // Sidebar Collapse Toggle
 $('#toggleSidebarBtn').off('click').click(function () {
@@ -1942,39 +2103,115 @@ $(document).ready(function () {
         $('#leaderboardModalOverlay').addClass('hidden');
     });
 
-    // Clear Leaderboard Data Logic
+    // End Today Session Logic
     $('#clearLeaderboardBtn').click(() => {
-        showConfirm('清除全球紀錄', '警告：此操作將會「永久清除」所有球員的勝場、敗場、與歷史對戰比分，確定要執行嗎？', () => {
+        showConfirm('結算今日場次', '確定要結束今天的活動嗎？這將會清空「今日排行榜」與「待排隊名單」，但所有球員的「生涯總戰績」與「貓頭像」將會安全保留。', () => {
             const entriesUpdates = {};
             Object.keys(players).forEach(pid => {
-                entriesUpdates[pid + '/wins'] = null;     // 使用 null 徹底在 DB 刪除該欄位
-                entriesUpdates[pid + '/losses'] = null;
-                entriesUpdates[pid + '/partners'] = null; // 清除戰績時通常也代表重開一季，順便清搭檔
+                // We keep the player in the list but reset their "session" stats?
+                // Actually, Plan A says "Clear today's players" (Wipe them from the screen)
+                // Let's remove today's players node entirely.
             });
 
-            // 執行批次更新與刪除歷史紀錄
-            db.ref('lineup/players').update(entriesUpdates);
+            // 執行清空今日數據與歷史紀錄
+            db.ref('lineup/players').remove();
+            db.ref('lineup/queue').remove();
             db.ref('lineup/history').remove();
 
             // 強制關閉視窗讓使用者看到數據已清空
             $('#leaderboardModalOverlay').addClass('hidden');
-            showAlert('清理完成', '所有數據已成功清除！');
-
-            // 提示成功 (選擇性)
-            console.log("Leaderboard and history cleared.");
-
-            // 立即重新渲染 (因為 Firebase 是非同步，監聽器會觸發，但這裡可以關閉視窗或切回首頁)
+            showAlert('結算完成', '今日場次已結束，期待下次開球！');
         });
     });
 
-    $('.lb-tab').click(function () {
+    // Tab Switching Logic
+    $('.lb-tab').off('click').on('click', function () {
         $('.lb-tab').removeClass('active');
-        $('.lb-content').removeClass('active').addClass('hidden');
+        $('.lb-content').hide(); // 直接使用 hide() 比較統一
 
         $(this).addClass('active');
         const target = $(this).data('tab');
-        $('#' + target).removeClass('hidden').addClass('active');
+        $('#' + target).show().addClass('active');
+
+        // 執行對應分頁的渲染
+        if (target === 'tab-registry') {
+            renderHallOfFame();
+        } else if (target === 'tab-leaderboard') {
+            renderLeaderboard();
+        } else if (target === 'tab-history') {
+            // 確保歷史紀錄區塊的可見度與數據載入
+            if (!window.historyLoaded) {
+                db.ref('lineup/history').limitToLast(50).once('value', snap => {
+                    const data = snap.val() || {};
+                    renderHistory(data);
+                    window.historyLoaded = true;
+                });
+            }
+        }
     });
+
+    function renderHallOfFame() {
+        const hfTbody = $('#hallOfFameTbody');
+        hfTbody.empty().append('<tr><td colspan="4" style="text-align:center; padding:30px; color:#aaa;"><i class="fas fa-spinner fa-spin"></i> 正在翻閱英雄榜...</td></tr>');
+
+        db.ref('lineup/registry').once('value', snap => {
+            const data = snap.val() || {};
+            let hfData = [];
+
+            Object.keys(data).forEach(rid => {
+                const reg = data[rid];
+                const wins = reg.totalWins || 0;
+                const losses = reg.totalLosses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
+
+                if (total > 0) { // 只顯示有打過球的人
+                    hfData.push({
+                        name: reg.name,
+                        avatar: reg.avatarUrl,
+                        total,
+                        wins,
+                        losses,
+                        winRate: parseFloat(winRate)
+                    });
+                }
+            });
+
+            // 排序：勝場數優先 (展現累積榮譽)，勝率次之
+            hfData.sort((a, b) => {
+                if (b.wins !== a.wins) return b.wins - a.wins;
+                return b.winRate - a.winRate;
+            });
+
+            hfTbody.empty();
+            if (hfData.length === 0) {
+                hfTbody.append('<tr><td colspan="4" style="text-align:center; padding:20px; color:#aaa;">尚未有人進入名人堂</td></tr>');
+                return;
+            }
+
+            hfData.forEach((d, index) => {
+                const rank = index + 1;
+                let rankHtml = `<span class="rank-badge">${rank}</span>`;
+                if (rank === 1) rankHtml = `<span class="rank-badge rank-1"><i class="fas fa-crown"></i></span>`;
+                else if (rank === 2) rankHtml = `<span class="rank-badge rank-2">2</span>`;
+                else if (rank === 3) rankHtml = `<span class="rank-badge rank-3">3</span>`;
+
+                const avatarHtml = d.avatar
+                    ? `<img src="${d.avatar}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">`
+                    : `<div class="avatar-icon" style="width:36px; height:36px; border-radius:50%; background:#eee; display:flex; justify-content:center; align-items:center; color:#ccc;"><i class="fas fa-user"></i></div>`;
+
+                const html = `
+                    <tr>
+                        <td>${rankHtml}</td>
+                        <td><div class="lb-player" style="display:flex; align-items:center; gap:10px;">${avatarHtml} <span>${d.name}</span></div></td>
+                        <td><b style="color:var(--gold-start)">${d.wins}</b> <span style="font-size:0.8rem; color:#aaa;">W</span> / <b>${d.losses}</b> <span style="font-size:0.8rem; color:#aaa;">L</span></td>
+                        <td style="font-weight:700;">${d.winRate}%</td>
+                    </tr>
+                `;
+                hfTbody.append(html);
+            });
+        });
+    }
 
     function renderLeaderboard() {
         const lbTbody = $('#leaderboardTbody');

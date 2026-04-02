@@ -1056,6 +1056,62 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    
+    /* Responsive Fix (NEW) */
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Mobile/Tablet Adaptive Style (NEW) */
+@media (max-width: 768px) {
+    .modal {
+        padding: 24px 16px;
+        gap: 16px;
+        width: 95% !important;
+        border-radius: 24px;
+    }
+
+    .modal h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .input-group {
+        gap: 4px;
+    }
+    
+    .input-group label {
+        font-size: 0.85rem;
+    }
+
+    .modal input, .modal select {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+
+    /* Compress Career Stats Card on Mobile */
+    .career-stats-card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .career-stats-card .stats-row-group {
+        gap: 6px;
+    }
+
+    .career-stats-card .stat-box {
+        padding: 6px;
+    }
+
+    .career-stats-card .stat-val {
+        font-size: 0.95rem;
+    }
+    
+    /* Smaller Avatar Preview on Mobile */
+    #editPlayerPreview, #addPlayerPreview {
+        width: 100px !important;
+        height: 100px !important;
+    }
 }
 
 .input-group {
@@ -2350,3 +2406,74 @@ input:checked+.slider:before {
     font-size: 0.6rem;
     color: #ccc;
 }
+
+/* Career Stats Card Detail Style */
+.career-stats-card {
+    background: linear-gradient(135deg, rgba(133, 59, 81, 0.03), rgba(209, 163, 102, 0.05));
+    border: 1px solid rgba(133, 59, 81, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.career-stats-card.hidden {
+    display: none;
+}
+
+.career-stats-card .stats-header {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--brand-maroon);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px dashed rgba(133, 59, 81, 0.2);
+    padding-bottom: 8px;
+}
+
+.career-stats-card .stats-row-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.career-stats-card .stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.career-stats-card .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.career-stats-card .stat-val {
+    font-size: 1.1rem;
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+    color: var(--brand-maroon);
+}
+
+.career-stats-card .stat-val.highlight-win {
+    color: #4ade80;
+}
+
+.career-stats-card .stat-val.highlight-loss {
+    color: #f87171;
+}
+
+.career-stats-card .stats-footer {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+    text-align: right;
+    font-style: italic;
+}

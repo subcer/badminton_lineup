@@ -387,24 +387,50 @@
 
             $("#submitBtn").prop('disabled', true).text("報報中...");
 
-            db.ref('lineup/players').push({
-                name,
-                birthday,
-                gender,
-                level: parseInt(level),
-                avatarUrl: tempAvatar || null,
-                status: 'idle',
-                playCount: 0,
-                wins: 0,
-                losses: 0,
-                created_at: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                $('#formContent').fadeOut(400, function () {
-                    $('#successMessage').fadeIn().css('display', 'flex');
+            const rid = (name + "_" + birthday).replace(/[.#$[\]]/g, "");
+
+            // 1. 先去 Registry 檢查是否有老資料
+            db.ref('lineup/registry/' + rid).once('value', snap => {
+                const regData = snap.val();
+                let assignedAvatar = tempAvatar;
+
+                // 如果沒拍新照片且 Registry 有舊照片，就用舊的
+                if (!assignedAvatar && regData && regData.avatarUrl) {
+                    assignedAvatar = regData.avatarUrl;
+                }
+
+                const playerData = {
+                    name,
+                    birthday,
+                    gender,
+                    level: parseInt(level),
+                    avatarUrl: assignedAvatar || null,
+                    status: 'idle',
+                    playCount: 0,
+                    wins: 0,
+                    losses: 0,
+                    created_at: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                // 2. 寫入今日報到名單
+                db.ref('lineup/players').push(playerData).then(() => {
+                    // 3. 同步回 Registry 存檔
+                    db.ref('lineup/registry/' + rid).update({
+                        name: name,
+                        birthday: birthday,
+                        gender: gender,
+                        level: parseInt(level),
+                        avatarUrl: assignedAvatar || null,
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    $('#formContent').fadeOut(400, function () {
+                        $('#successMessage').fadeIn().css('display', 'flex');
+                    });
+                }).catch(err => {
+                    alert("報到失敗，請檢查網路：" + err);
+                    $("#submitBtn").prop('disabled', false).text("確認報到");
                 });
-            }).catch(err => {
-                alert("報到失敗，請檢查網路：" + err);
-                $("#submitBtn").prop('disabled', false).text("確認報到");
             });
         });
     </script>

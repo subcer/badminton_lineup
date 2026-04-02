@@ -69,7 +69,7 @@
         <i class="fas fa-qrcode"></i> QR 報到
       </button>
       <button id="helpBtn" class="btn btn-silver"><i class="fas fa-question-circle"></i> 說明</button>
-      <button id="resetBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> 重置</button>
+      <button id="resetBtn" class="btn btn-silver" title="重整版面：清除場地與列隊，重設今日場次，但保留人員"><i class="fas fa-undo-alt"></i> 重整版面</button>
 
       <!-- Mobile Menu Button (Hamburger) -->
       <button id="mobileMenuBtn" class="icon-btn mobile-only" title="開啟選單">
@@ -126,8 +126,8 @@
       <div class="panel-header">
         <h2><i class="fas fa-users"></i> 球員名單 <span id="totalPlayerCount"
             style="margin-left: 5px; font-size: 0.9em; color: #aaa;">(0)</span></h2>
-        <!-- Auto-Sort Refresh Button -->
-        <button id="refreshLayoutBtn" class="icon-btn" title="自動排序 (重新整理)">
+        <!-- 小的整對按鈕：純排版整理 -->
+        <button id="refreshLayoutBtn" class="icon-btn" title="整理名單：僅修復球員重疊，不影響賽局與場次">
           <i class="fas fa-sync-alt"></i>
         </button>
         <button id="addPlayerBtn" class="icon-btn" title="新增球員">
@@ -237,6 +237,28 @@
         <label>程度 (0-18)</label>
         <input type="number" id="editPlayerLevel" min="0" max="18">
       </div>
+
+      <!-- Career Stats Section (NEW) -->
+      <div id="careerStatsSection" class="career-stats-card hidden">
+        <div class="stats-header">🏆 生涯戰績榮譽</div>
+        <div class="stats-row-group">
+          <div class="stat-box">
+            <span class="stat-label">生涯總勝</span>
+            <span id="careerWinsText" class="stat-val highlight-win">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">生涯總負</span>
+            <span id="careerLossesText" class="stat-val highlight-loss">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">生涯勝率</span>
+            <span id="careerRateText" class="stat-val">0%</span>
+          </div>
+        </div>
+        <div class="stats-footer">
+          <i class="far fa-calendar-alt"></i> 註冊日期: <span id="careerJoinDate">---</span>
+        </div>
+      </div>
       <div class="modal-actions">
         <button id="cancelEditModalBtn" class="btn btn-silver">取消</button>
         <button id="confirmEditPlayerBtn" class="btn btn-gold">儲存</button>
@@ -273,19 +295,19 @@
             style="padding: 4px 12px; font-size: 0.9rem; background: var(--brand-gradient); color: white;">
             <i class="fas fa-share-alt"></i> 分享戰績圖
           </button>
-          <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="清除所有戰績歷史"
+          <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="結束今日場次並重置排行榜 (生涯數據會保留)"
             style="padding: 4px 10px; font-size: 0.8rem;">
-            <i class="fas fa-trash-alt"></i> 清除紀錄
+            <i class="fas fa-flag-checkered"></i> 結算今日場次
           </button>
           <button id="closeLeaderboardBtn" class="btn btn-silver" style="padding: 4px 10px; font-size: 1.1rem;"><i
               class="fas fa-times"></i></button>
         </div>
       </div>
 
-      <!-- Tabs -->
       <div class="lb-tabs">
-        <button class="lb-tab active" data-tab="tab-leaderboard">勝率排行榜</button>
-        <button class="lb-tab" data-tab="tab-history">歷史比分</button>
+        <button class="lb-tab active" data-tab="tab-leaderboard">今日排行榜</button>
+        <button class="lb-tab" data-tab="tab-registry"><i class="fas fa-medal"></i> 全球名人堂</button>
+        <button class="lb-tab" data-tab="tab-history">近期比賽紀錄</button>
       </div>
 
       <!-- Tab Content: Leaderboard -->
@@ -293,11 +315,11 @@
         <table class="lb-table">
           <thead>
             <tr>
-              <th>名次</th>
+              <th width="60">名次</th>
               <th>球員</th>
-              <th>總計</th>
-              <th>勝 / 敗</th>
-              <th>勝率</th>
+              <th width="80">今日場次</th>
+              <th width="100">勝 / 負</th>
+              <th width="80">今日勝率</th>
             </tr>
           </thead>
           <tbody id="leaderboardTbody">
@@ -306,10 +328,31 @@
         </table>
       </div>
 
+      <!-- Tab Content: Global Registry (Hall of Fame) -->
+      <div id="tab-registry" class="lb-content" style="flex: 1; overflow-y: auto; display: none;">
+        <div style="background: rgba(212,175,55,0.05); padding: 10px; font-size: 0.8rem; color: var(--gold-end); border-radius: 8px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
+          <i class="fas fa-info-circle"></i>
+          <div>此處顯示球隊資料庫中所有球員的生涯累積戰績。即便「結算今日場次」，這裡的榮譽也會永久留存。</div>
+        </div>
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th width="60">排名</th>
+              <th>球員</th>
+              <th width="120">生涯累積勝敗</th>
+              <th width="100">生涯平均勝率</th>
+            </tr>
+          </thead>
+          <tbody id="hallOfFameTbody">
+            <!-- 歷史名人堂資料 -->
+          </tbody>
+        </table>
+      </div>
+
       <!-- Tab Content: History -->
-      <div id="tab-history" class="lb-content hidden" style="flex: 1; overflow-y: auto;">
+      <div id="tab-history" class="lb-content" style="flex: 1; overflow-y: auto; display: none;">
         <div id="historyListContainer" class="history-list">
-          <!-- Dynamically populated -->
+          <!-- 比賽歷史 -->
         </div>
       </div>
     </div>
@@ -458,9 +501,9 @@
       </div>
 
       <div class="drawer-section danger-section" style="margin-top: auto;">
-        <button id="resetBtnMobile" class="btn btn-danger"
+        <button id="resetBtnMobile" class="btn btn-silver"
           style="width: 100%; justify-content: center; gap: 12px; padding: 15px;">
-          <i class="fas fa-trash-alt"></i> 重置所有資料
+          <i class="fas fa-undo-alt"></i> 重整版面
         </button>
       </div>
     </div>
