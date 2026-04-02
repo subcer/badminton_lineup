@@ -409,7 +409,8 @@ body::after {
     align-items: center;
     white-space: nowrap;
     flex-shrink: 0;
-    width: max-content; /* 確保標籤緊跟標題 */
+    width: max-content;
+    /* 確保標籤緊跟標題 */
 }
 
 /* 平板調整：防止擠壓與裁切 */
@@ -417,7 +418,7 @@ body::after {
     .panel-header h2 {
         font-size: 1.1rem !important;
     }
-    
+
     .panel-header-actions {
         gap: 6px !important;
     }
@@ -437,7 +438,8 @@ body::after {
 
 .panel-header-actions {
     display: flex;
-    gap: 8px; /* 平板上稍微緊湊一點比較精緻 */
+    gap: 8px;
+    /* 平板上稍微緊湊一點比較精緻 */
     align-items: center;
 }
 
@@ -445,13 +447,16 @@ body::after {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(133, 59, 81, 0.08); /* 稍微淡化底色 */
+    background: rgba(133, 59, 81, 0.08);
+    /* 稍微淡化底色 */
     color: var(--brand-maroon);
     padding: 2px 8px;
     border-radius: 12px;
-    font-size: 0.8rem; /* 標籤文字縮小一點點 */
+    font-size: 0.8rem;
+    /* 標籤文字縮小一點點 */
     font-weight: 800;
-    margin-left: 8px; /* 增加標題與標籤間的呼吸空間 */
+    margin-left: 8px;
+    /* 增加標題與標籤間的呼吸空間 */
     vertical-align: middle;
     border: 1px solid rgba(133, 59, 81, 0.1);
     white-space: nowrap;
@@ -1037,8 +1042,8 @@ body::after {
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     position: absolute;
-    bottom: -2px;
-    right: -2px;
+    bottom: -10px;
+    right: -10px;
     background: white;
     color: var(--gold-start);
     width: 24px;
@@ -2694,8 +2699,8 @@ input:checked+.slider:before {
 }
 
 .lb-tab.active::after {
-    content: " \;
- position: absolute;
+    content: "";
+    position: absolute;
     bottom: -7px;
     left: 50%;
     transform: translateX(-50%);
@@ -2922,8 +2927,8 @@ input:checked+.slider:before {
 }
 
 .lb-tab.active::after {
-    content: " \ !important;
- position: absolute !important;
+    content: " " !important;
+    position: absolute !important;
     bottom: -2px !important;
     left: 20px !important;
     right: 20px !important;
