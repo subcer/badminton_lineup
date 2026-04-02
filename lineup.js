@@ -1086,6 +1086,7 @@ $('#addCourtBtn').click(() => {
 $('#addPlayerBtn').click(() => {
     // Reset Modal
     $('#newPlayerName').val('');
+    $('#newPlayerBirthday').val('');
     $('#newPlayerPhoto').val('');
     $('#newPlayerPreview').addClass('hidden');
     $('#newPlayerPlaceholder').removeClass('hidden');
@@ -1096,11 +1097,21 @@ $('#addPlayerBtn').click(() => {
 $('#cancelModalBtn').click(() => {
     $('#modalOverlay').addClass('hidden');
 });
-
 $('#confirmAddPlayerBtn').click(() => {
     const name = $('#newPlayerName').val();
     const gender = $('#newPlayerGender').val();
     const level = $('#newPlayerLevel').val();
+    const birthday = $('#newPlayerBirthday').val();
+
+    if (!name || !birthday) {
+        window.showAlert("資料不全", "姓名與生日均為必填項目喔！", "warning");
+        return;
+    }
+
+    if (birthday.length !== 4 || isNaN(birthday)) {
+        window.showAlert("格式錯誤", "生日請輸入 4 位碼，例如 0520", "warning");
+        return;
+    }
 
     if (name) {
         let assignedAvatar = window.tempNewAvatar;
@@ -1118,6 +1129,7 @@ $('#confirmAddPlayerBtn').click(() => {
 
         db.ref('lineup/players').push({
             name,
+            birthday, // 儲存生日
             gender,
             level: parseInt(level),
             avatarUrl: assignedAvatar,
@@ -1162,6 +1174,7 @@ function openEditModal(pid) {
 
     $('#editPlayerId').val(pid);
     $('#editPlayerName').val(p.name);
+    $('#editPlayerBirthday').val(p.birthday || '');
     $('#editPlayerGender').val(p.gender);
     $('#editPlayerLevel').val(p.level);
 
@@ -1186,12 +1199,19 @@ $('#cancelEditModalBtn').click(() => {
 $('#confirmEditPlayerBtn').click(() => {
     const pid = $('#editPlayerId').val();
     const name = $('#editPlayerName').val();
+    const birthday = $('#editPlayerBirthday').val();
     const gender = $('#editPlayerGender').val();
     const level = $('#editPlayerLevel').val();
 
-    if (pid && name) {
+    if (pid && name && birthday) {
+        if (birthday.length !== 4 || isNaN(birthday)) {
+            window.showAlert("格式錯誤", "生日請輸入 4 位碼，例如 0520", "warning");
+            return;
+        }
+
         let updateData = {
             name: name,
+            birthday: birthday,
             gender: gender,
             level: parseInt(level)
         };
@@ -1352,7 +1372,9 @@ window.removeCourt = function (id) {
 
 window.endGame = function (courtId) {
     const c = courts[courtId];
-    if (c && c.players) {
+    if (!c || !c.players || c.players.length === 0) return;
+
+    showConfirm('結束比賽', '確定要結算目前比分並結束這場比賽嗎？', () => {
         let updates = {};
         const pids = c.players;
         const scoreA = c.scoreA || 0;
@@ -1375,7 +1397,7 @@ window.endGame = function (courtId) {
             }
         });
 
-        // 紀錄搭檔歷史：前兩個 pids (0,1) 一隊，後兩個 pids (2,3) 一隊
+        // 紀錄搭檔歷史
         if (pids[0] && pids[1]) {
             updates[pids[0] + '/partners/' + pids[1]] = firebase.database.ServerValue.increment(1);
             updates[pids[1] + '/partners/' + pids[0]] = firebase.database.ServerValue.increment(1);
@@ -1394,26 +1416,26 @@ window.endGame = function (courtId) {
             const historyRef = db.ref('lineup/history').push();
             historyRef.set({
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
-                courtName: c.name || courtId, // 如果沒有名字就用 ID
+                courtName: c.name || courtId,
                 teamA: [pids[0] || null, pids[1] || null].filter(Boolean),
                 teamB: [pids[2] || null, pids[3] || null].filter(Boolean),
                 scoreA: scoreA,
                 scoreB: scoreB
             });
         }
-    }
 
-    // Remove game status or reset timer
-    db.ref('lineup/courts/' + courtId + '/startTime').remove();
-    db.ref('lineup/courts/' + courtId + '/scoreA').set(0);
-    db.ref('lineup/courts/' + courtId + '/scoreB').set(0);
+        // Remove game status or reset timer
+        db.ref('lineup/courts/' + courtId + '/startTime').remove();
+        db.ref('lineup/courts/' + courtId + '/scoreA').set(0);
+        db.ref('lineup/courts/' + courtId + '/scoreB').set(0);
 
-    // Clean court players
-    db.ref('lineup/courts/' + courtId + '/players').set([]);
-    db.ref('lineup/courts/' + courtId + '/status').set('active');
+        // Clean court players
+        db.ref('lineup/courts/' + courtId + '/players').set([]);
+        db.ref('lineup/courts/' + courtId + '/status').set('active');
 
-    // Auto Rotation Trigger
-    setTimeout(tryAutoRotate, 500);
+        // Auto Rotation Trigger
+        setTimeout(tryAutoRotate, 500);
+    });
 };
 
 // Refresh Layout Button
@@ -1479,7 +1501,9 @@ window.startTimer = function (courtId) {
 };
 
 window.resetTimer = function (cid) {
-    db.ref('lineup/courts/' + cid + '/startTime').remove();
+    showConfirm('停止計時', '確定要重置並停止此場地的計時器嗎？', () => {
+        db.ref('lineup/courts/' + cid + '/startTime').remove();
+    });
 };
 
 function tryAutoRotate() {

@@ -260,8 +260,13 @@
             </div>
 
             <div class="input-group">
-                <label>您的姓名</label>
+                <label>您的姓名 <span style="color:#d14444">*必填</span></label>
                 <input type="text" id="playerName" placeholder="請輸入參與名稱">
+            </div>
+
+            <div class="input-group">
+                <label>您的生日 (MMDD) <span style="color:#d14444">*必填</span></label>
+                <input type="text" id="playerBirthday" placeholder="例如 0520" inputmode="numeric" maxlength="4">
             </div>
 
             <div class="input-group">
@@ -363,11 +368,17 @@
         // Submit Logic
         $('#submitBtn').click(function () {
             const name = $('#playerName').val().trim();
+            const birthday = $('#playerBirthday').val().trim();
             const gender = $('#playerGender').val();
             const level = $('#playerLevel').val();
 
-            if (!name) {
-                alert("請輸入姓名喔！");
+            if (!name || !birthday) {
+                alert("姓名與生日均為必填項目喔！");
+                return;
+            }
+
+            if (birthday.length !== 4 || isNaN(birthday)) {
+                alert("生日格式錯誤，請輸入 4 位碼，例如 0520");
                 return;
             }
 
@@ -378,6 +389,7 @@
 
             db.ref('lineup/players').push({
                 name,
+                birthday,
                 gender,
                 level: parseInt(level),
                 avatarUrl: tempAvatar || null,
