@@ -85,7 +85,7 @@
     <aside class="panel queue-panel">
       <div class="panel-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2><i class="fas fa-hourglass-half"></i> 等待列 (Queue)</h2>
+          <h2><i class="fas fa-hourglass-half"></i> 等待列 </h2>
           <div class="queue-stats">
             <span id="queueCount">0</span> 組等待中
           </div>
@@ -111,7 +111,7 @@
     <!-- Center Panel: Courts -->
     <main class="panel court-panel">
       <div class="panel-header" style="margin-bottom: 20px; padding: 0 16px;">
-        <h2><i class="fa-solid fa-magnifying-glass"></i> 場地配置 (COURTS)</h2>
+        <h2><i class="fa-solid fa-magnifying-glass"></i> 場地配置 </h2>
         <div id="matchStatusLegend"
           style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
           <i class="fas fa-circle" style="font-size: 0.6rem; color: #ccc;"></i> <span>暫無比賽</span>
@@ -125,18 +125,19 @@
     <!-- Right Panel: Player Pool -->
     <aside class="panel players-panel drop-zone" data-type="pool">
       <div class="panel-header">
-        <h2><i class="fas fa-users"></i> 球員名單 <span id="totalPlayerCount"
-            style="margin-left: 5px; font-size: 0.9em; color: #aaa;">(0)</span></h2>
-        <!-- 小的整對按鈕：純排版整理 -->
-        <button id="refreshLayoutBtn" class="icon-btn" title="整理名單：僅修復球員重疊，不影響賽局與場次">
-          <i class="fas fa-sync-alt"></i>
-        </button>
-        <button id="addPlayerBtn" class="icon-btn" title="新增球員">
-          <i class="fas fa-user-plus"></i>
-        </button>
-        <button id="toggleSidebarBtn" class="icon-btn" title="收合/展開 名單">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+        <h2><i class="fas fa-users"></i> 球員名單 <span id="totalPlayerCount">0</span></h2>
+        <div class="panel-header-actions">
+          <!-- 小的整對按鈕：純排版整理 -->
+          <button id="refreshLayoutBtn" class="icon-btn" title="整理名單：僅修復球員重疊，不影響賽局與場次">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button id="addPlayerBtn" class="icon-btn" title="新增球員">
+            <i class="fas fa-user-plus"></i>
+          </button>
+          <button id="toggleSidebarBtn" class="icon-btn" title="收合/展開 名單">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
       <div class="filter-bar">
         <input type="text" id="searchPlayer" placeholder="搜尋姓名...">
@@ -365,7 +366,8 @@
         <div id="zodiacChartGrid" class="zodiac-grid">
           <!-- 12 星座統計卡片 -->
         </div>
-        <div id="zodiacFunAnalysis" style="margin-top: 20px; font-size: 0.85rem; color: #888; text-align: center; font-style: italic;">
+        <div id="zodiacFunAnalysis"
+          style="margin-top: 20px; font-size: 0.85rem; color: #888; text-align: center; font-style: italic;">
           數據僅供球友間趣味討論，切莫因此對特定星座球友進行「排擠」喔 xdd
         </div>
       </div>

@@ -405,6 +405,56 @@ body::after {
     font-weight: 800;
     letter-spacing: 1px;
     color: var(--gold-start);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: max-content; /* 確保標籤緊跟標題 */
+}
+
+/* 平板調整：防止擠壓與裁切 */
+@media (max-width: 1024px) {
+    .panel-header h2 {
+        font-size: 1.1rem !important;
+    }
+    
+    .panel-header-actions {
+        gap: 6px !important;
+    }
+
+    .panel-header-actions .icon-btn {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 0.85rem !important;
+    }
+
+    #totalPlayerCount {
+        margin-left: 6px !important;
+        font-size: 0.7rem !important;
+        padding: 1px 6px !important;
+    }
+}
+
+.panel-header-actions {
+    display: flex;
+    gap: 8px; /* 平板上稍微緊湊一點比較精緻 */
+    align-items: center;
+}
+
+#totalPlayerCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(133, 59, 81, 0.08); /* 稍微淡化底色 */
+    color: var(--brand-maroon);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem; /* 標籤文字縮小一點點 */
+    font-weight: 800;
+    margin-left: 8px; /* 增加標題與標籤間的呼吸空間 */
+    vertical-align: middle;
+    border: 1px solid rgba(133, 59, 81, 0.1);
+    white-space: nowrap;
 }
 
 .queue-stats {
@@ -1056,7 +1106,7 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    
+
     /* Responsive Fix (NEW) */
     max-height: 90vh;
     overflow-y: auto;
@@ -1079,12 +1129,13 @@ body::after {
     .input-group {
         gap: 4px;
     }
-    
+
     .input-group label {
         font-size: 0.85rem;
     }
 
-    .modal input, .modal select {
+    .modal input,
+    .modal select {
         padding: 10px 14px;
         font-size: 0.9rem;
     }
@@ -1106,9 +1157,10 @@ body::after {
     .career-stats-card .stat-val {
         font-size: 0.95rem;
     }
-    
+
     /* Smaller Avatar Preview on Mobile */
-    #editPlayerPreview, #addPlayerPreview {
+    #editPlayerPreview,
+    #addPlayerPreview {
         width: 100px !important;
         height: 100px !important;
     }
@@ -1573,7 +1625,7 @@ input:checked+.slider:before {
 
 .form-toggle-btn.active {
     background: var(--accent-blue);
-    color: #D1A19D;
+    color: var(--gold-start);
     border-color: var(--accent-blue);
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(240, 233, 233, 0.1);
@@ -2169,7 +2221,7 @@ input:checked+.slider:before {
     background: #ffffff;
     border-radius: 40px;
     padding: 35px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
     font-family: 'Nunito', 'Noto Sans TC', sans-serif;
     color: var(--text-main);
     overflow: hidden;
@@ -2232,7 +2284,7 @@ input:checked+.slider:before {
     justify-content: center;
     margin-bottom: 10px;
     border: 3px solid #fff;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
@@ -2275,15 +2327,19 @@ input:checked+.slider:before {
 }
 
 .podium-item.second .podium-avatar {
-    border: 3px solid #A0A0A0; /* Silver */
+    border: 3px solid #A0A0A0;
+    /* Silver */
 }
+
 .podium-item.second .podium-rank {
     background: #A0A0A0;
 }
 
 .podium-item.third .podium-avatar {
-    border: 3px solid #CD7F32; /* Bronze */
+    border: 3px solid #CD7F32;
+    /* Bronze */
 }
+
 .podium-item.third .podium-rank {
     background: #CD7F32;
 }
@@ -2297,8 +2353,15 @@ input:checked+.slider:before {
 }
 
 @keyframes crown-float {
-    0%, 100% { transform: translateY(0) rotate(5deg); }
-    50% { transform: translateY(-5px) rotate(-5deg); }
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(5deg);
+    }
+
+    50% {
+        transform: translateY(-5px) rotate(-5deg);
+    }
 }
 
 .podium-name {
@@ -2362,7 +2425,7 @@ input:checked+.slider:before {
     border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 700;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
     gap: 8px;
 }
 
@@ -2384,7 +2447,7 @@ input:checked+.slider:before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px dashed rgba(0,0,0,0.1);
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
     padding-top: 20px;
 }
 
@@ -2477,6 +2540,7 @@ input:checked+.slider:before {
     text-align: right;
     font-style: italic;
 }
+
 /* --- Zodiac Analysis Styles --- */
 .zodiac-grid {
     display: grid;
@@ -2489,7 +2553,7 @@ input:checked+.slider:before {
     background: #ffffff;
     border-radius: 16px;
     padding: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -2603,11 +2667,13 @@ input:checked+.slider:before {
     white-space: nowrap;
     padding-bottom: 5px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
 .lb-tabs::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
+    /* Chrome/Safari */
 }
 
 .lb-tab {
@@ -2630,50 +2696,50 @@ input:checked+.slider:before {
 .lb-tab.active::after {
     content: " \;
  position: absolute;
- bottom: -7px;
- left: 50%;
- transform: translateX(-50%);
- width: 20px;
- height: 4px;
- background: var(--gold-start);
- border-radius: 2px;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 4px;
+    background: var(--gold-start);
+    border-radius: 2px;
 }
 
 /* Mobile Header Compression */
 @media (max-width: 768px) {
- .leaderboard-modal .modal-header {
- flex-direction: row !important;
- align-items: center !important;
- padding: 16px !important;
- gap: 8px !important;
- }
+    .leaderboard-modal .modal-header {
+        flex-direction: row !important;
+        align-items: center !important;
+        padding: 16px !important;
+        gap: 8px !important;
+    }
 
- .leaderboard-modal h2 {
- font-size: 1.1rem !important;
- flex: 1;
- }
+    .leaderboard-modal h2 {
+        font-size: 1.1rem !important;
+        flex: 1;
+    }
 
- .leaderboard-modal .header-actions {
- gap: 6px !important;
- }
+    .leaderboard-modal .header-actions {
+        gap: 6px !important;
+    }
 
- .leaderboard-modal .header-actions .btn {
- padding: 6px 10px !important;
- font-size: 0.75rem !important;
- border-radius: 12px !important;
- }
+    .leaderboard-modal .header-actions .btn {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        border-radius: 12px !important;
+    }
 
- .lb-tab {
- padding: 8px 12px;
- font-size: 0.85rem;
- }
+    .lb-tab {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
 }
 
 /* --- Zodiac Card 2.0 Visuals --- */
 .zodiac-card {
     padding: 20px !important;
     border: none !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
     border-radius: 20px !important;
     display: flex;
     flex-direction: column;
@@ -2695,7 +2761,7 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .zodiac-icon-wrapper i {
@@ -2858,37 +2924,43 @@ input:checked+.slider:before {
 .lb-tab.active::after {
     content: " \ !important;
  position: absolute !important;
- bottom: -2px !important;
- left: 20px !important;
- right: 20px !important;
- height: 4px !important;
- background: var(--gold-start) !important;
- border-radius: 4px !important;
+    bottom: -2px !important;
+    left: 20px !important;
+    right: 20px !important;
+    height: 4px !important;
+    background: var(--gold-start) !important;
+    border-radius: 4px !important;
 }
 
 /* --- RWD Mobile Fixes --- */
 @media (max-width: 600px) {
- .lb-header {
- flex-direction: row !important;
- align-items: center !important;
- }
+    .lb-header {
+        flex-direction: row !important;
+        align-items: center !important;
+    }
 
- .lb-title i { font-size: 1.1rem !important; }
- .lb-title { font-size: 1.1rem !important; }
+    .lb-title i {
+        font-size: 1.1rem !important;
+    }
 
- .lb-header-actions .btn span {
- display: none !important; /* ��������ä�r�A�u�d�ϥܫO���M�n */
- }
+    .lb-title {
+        font-size: 1.1rem !important;
+    }
 
- .lb-header-actions .btn {
- padding: 8px 12px !important;
- font-size: 1rem !important;
- }
+    .lb-header-actions .btn span {
+        display: none !important;
+        /* ��������ä�r�A�u�d�ϥܫO���M�n */
+    }
 
- .lb-tab {
- padding: 8px 14px !important;
- font-size: 0.85rem !important;
- }
+    .lb-header-actions .btn {
+        padding: 8px 12px !important;
+        font-size: 1rem !important;
+    }
+
+    .lb-tab {
+        padding: 8px 14px !important;
+        font-size: 0.85rem !important;
+    }
 }
 
 /* --- Zodiac 3.0 Stability Force --- */
@@ -2901,7 +2973,7 @@ input:checked+.slider:before {
     display: flex !important;
     align-items: center !important;
     border-bottom: 2px solid #f0f0f0 !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
     flex-shrink: 0 !important;
 }
 

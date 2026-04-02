@@ -358,7 +358,7 @@ function initListeners() {
     db.ref('lineup/players').on('value', snapshot => {
         players = snapshot.val() || {};
         const count = Object.keys(players).length;
-        $('#totalPlayerCount').text(`(${count})`);
+        $('#totalPlayerCount').text(count);
         renderPlayerPool();
     });
 
