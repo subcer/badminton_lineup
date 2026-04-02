@@ -175,7 +175,7 @@ function getNameLenClass(name) {
         if (weight > 8) return 'long-name'; // 5-6 個中文字
         return '';
     }
-    
+
     // 純英文/數字，上限 12 字 (12分)，需採取階梯縮放防止切邊
     if (weight > 10) return 'extra-long-name'; // 11-12 字
     if (weight > 8) return 'long-name';       // 9-10 字
@@ -1115,7 +1115,7 @@ $('#confirmAddPlayerBtn').click(() => {
 
     if (name) {
         const rid = getRegistryId(name, birthday);
-        
+
         // 1. 先去 Registry 抓抓看有沒有老朋友資料
         db.ref('lineup/registry/' + rid).once('value', snap => {
             const regData = snap.val();
@@ -1152,7 +1152,7 @@ $('#confirmAddPlayerBtn').click(() => {
 
             // 寫入今日名單
             db.ref('lineup/players').push(playerData);
-            
+
             // 同步回 Registry (確保 registry 中也有這一筆，或更新最新資料)
             syncToRegistry(playerData);
 
@@ -1181,14 +1181,21 @@ $playerPool.on('touchend', '.player-chip', function (e) {
     const currentPid = $(this).data('id');
     const tapLength = currentTime - lastTap;
 
-    // 只有在【同一個球員】身上 300ms 內點兩下才觸發 (更精確)
-    if (tapLength < 300 && tapLength > 0 && lastTapId === currentPid) {
-        e.preventDefault(); 
+    // 定義適合各端的閾值 (手機 380ms / 電腦或模擬器 500ms)
+    const threshold = (e.type === 'touchend' || 'ontouchstart' in window) ? 380 : 500;
+
+    if (tapLength < threshold && tapLength > 0 && lastTapId === currentPid) {
+        e.preventDefault();
         e.stopPropagation();
         openEditModal(currentPid);
+
+        // 觸發後重設，避免「三連點」誤觸
+        lastTap = 0;
+        lastTapId = null;
+    } else {
+        lastTap = currentTime;
+        lastTapId = currentPid;
     }
-    lastTap = currentTime;
-    lastTapId = currentPid; 
 });
 
 function openEditModal(pid) {
@@ -1197,7 +1204,7 @@ function openEditModal(pid) {
         console.log("Blocking Modal: We are in selection mode.");
         return;
     }
-    
+
     const p = players[pid];
     if (!p) return;
 
@@ -1229,14 +1236,14 @@ function openEditModal(pid) {
                 $('#careerStatsSection').removeClass('hidden');
                 $('#careerWinsText').text(reg.totalWins || 0);
                 $('#careerLossesText').text(reg.totalLosses || 0);
-                
+
                 const total = (reg.totalWins || 0) + (reg.totalLosses || 0);
                 const rate = total > 0 ? Math.round((reg.totalWins || 0) / total * 100) : 0;
                 $('#careerRateText').text(rate + '%');
-                
+
                 if (reg.lastSeen) {
                     const d = new Date(reg.lastSeen);
-                    $('#careerJoinDate').text(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`);
+                    $('#careerJoinDate').text(`${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`);
                 } else {
                     $('#careerJoinDate').text('較早前註冊');
                 }
@@ -1289,7 +1296,7 @@ $('#confirmEditPlayerBtn').click(() => {
         }
 
         db.ref('lineup/players/' + pid).update(updateData);
-        
+
         // 同步回 Registry
         syncToRegistry(updateData);
 
@@ -1537,7 +1544,7 @@ window.endGame = function (courtId) {
             if (!pid) return;
             const p = players[pid];
             if (!p) return;
-            
+
             // 更新生涯總勝敗數
             if (!isPractice) {
                 const isWin = ((idx === 0 || idx === 1) && teamAWins) || ((idx === 2 || idx === 3) && teamBWins);
@@ -1565,7 +1572,7 @@ function resetSession() {
             playerUpdates[pid + '/x'] = null;
             playerUpdates[pid + '/y'] = null;
         });
-        
+
         if (Object.keys(playerUpdates).length > 0) {
             db.ref('lineup/players').update(playerUpdates);
         }
@@ -1602,7 +1609,7 @@ function refreshLayout() {
         updates[pid + '/x'] = null;
         updates[pid + '/y'] = null;
     });
-    
+
     if (Object.keys(updates).length > 0) {
         db.ref('lineup/players').update(updates);
     }
@@ -1611,7 +1618,7 @@ function refreshLayout() {
     if (typeof renderPlayerPool === 'function') {
         renderPlayerPool();
     }
-    
+
     // 側邊小按鈕不跳大視窗，改用 Console 紀錄或輕提示
     console.log("Layout refreshed (coordinates reset)");
 }
@@ -1649,7 +1656,7 @@ window.updateScore = function (cid, side, delta, event) {
     // --- Cat Paw Hit Animation ---
     if (event) {
         const $target = $(event.currentTarget);
-        
+
         // 1. Score Bounce
         $target.addClass('score-pop');
         setTimeout(() => $target.removeClass('score-pop'), 400);
@@ -1669,7 +1676,7 @@ window.updateScore = function (cid, side, delta, event) {
 window.startTimer = function (courtId) {
     db.ref('lineup/courts/' + courtId + '/startTime').set(firebase.database.ServerValue.TIMESTAMP);
     // 觸發自動語音廣播
-    setTimeout(() => speakMatch(courtId), 500); 
+    setTimeout(() => speakMatch(courtId), 500);
 };
 
 window.resetTimer = function (cid) {
@@ -2392,7 +2399,7 @@ window.speakMatch = function (courtId) {
 
     const courtName = c.name || (parseInt(courtId) + 1);
     const pNames = c.players.map(pid => players[pid] ? players[pid].name : '').filter(n => n);
-    
+
     // 播報文字模板
     let text = `第 ${courtName} 場地開賽。`;
     if (pNames.length >= 2) {
@@ -2404,14 +2411,14 @@ window.speakMatch = function (courtId) {
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    
+
     // 語音引擎選擇 (優先找台灣口音)
     const voices = window.speechSynthesis.getVoices();
-    const twVoice = voices.find(v => 
+    const twVoice = voices.find(v =>
         (v.lang.includes('zh-TW') || v.name.includes('Taiwan') || v.name.includes('Yating') || v.name.includes('Hanhan')) &&
         !v.name.includes('Natural') // 避免部分 Natural 語音在某些環境下需權限才能非同步載入
     );
-    
+
     if (twVoice) {
         utterance.voice = twVoice;
     } else {
@@ -2419,11 +2426,11 @@ window.speakMatch = function (courtId) {
         const zhVoice = voices.find(v => v.lang.includes('zh-'));
         if (zhVoice) utterance.voice = zhVoice;
     }
-    
+
     utterance.rate = 0.85; // 稍微放慢一點，聽起來比較像廣播
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
-    
+
     window.speechSynthesis.cancel(); // 停止目前正在播放的語音
     window.speechSynthesis.speak(utterance);
 };
@@ -2437,7 +2444,7 @@ async function exportLeaderboardImage() {
 
     const $template = $('#exportTemplate');
     const $grid = $('#exportStatsGrid');
-    
+
     // 1. Data Preparation
     let lbData = [];
     Object.keys(players).forEach(pid => {
@@ -2490,14 +2497,14 @@ async function exportLeaderboardImage() {
     // 4. Calculate Honorary Titles
     const $honors = $('#exportHonors');
     $honors.empty();
-    
+
     const titles = [];
     // A. 今日戰神 (勝場最多)
-    const mostWins = [...lbData].sort((a,b) => b.wins - a.wins)[0];
+    const mostWins = [...lbData].sort((a, b) => b.wins - a.wins)[0];
     if (mostWins && mostWins.wins > 0) titles.push({ icon: '🏆', title: '今日戰神', name: mostWins.name });
-    
+
     // B. 勞動楷模 (總場數最多)
-    const mostTotal = [...lbData].sort((a,b) => b.total - a.total)[0];
+    const mostTotal = [...lbData].sort((a, b) => b.total - a.total)[0];
     if (mostTotal && mostTotal.total > 0 && mostTotal.pid !== (mostWins ? mostWins.pid : null)) {
         titles.push({ icon: '💪', title: '勞動楷模', name: mostTotal.name });
     }
@@ -2543,13 +2550,13 @@ async function exportLeaderboardImage() {
             });
 
             const dataUrl = canvas.toDataURL('image/png');
-            
+
             // Trigger Download
             const link = document.createElement('a');
             link.download = `badminton_results_${now.getTime()}.png`;
             link.href = dataUrl;
             link.click();
-            
+
             showAlert('匯出成功', '戰績圖已下載完成！您可以將它分享到社群群組囉。');
         } catch (err) {
             console.error("Export failed:", err);
@@ -2584,7 +2591,7 @@ function getZodiacInfo(mmdd) {
 function renderZodiacStats() {
     const grid = $('#zodiacChartGrid');
     const banner = $('#zodiacStatsSummary');
-    
+
     grid.empty().append('<div class="loading-stars"><i class="fas fa-spinner fa-spin"></i> 正在夜觀星象...</div>');
 
     db.ref('lineup/registry').once('value', snap => {
@@ -2603,9 +2610,9 @@ function renderZodiacStats() {
             }
         });
 
-        const sorted = Object.values(statsMap).sort((a,b) => b.count - a.count);
+        const sorted = Object.values(statsMap).sort((a, b) => b.count - a.count);
         const top = sorted[0];
-        
+
         if (top && top.count > 0) {
             banner.html(`
                 <div class="zodiac-top-banner" style="background: linear-gradient(135deg, ${top.info.color}15, #ffffff); border: 2px solid ${top.info.color}22; padding: 10px 20px;">
@@ -2626,7 +2633,7 @@ function renderZodiacStats() {
         sorted.forEach(s => {
             const total = s.totalWins + s.totalLosses;
             const winRate = total > 0 ? Math.round((s.totalWins / total) * 100) : 0;
-            
+
             const card = $(`
                 <div class="zodiac-card" style="background: white; border: 1px solid #f2f2f2; padding: 14px 18px !important;">
                     <div class="zodiac-card-main">
