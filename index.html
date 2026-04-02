@@ -261,6 +261,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0;"><i class="fas fa-trophy" style="color:var(--gold-start)"></i> 賽果與排行榜</h2>
         <div style="display: flex; gap: 8px;">
+          <button id="exportLeaderboardBtn" class="btn btn-gold btn-sm" title="匯出精美戰績圖"
+            style="padding: 4px 12px; font-size: 0.9rem; background: var(--brand-gradient); color: white;">
+            <i class="fas fa-share-alt"></i> 分享戰績圖
+          </button>
           <button id="clearLeaderboardBtn" class="btn btn-danger btn-sm" title="清除所有戰績歷史"
             style="padding: 4px 10px; font-size: 0.8rem;">
             <i class="fas fa-trash-alt"></i> 清除紀錄
@@ -454,6 +458,61 @@
     </div>
   </div>
 
+  <!-- Hidden Export Template (Rendered off-screen for html2canvas) -->
+  <div id="exportTemplateContainer" style="position: absolute; left: -9999px; top: 0;">
+    <div id="exportTemplate" class="export-card">
+      <div class="export-header">
+        <div class="header-content">
+          <h1>今日羽球戰績頭條</h1>
+          <p id="exportDate">2024.04.02</p>
+        </div>
+        <div class="logo-area">
+          <i class="fas fa-trophy highlight"></i>
+        </div>
+      </div>
+
+      <!-- Podium Section -->
+      <div class="podium-section">
+        <div class="podium-item second">
+          <div class="podium-avatar" id="podium2-avatar"><i class="fas fa-user"></i></div>
+          <div class="podium-rank">2</div>
+          <div class="podium-name" id="podium2-name">亞軍</div>
+          <div class="podium-stat" id="podium2-stat">0 勝</div>
+        </div>
+        <div class="podium-item first">
+          <div class="podium-crown"><i class="fas fa-crown"></i></div>
+          <div class="podium-avatar" id="podium1-avatar"><i class="fas fa-user"></i></div>
+          <div class="podium-rank">1</div>
+          <div class="podium-name" id="podium1-name">冠軍</div>
+          <div class="podium-stat" id="podium1-stat">0 勝</div>
+        </div>
+        <div class="podium-item third">
+          <div class="podium-avatar" id="podium3-avatar"><i class="fas fa-user"></i></div>
+          <div class="podium-rank">3</div>
+          <div class="podium-name" id="podium3-name">季軍</div>
+          <div class="podium-stat" id="podium3-stat">0 勝</div>
+        </div>
+      </div>
+
+      <!-- Stats Summary -->
+      <div class="export-body">
+        <div class="stats-grid" id="exportStatsGrid">
+          <!-- Top 5-10 participants will be listed here -->
+        </div>
+      </div>
+
+      <div class="export-footer">
+        <div class="footer-info">
+          <p>貓羽掌智慧排點系統 @ Smart Lineup</p>
+        </div>
+        <div id="exportQrArea" class="footer-qr">
+          <!-- Small QR code can be mirror here if needed -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="lineup.js"></script>
 </body>
 

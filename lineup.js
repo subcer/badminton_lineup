@@ -557,10 +557,13 @@ function renderCourts() {
                     </div>
                 </div>
                 <div class="court-actions">
-                    <button class="btn btn-silver btn-sm" onclick="endGame('${cid}')">結束</button>
+                    <button class="btn btn-silver btn-sm" onclick="endGame('${cid}')" style="flex: 1;">結束</button>
+                    <button class="speech-btn" onclick="event.stopPropagation(); speakMatch('${cid}')" title="語音叫號">
+                        <i class="fas fa-bullhorn"></i>
+                    </button>
                     ${!c.startTime ?
-                `<button class="btn btn-silver btn-sm" onclick="startTimer('${cid}')"><i class="fas fa-play"></i></button>` :
-                `<button class="btn btn-silver btn-sm" onclick="resetTimer('${cid}')"><i class="fas fa-stop"></i></button>`
+                `<button class="btn btn-silver btn-sm" onclick="startTimer('${cid}')" style="flex: 1;">開始</button>` :
+                `<button class="btn btn-silver btn-sm" onclick="resetTimer('${cid}')" style="flex: 1;">停止</button>`
             }
                 </div>
             </div>
@@ -1469,8 +1472,10 @@ window.updateScore = function (cid, side, delta, event) {
     }
 };
 
-window.startTimer = function (cid) {
-    db.ref('lineup/courts/' + cid + '/startTime').set(firebase.database.ServerValue.TIMESTAMP);
+window.startTimer = function (courtId) {
+    db.ref('lineup/courts/' + courtId + '/startTime').set(firebase.database.ServerValue.TIMESTAMP);
+    // 觸發自動語音廣播
+    setTimeout(() => speakMatch(courtId), 500); 
 };
 
 window.resetTimer = function (cid) {
@@ -1905,6 +1910,10 @@ $(document).ready(function () {
         }
     });
 
+    $('#exportLeaderboardBtn').click(function () {
+        exportLeaderboardImage();
+    });
+
     $('#closeLeaderboardBtn').click(function () {
         $('#leaderboardModalOverlay').addClass('hidden');
     });
@@ -2097,4 +2106,156 @@ function initNameLengthValidators() {
 
     applyLimit($('#newPlayerName'));
     applyLimit($('#editPlayerName'));
+}
+
+// --- Voice Announcement (Web Speech API) ---
+window.speakMatch = function (courtId) {
+    if (!('speechSynthesis' in window)) return;
+
+    const c = courts[courtId];
+    if (!c || !c.players || c.players.length === 0) return;
+
+    const courtName = c.name || (parseInt(courtId) + 1);
+    const pNames = c.players.map(pid => players[pid] ? players[pid].name : '').filter(n => n);
+    
+    // 播報文字模板
+    let text = `第 ${courtName} 場地開賽。`;
+    if (pNames.length >= 2) {
+        const teamA = pNames.slice(0, 2).join('、');
+        const teamB = pNames.slice(2, 4).join('、');
+        text += `由 ${teamA} ${teamB ? '對戰 ' + teamB : ''}，請進場比賽。`;
+    } else {
+        text += `請 ${pNames.join('、')} 準備進場。`;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // 語音引擎選擇 (優先找台灣口音)
+    const voices = window.speechSynthesis.getVoices();
+    const twVoice = voices.find(v => 
+        (v.lang.includes('zh-TW') || v.name.includes('Taiwan') || v.name.includes('Yating') || v.name.includes('Hanhan')) &&
+        !v.name.includes('Natural') // 避免部分 Natural 語音在某些環境下需權限才能非同步載入
+    );
+    
+    if (twVoice) {
+        utterance.voice = twVoice;
+    } else {
+        // 退而求其次尋找中文語系
+        const zhVoice = voices.find(v => v.lang.includes('zh-'));
+        if (zhVoice) utterance.voice = zhVoice;
+    }
+    
+    utterance.rate = 0.85; // 稍微放慢一點，聽起來比較像廣播
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    window.speechSynthesis.cancel(); // 停止目前正在播放的語音
+    window.speechSynthesis.speak(utterance);
+};
+
+// --- Leaderboard Image Export Logic (html2canvas) ---
+async function exportLeaderboardImage() {
+    if (typeof html2canvas === 'undefined') {
+        showAlert('錯誤', '尚未載入圖片轉換工具，請稍後再試。', 'error');
+        return;
+    }
+
+    const $template = $('#exportTemplate');
+    const $grid = $('#exportStatsGrid');
+    
+    // 1. Data Preparation
+    let lbData = [];
+    Object.keys(players).forEach(pid => {
+        const p = players[pid];
+        const wins = p.wins || 0;
+        const losses = p.losses || 0;
+        const total = wins + losses;
+        const winRate = total > 0 ? (wins / total * 100).toFixed(1) : 0;
+        lbData.push({ pid, name: p.name, avatar: p.avatarUrl, wins, losses, total, winRate: parseFloat(winRate) });
+    });
+
+    // Sort: WinRate(D) -> Total(D) -> Wins(D)
+    lbData.sort((a, b) => {
+        if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+        if (b.total !== a.total) return b.total - a.total;
+        return b.wins - a.wins;
+    });
+
+    // 2. Set Metadata
+    const now = new Date();
+    $('#exportDate').text(`${now.getFullYear()}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}`);
+
+    // 3. Populate Podium
+    const renderPodium = (index, elementIdPrefix) => {
+        const p = lbData[index];
+        const $avatar = $(`#${elementIdPrefix}-avatar`);
+        const $name = $(`#${elementIdPrefix}-name`);
+        const $stat = $(`#${elementIdPrefix}-stat`);
+
+        if (p) {
+            $name.text(p.name);
+            $stat.text(`${p.wins} 勝 / ${p.losses} 敗`);
+            if (p.avatar) {
+                // 移除 crossorigin 以免在本機 file:// 模式下出錯
+                $avatar.html(`<img src="${p.avatar}">`);
+            } else {
+                $avatar.html('<i class="fas fa-user"></i>');
+            }
+        } else {
+            $name.text('---');
+            $stat.text('無資料');
+            $avatar.html('<i class="fas fa-user"></i>');
+        }
+    };
+
+    renderPodium(0, 'podium1');
+    renderPodium(1, 'podium2');
+    renderPodium(2, 'podium3');
+
+    // 4. Populate Stats Grid (Top 4-10)
+    $grid.empty();
+    const otherPlayers = lbData.slice(3, 11); // Take up to 8 more
+    if (otherPlayers.length === 0) {
+        $grid.append('<div style="grid-column: span 2; text-align: center; color: #aaa; font-size: 0.8rem; padding: 10px;">目前尚無更多戰績紀錄</div>');
+    } else {
+        otherPlayers.forEach((p, idx) => {
+            const html = `
+                <div class="stat-row">
+                    <span>${idx + 4}. ${p.name}</span>
+                    <span>${p.wins} W / ${p.losses} L</span>
+                </div>
+            `;
+            $grid.append(html);
+        });
+    }
+
+    showAlert('產生中', '正在為您製作精美戰績表，請稍候...', 'success');
+
+    // 延遲一段時間確保圖片在隱藏區域中載入完成
+    setTimeout(async () => {
+        try {
+            const canvas = await html2canvas(document.getElementById('exportTemplate'), {
+                scale: 2, // High resolution
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: 500,
+                height: document.getElementById('exportTemplate').offsetHeight
+            });
+
+            const dataUrl = canvas.toDataURL('image/png');
+            
+            // Trigger Download
+            const link = document.createElement('a');
+            link.download = `badminton_results_${now.getTime()}.png`;
+            link.href = dataUrl;
+            link.click();
+            
+            showAlert('匯出成功', '戰績圖已下載完成！您可以將它分享到社群群組囉。');
+        } catch (err) {
+            console.error("Export failed:", err);
+            showAlert('匯出失敗', '抱歉，製作圖片時發生錯誤。請確認網路連線或稍後再試。', 'error');
+        }
+    }, 800); // 延長到 800ms 確保渲染完成
 }
