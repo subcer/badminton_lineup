@@ -506,14 +506,58 @@ body::after {
 }
 
 .group-members {
-    display: grid;
-    /* Use max-content to wrap tightly around chips, instead of 1fr which spreads them */
-    grid-template-columns: repeat(2, max-content);
-    justify-content: center;
-    /* Center the grid within the card */
-    gap: 8px;
-    /* Small gap between columns */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
+}
+
+.team-side {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    /* 增加大頭貼之間的間距，防止擁擠 */
+    width: 100%;
+}
+
+.group-vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 20px;
+    margin: 4px 0;
+}
+
+.group-vs-divider::before {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 50%;
+    height: 1px;
+    background: repeating-linear-gradient(to right,
+            rgba(133, 59, 81, 0.15),
+            rgba(133, 59, 81, 0.15) 4px,
+            transparent 4px,
+            transparent 8px);
+}
+
+.group-vs-divider span {
+    background: white;
+    color: var(--gold-start);
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 10px;
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(133, 59, 81, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-transform: uppercase;
 }
 
 .group-card:hover {
@@ -1412,6 +1456,75 @@ input:checked+.slider:before {
         overflow-y: auto !important;
     }
 
+    .group-card {
+        padding: 10px;
+    }
+
+    .group-members {
+        flex-direction: row !important;
+        justify-content: center !important;
+        /* 強制置中對分 */
+        align-items: center;
+        gap: 0;
+        width: 100%;
+    }
+
+    .team-side {
+        flex: 1;
+        /* 讓兩邊平分空間，保證 VS 居中 */
+        flex-direction: row !important;
+        width: auto !important;
+        gap: 0px;
+        justify-content: center;
+        padding: 0;
+    }
+
+    /* 手機版橫向模式：分隔線改回垂直 */
+    .group-vs-divider {
+        width: 20px;
+        height: 44px;
+        margin: 0;
+    }
+
+    .group-vs-divider::before {
+        left: 50%;
+        top: 2px;
+        bottom: 2px;
+        width: 1px;
+        height: auto;
+        background: repeating-linear-gradient(to bottom,
+                rgba(133, 59, 81, 0.2),
+                rgba(133, 59, 81, 0.2) 2px,
+                transparent 2px,
+                transparent 4px);
+    }
+
+    .group-vs-divider span {
+        padding: 1px 3px;
+        font-size: 0.55rem;
+        border-radius: 4px;
+    }
+
+    /* 手機版一排四人，尺寸需適度回調 */
+    .group-card .player-avatar {
+        width: 46px !important;
+        height: 46px !important;
+    }
+
+    .group-card .player-name {
+        font-size: 0.75rem !important;
+        font-weight: 700;
+        margin-top: 4px;
+        width: 46px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .group-card .active-chip {
+        width: 48px !important;
+    }
+
     .app-header {
         flex-wrap: wrap;
         height: auto;
@@ -1485,7 +1598,6 @@ input:checked+.slider:before {
     .group-members {
         /* On mobile, use 4 columns to keep them in one row */
         grid-template-columns: repeat(4, max-content);
-        gap: 4px;
         justify-content: center;
     }
 

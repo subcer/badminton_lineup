@@ -659,28 +659,49 @@ function renderQueue() {
     queue.forEach((group, idx) => {
         const isMobile = window.innerWidth <= 768;
         const groupSig = [...group.members].sort().join(',');
+        const teamA = group.members.slice(0, 2);
+        const teamB = group.members.slice(2, 4);
+
         const groupHtml = `
             <div class="group-card" data-gid="${idx}" draggable="${!isMobile}">
-                <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <div class="group-title" style="font-size:0.8rem;color:#888;">Group ${idx + 1}</div>
+                <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+                    <div class="group-title" style="font-size:0.75rem; font-weight:800; color:#aaa; text-transform:uppercase; letter-spacing:1px;">Group ${idx + 1}</div>
                     <div class="group-remove" style="position:static;" onclick="event.stopPropagation(); removeFromQueue(${idx}, '${groupSig}')">×</div>
                 </div>
                 <div class="group-members">
-        ${group.members.map(pid => {
-            const p = players[pid];
-            const avatarHtml = p.avatarUrl
-                ? `<img src="${p.avatarUrl}" class="avatar-img">`
-                : `<i class="fas fa-user"></i>`;
-            return `<div class="player-chip active-chip ${p.gender}" style="position:relative;">
-                        <div class="player-avatar">${avatarHtml}</div>
-                        <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
-                    </div>`;
-        }).join('')}
+                    <div class="team-side team-a">
+                        ${teamA.map(pid => renderPlayerChipHtml(pid)).join('')}
+                    </div>
+                    
+                    <div class="group-vs-divider">
+                        <span>VS</span>
+                    </div>
+
+                    <div class="team-side team-b">
+                        ${teamB.map(pid => renderPlayerChipHtml(pid)).join('')}
+                    </div>
                 </div>
             </div>
         `;
         $queueContainer.append(groupHtml);
     });
+}
+
+/**
+ * Helper to render a player chip simplified for the queue/court
+ */
+function renderPlayerChipHtml(pid) {
+    const p = players[pid];
+    if (!p) return '';
+    const avatarHtml = p.avatarUrl
+        ? `<img src="${p.avatarUrl}" class="avatar-img">`
+        : `<i class="fas fa-user"></i>`;
+    return `
+        <div class="player-chip active-chip ${p.gender}" style="position:relative;">
+            <div class="player-avatar">${avatarHtml}</div>
+            <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
+        </div>
+    `;
 }
 
 // --- Interaction Logic ---
@@ -1220,7 +1241,7 @@ function openEditModal(pid) {
     $('#editPlayerId').val(pid);
     $('#editPlayerName').val(p.name);
     $('#editPlayerBirthday').val(p.birthday || '');
-    
+
     // Calculate and Show Zodiac Icon
     if (p.birthday) {
         const zInfo = getZodiacInfo(p.birthday);
