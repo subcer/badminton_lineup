@@ -1233,7 +1233,8 @@ body::after {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(0, 0, 0, 0.1);
+    /* 提升在白底上的可見度 */
     transition: .4s;
     border-radius: 34px;
 }
@@ -1906,7 +1907,7 @@ input:checked+.slider:before {
     transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    border-left: 1px solid rgba(133, 59, 81, 0.1);
+    border-radius: 20px 0px 0px 20px;
 }
 
 @media (min-width: 769px) {
@@ -1922,11 +1923,27 @@ input:checked+.slider:before {
 
 .drawer-header {
     padding: 20px;
-    background: var(--brand-gradient);
+    background: #D1A19D;
     color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-radius: 20px 0px 0px 0px;
+}
+
+/* 強化選單關閉按鈕顯眼度 */
+.drawer-header .icon-btn {
+    background: rgba(255, 255, 255, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 36px;
+    height: 36px;
+}
+
+.drawer-header .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+    color: white;
 }
 
 .drawer-logo {
@@ -1978,6 +1995,11 @@ input:checked+.slider:before {
     margin-bottom: 10px;
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* 確保側邊選單內的開開在關閉時也清晰可見 */
+.drawer-toggle-item .slider {
+    background-color: #eee;
 }
 
 .drawer-grid {
