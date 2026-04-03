@@ -266,6 +266,9 @@
 
             <div class="input-group">
                 <label>您的生日 (MMDD) <span style="color:#d14444">*必填</span></label>
+                <p style="font-size: 0.72rem; color: var(--text-muted); margin: -5px 0 10px 0; line-height: 1.4;">
+                  <i class="fas fa-info-circle"></i> 此資訊僅用於同步您的「生涯數據庫」，本系統對外 **絕對隱藏具體日期**，僅會公開顯示對應的星座圖示。
+                </p>
                 <input type="text" id="playerBirthday" placeholder="例如 0520" inputmode="numeric" maxlength="4">
             </div>
 
@@ -365,6 +368,14 @@
             if (val !== result) $(this).val(result);
         });
 
+        const AVATAR_POOL = [
+            'avatars/cat_1.png', 'avatars/cat_2.png', 'avatars/cat_3.png', 'avatars/cat_4.png',
+            'avatars/cat_5.png', 'avatars/cat_6.png', 'avatars/cat_7.png', 'avatars/cat_8.png',
+            'avatars/cat_9.png', 'avatars/cat_10.png', 'avatars/cat_11.png', 'avatars/cat_12.png',
+            'avatars/cat_13.png', 'avatars/cat_14.png', 'avatars/cat_15.png', 'avatars/cat_16.png',
+            'avatars/cat_17.png'
+        ];
+
         // Submit Logic
         $('#submitBtn').click(function () {
             const name = $('#playerName').val().trim();
@@ -382,21 +393,38 @@
                 return;
             }
 
-            // Fallback for avatar pool (will be handled by main app's random cat logic if needed, 
-            // but for check-in we can just push it and the main app will render it.)
-
             $("#submitBtn").prop('disabled', true).text("報報中...");
 
             const rid = (name + "_" + birthday).replace(/[.#$[\]]/g, "");
 
-            // 1. 先去 Registry 檢查是否有老資料
-            db.ref('lineup/registry/' + rid).once('value', snap => {
-                const regData = snap.val();
+            // 1. 同步讀取 Registry 與目前的 Players (為了避開重複貓咪)
+            Promise.all([
+                db.ref('lineup/registry/' + rid).once('value'),
+                db.ref('lineup/players').once('value')
+            ]).then(snaps => {
+                const regSnap = snaps[0];
+                const activePlayersSnap = snaps[1];
+
+                const regData = regSnap.val();
+                const activePlayers = activePlayersSnap.val() || {};
+                
                 let assignedAvatar = tempAvatar;
 
                 // 如果沒拍新照片且 Registry 有舊照片，就用舊的
                 if (!assignedAvatar && regData && regData.avatarUrl) {
                     assignedAvatar = regData.avatarUrl;
+                }
+
+                // 如果真的兩者都沒有，才去抓貓咪池 (隨機挑選)
+                if (!assignedAvatar) {
+                    const usedAvatars = Object.values(activePlayers).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
+                    const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
+                    
+                    if (availableAvatars.length > 0) {
+                        assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+                    } else {
+                        assignedAvatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+                    }
                 }
 
                 const playerData = {
@@ -413,9 +441,9 @@
                 };
 
                 // 2. 寫入今日報到名單
-                db.ref('lineup/players').push(playerData).then(() => {
+                return db.ref('lineup/players').push(playerData).then(() => {
                     // 3. 同步回 Registry 存檔
-                    db.ref('lineup/registry/' + rid).update({
+                    return db.ref('lineup/registry/' + rid).update({
                         name: name,
                         birthday: birthday,
                         gender: gender,
@@ -423,14 +451,15 @@
                         avatarUrl: assignedAvatar || null,
                         lastSeen: firebase.database.ServerValue.TIMESTAMP
                     });
-
-                    $('#formContent').fadeOut(400, function () {
-                        $('#successMessage').fadeIn().css('display', 'flex');
-                    });
-                }).catch(err => {
-                    alert("報到失敗，請檢查網路：" + err);
-                    $("#submitBtn").prop('disabled', false).text("確認報到");
                 });
+            }).then(() => {
+                $('#formContent').fadeOut(400, function () {
+                    $('#successMessage').fadeIn().css('display', 'flex');
+                });
+            }).catch(err => {
+                console.error(err);
+                alert("報到失敗，請檢查網路：" + err);
+                $("#submitBtn").prop('disabled', false).text("確認報到");
             });
         });
     </script>

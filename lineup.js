@@ -1220,6 +1220,24 @@ function openEditModal(pid) {
     $('#editPlayerId').val(pid);
     $('#editPlayerName').val(p.name);
     $('#editPlayerBirthday').val(p.birthday || '');
+    
+    // Calculate and Show Zodiac Icon
+    if (p.birthday) {
+        const zInfo = getZodiacInfo(p.birthday);
+        if (zInfo) {
+            $('#editPlayerZodiacIcon').text(zInfo.emoji).css({
+                'background': zInfo.color + '22',
+                'color': zInfo.color
+            });
+            $('#editPlayerZodiacName').text(zInfo.name).css('color', zInfo.color);
+        } else {
+            $('#editPlayerZodiacIcon').text('❓').css({ 'background': '#eee', 'color': '#999' });
+            $('#editPlayerZodiacName').text('無星座資料').css('color', '#999');
+        }
+    } else {
+        $('#editPlayerZodiacIcon').text('❓').css({ 'background': '#eee', 'color': '#999' });
+        $('#editPlayerZodiacName').text('未提供生日').css('color', '#999');
+    }
     $('#editPlayerGender').val(p.gender);
     $('#editPlayerLevel').val(p.level);
 
