@@ -2250,7 +2250,7 @@ input:checked+.slider:before {
 
 .drawer-header {
     padding: 20px;
-    background: #D1A19D;
+    background: var(--gold-end);
     color: white;
     display: flex;
     justify-content: space-between;
