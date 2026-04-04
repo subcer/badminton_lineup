@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>羽球排點系統 (Badminton Lineup)</title>
+  <title>貓羽掌 | Smart Lineup</title>
+  <link rel="icon" type="image/png" href="./cat_logo.png">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -230,12 +231,15 @@
       <!-- Birthday Hidden for Privacy / Show Zodiac Instead -->
       <div class="input-group" id="editPlayerZodiacGroup">
         <label>球員星座 <span style="font-size:0.7rem; color:var(--text-muted); font-weight:400;">(生日已受保護)</span></label>
-        <div id="editPlayerZodiacDisplay" style="display: flex; align-items: center; gap: 15px; padding: 12px 20px; background: rgba(0,0,0,0.03); border-radius: 18px; border: 1px solid rgba(0,0,0,0.05);">
-          <div id="editPlayerZodiacIcon" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: #eee; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+        <div id="editPlayerZodiacDisplay"
+          style="display: flex; align-items: center; gap: 15px; padding: 12px 20px; background: rgba(0,0,0,0.03); border-radius: 18px; border: 1px solid rgba(0,0,0,0.05);">
+          <div id="editPlayerZodiacIcon"
+            style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: #eee; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
             ❓
           </div>
           <div style="display: flex; flex-direction: column;">
-            <span id="editPlayerZodiacName" style="font-weight: 800; color: var(--text-main); font-size: 1.1rem;">未知星座</span>
+            <span id="editPlayerZodiacName"
+              style="font-weight: 800; color: var(--text-main); font-size: 1.1rem;">未知星座</span>
             <span id="editPlayerZodiacTip" style="font-size: 0.70rem; color: var(--text-muted);">系統已自動根據生日換算</span>
           </div>
         </div>
@@ -441,7 +445,8 @@
       <div class="modal-body" style="text-align: left; line-height: 1.6; font-size: 0.95rem;">
         <!-- 基礎操作 -->
         <div class="help-section" style="margin-bottom: 20px;">
-          <h3 style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
+          <h3
+            style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
             <i class="fas fa-paw"></i> 基礎操作 (Core)
           </h3>
           <ul style="padding-left: 20px; margin: 0;">
@@ -454,7 +459,8 @@
 
         <!-- 進階工具 -->
         <div class="help-section" style="margin-bottom: 20px;">
-          <h3 style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
+          <h3
+            style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
             <i class="fas fa-magic"></i> 進階工具 (Advanced)
           </h3>
           <ul style="padding-left: 20px; margin: 0;">
@@ -466,7 +472,8 @@
 
         <!-- 數據與趣味 -->
         <div class="help-section">
-          <h3 style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
+          <h3
+            style="margin-bottom: 10px; color: var(--gold-start); border-bottom: 1px solid rgba(133,59,81,0.1); padding-bottom: 5px;">
             <i class="fas fa-chart-line"></i> 統計與趣味 (Fun)
           </h3>
           <ul style="padding-left: 20px; margin: 0;">

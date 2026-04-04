@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>球員自助報到 - 貓羽掌</title>
     <!-- Firebase SDK -->
+    <link rel="icon" type="image/png" href="./cat_logo.png">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <!-- jQuery -->
@@ -107,7 +108,8 @@
             font-size: 1rem;
             outline: none;
             transition: border-color 0.3s;
-            box-sizing: border-box; /* 關鍵：確保 padding 不會撐開總寬度 */
+            box-sizing: border-box;
+            /* 關鍵：確保 padding 不會撐開總寬度 */
         }
 
         .input-group input:focus {
@@ -267,7 +269,7 @@
             <div class="input-group">
                 <label>您的生日 (MMDD) <span style="color:#d14444">*必填</span></label>
                 <p style="font-size: 0.72rem; color: var(--text-muted); margin: -5px 0 10px 0; line-height: 1.4;">
-                  <i class="fas fa-info-circle"></i> 此資訊僅用於同步您的「生涯數據庫」，本系統對外 **絕對隱藏具體日期**，僅會公開顯示對應的星座圖示。
+                    <i class="fas fa-info-circle"></i> 此資訊僅用於同步您的「生涯數據庫」，本系統對外 **絕對隱藏具體日期**，僅會公開顯示對應的星座圖示。
                 </p>
                 <input type="text" id="playerBirthday" placeholder="例如 0520" inputmode="numeric" maxlength="4">
             </div>
@@ -407,7 +409,7 @@
 
                 const regData = regSnap.val();
                 const activePlayers = activePlayersSnap.val() || {};
-                
+
                 let assignedAvatar = tempAvatar;
 
                 // 如果沒拍新照片且 Registry 有舊照片，就用舊的
@@ -419,7 +421,7 @@
                 if (!assignedAvatar) {
                     const usedAvatars = Object.values(activePlayers).map(p => p.avatarUrl).filter(url => url && url.startsWith('avatars/'));
                     const availableAvatars = AVATAR_POOL.filter(url => !usedAvatars.includes(url));
-                    
+
                     if (availableAvatars.length > 0) {
                         assignedAvatar = availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
                     } else {
