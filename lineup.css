@@ -421,7 +421,7 @@ body::after {
 .geometric-cat-wrapper {
     position: relative;
     width: 140px;
-    height: 130px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
