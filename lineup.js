@@ -682,7 +682,12 @@ function renderQueue() {
 
     $queueContainer.empty();
     if (!queue || queue.length === 0) {
-        $queueContainer.html('<div class="empty-state">暫無等待組別</div>');
+        $queueContainer.html(`
+            <div class="empty-state-visual">
+                <i class="fas fa-cat"></i>
+                <p>目前暫無等待組別<br><span style="font-size:0.8rem; font-weight:normal; opacity:0.6;">大家都在場上奮戰中，快去熱身吧！🏸</span></p>
+            </div>
+        `);
         return;
     }
 
