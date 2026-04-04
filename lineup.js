@@ -521,7 +521,6 @@ function renderPlayerPool() {
             const playCount = p.playCount || 0;
 
             const isMobile = window.innerWidth <= 768;
-            const selectedMark = (isSelected && isMobile) ? `<div class="selected-mark"><i class="fas fa-check"></i></div>` : '';
 
             const html = `
                 <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''}" 
@@ -531,7 +530,6 @@ function renderPlayerPool() {
                     <div class="player-level" title="程度">${p.level}</div>
                     <div class="player-avatar">
                         ${avatarHtml}
-                        ${selectedMark}
                     </div>
                     <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
                 </div>

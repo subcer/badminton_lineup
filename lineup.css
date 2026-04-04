@@ -1750,39 +1750,18 @@ input:checked+.slider:before {
 
     .player-chip.selected .player-avatar {
         box-shadow: 0 0 20px var(--gold-start);
-        border-color: var(--gold-start) !important;
+        border: 2px solid var(--gold-start) !important;
+        transform: scale(1.1); /* 恢復原本的縮放感 */
+        z-index: 10;
     }
 
-    /* Checkmark Stamp (Green Dot) */
-    .selected-mark {
-        position: absolute;
-        bottom: 12px;
-        right: 0px;
-        background: #4ade80;
-        color: white;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        z-index: 25;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        border: 2px solid white;
-        animation: popCheck 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    @keyframes glowPulse {
+        0% { box-shadow: 0 0 15px var(--gold-start); }
+        50% { box-shadow: 0 0 30px var(--gold-end); }
+        100% { box-shadow: 0 0 15px var(--gold-start); }
     }
 
-    @keyframes popCheck {
-        0% {
-            transform: scale(0);
-        }
-
-        100% {
-            transform: scale(1);
-        }
     }
-}
 
 .gold-border {
     border: 1px solid var(--gold-start);
