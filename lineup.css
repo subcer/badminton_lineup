@@ -1751,17 +1751,26 @@ input:checked+.slider:before {
     .player-chip.selected .player-avatar {
         box-shadow: 0 0 20px var(--gold-start);
         border: 2px solid var(--gold-start) !important;
-        transform: scale(1.1); /* 恢復原本的縮放感 */
+        transform: scale(1.1);
+        /* 恢復原本的縮放感 */
         z-index: 10;
     }
 
     @keyframes glowPulse {
-        0% { box-shadow: 0 0 15px var(--gold-start); }
-        50% { box-shadow: 0 0 30px var(--gold-end); }
-        100% { box-shadow: 0 0 15px var(--gold-start); }
+        0% {
+            box-shadow: 0 0 15px var(--gold-start);
+        }
+
+        50% {
+            box-shadow: 0 0 30px var(--gold-end);
+        }
+
+        100% {
+            box-shadow: 0 0 15px var(--gold-start);
+        }
     }
 
-    }
+}
 
 .gold-border {
     border: 1px solid var(--gold-start);
@@ -2909,6 +2918,11 @@ input:checked+.slider:before {
     .lb-tab {
         padding: 8px 12px;
         font-size: 0.85rem;
+    }
+
+    .empty-state-visual {
+        padding: 0px;
+
     }
 }
 
