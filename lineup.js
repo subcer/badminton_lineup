@@ -365,7 +365,37 @@ $(function () {
 function initListeners() {
     // 1. Players
     db.ref('lineup/players').on('value', snapshot => {
-        players = snapshot.val() || {};
+        const rawVal = snapshot.val() || {};
+
+        // 1. Check if there are any 'null' values in the dataset (Firebase array behavior)
+        let hasNulls = false;
+        let cleanPlayers = {};
+        let nullKeys = [];
+
+        Object.keys(rawVal).forEach(key => {
+            if (rawVal[key] === null || rawVal[key] === undefined) {
+                hasNulls = true;
+                nullKeys.push(key);
+            } else {
+                cleanPlayers[key] = rawVal[key];
+            }
+        });
+
+        // 2. Perform silent cleanup if nulls were found
+        if (hasNulls) {
+            nullKeys.forEach(key => {
+                db.ref(`lineup/players/${key}`).remove();
+                console.warn(`[System] Detected and cleaned corrupted null data at players/${key}`);
+            });
+
+            // Show a non-intrusive alert about the cleanup
+            const msg = `偵測到資料庫有 ${nullKeys.length} 筆損毀數據 (null)，系統已自動清理並進行修復，不影響正常運作。✨`;
+            if (window.showAlert) window.showAlert("數據庫自動修復", msg);
+            else alert(msg);
+        }
+
+        // 3. Assign clean data to global players object
+        players = cleanPlayers;
         const count = Object.keys(players).length;
         $('#totalPlayerCount').text(count);
         renderPlayerPool();
@@ -398,14 +428,14 @@ function renderPlayerPool() {
     }
 
     $playerPool.empty();
-    const filterText = $('#searchPlayer').val().toLowerCase();
+    const filterText = ($('#searchPlayer').val() || '').toLowerCase();
 
     const containerWidth = $playerPool[0].offsetWidth || $playerPool.width() || 300;
 
     let occupiedPositions = []; // Track occupancy to prevent overlap
     Object.keys(players).forEach(pid => {
         const p = players[pid];
-        if (p.name.toLowerCase().includes(filterText)) {
+        if (p && p.name && p.name.toLowerCase().includes(filterText)) {
             const isSelected = selectedPlayers.has(pid);
 
             if (p.status !== 'idle' && p.status !== undefined) {
@@ -1211,8 +1241,8 @@ $playerPool.on('touchend', '.player-chip', function (e) {
     const currentPid = $(this).data('id');
     const tapLength = currentTime - lastTap;
 
-    // 定義適合各端的閾值 (手機 380ms / 電腦或模擬器 500ms)
-    const threshold = (e.type === 'touchend' || 'ontouchstart' in window) ? 380 : 500;
+    // 定義適合各端的閾值 (手機 350ms / 電腦或模擬器 500ms)
+    const threshold = (e.type === 'touchend' || 'ontouchstart' in window) ? 350 : 500;
 
     if (tapLength < threshold && tapLength > 0 && lastTapId === currentPid) {
         e.preventDefault();
@@ -1819,7 +1849,7 @@ function trySmartPick() {
         const isMale = (pid) => {
             const p = players[pid];
             if (!p || !p.gender) return false;
-            const g = p.gender.toLowerCase();
+            const g = (p.gender || '').toLowerCase();
             return (g === 'male' || g === '男' || g.startsWith('m'));
         };
 
