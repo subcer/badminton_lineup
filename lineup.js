@@ -682,7 +682,20 @@ function renderQueue() {
     if (!queue || queue.length === 0) {
         $queueContainer.html(`
             <div class="empty-state-visual">
-                <i class="fas fa-cat"></i>
+                <div class="geometric-cat-wrapper">
+                    <div class="geometric-cat">
+                        <div class="cat-ears"></div>
+                        <div class="cat-body">
+                            <div class="cat-eyes">
+                                <span class="eye-l"></span>
+                                <span class="eye-r"></span>
+                            </div>
+                        </div>
+                        <div class="cat-tail-spiral">
+                            <div class="cat-tail-inner"></div>
+                        </div>
+                    </div>
+                </div>
                 <p>目前暫無等待組別<br><span style="font-size:0.8rem; font-weight:normal; opacity:0.6;">大家都在場上奮戰中，快去熱身吧！🏸</span></p>
             </div>
         `);

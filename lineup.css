@@ -417,6 +417,174 @@ body::after {
     line-height: 1.6;
 }
 
+/* --- Geometric CSS Cat (Inspired by User GIF) --- */
+.geometric-cat-wrapper {
+    position: relative;
+    width: 140px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.geometric-cat {
+    position: relative;
+    width: 60px;
+    height: 90px;
+    background: linear-gradient(to right, #702f43 50%, #853b51 50%);
+    border-radius: 2px;
+}
+
+/* Ears - Adjusted for Flat Top */
+.cat-ears {
+    position: absolute;
+    top: -24px;
+    left: 0;
+    width: 100%;
+    height: 24px;
+}
+
+.cat-ears::before,
+.cat-ears::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 22px;
+    /* 變窄一點，留出中間平頂 */
+    height: 100%;
+}
+
+.cat-ears::before {
+    left: 0;
+    background: #702f43;
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+.cat-ears::after {
+    right: 0;
+    background: #853b51;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+/* Body (Integrated into .geometric-cat now) */
+.cat-body {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* Gradient handled in parent for better ear integration */
+}
+
+/* Eyes - Final High Position */
+.cat-eyes {
+    position: absolute;
+    top: 16px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.cat-eyes span {
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    animation: catBlink 4s infinite;
+}
+
+@keyframes catBlink {
+
+    0%,
+    93%,
+    96%,
+    100% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+
+    94%,
+    95% {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+}
+
+/* Robust Spiral Tail 10.0 - MODULAR REBOOT (Step 1) */
+.cat-tail-spiral {
+    position: absolute;
+    bottom: 2px;
+    /* 貼齊底線 */
+    right: -55px;
+    /* 調整至黃金比例距離 */
+    width: 40px;
+    height: 48px;
+    transform-origin: bottom left;
+    animation: tailWiggle 3s infinite ease-in-out;
+    box-sizing: border-box;
+    /* Step 1: External Walls (Top & Right) */
+    border: 8px solid #853b51;
+    border-left: none;
+    border-bottom: none;
+    border-radius: 0 4px 0 0;
+}
+
+/* 1. Base Support Bar from Body */
+.cat-tail-spiral::before {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: -20px;
+    /* 與身體無縫接軌 */
+    width: 60px;
+    /* 延伸至螺旋外緣 */
+    height: 8px;
+    background: #853b51;
+    z-index: 1;
+}
+
+/* 2. Middle Path (Left & Bottom) - The Inward Fold */
+.cat-tail-inner {
+    position: absolute;
+    top: -5px;
+    /* 留出天花板的 8px 空間 */
+    left: 0;
+    width: 25px;
+    /* 寬度減去右牆 8px 與間隔 8px */
+    height: 30px;
+    /* 高度同樣留出空間 */
+    box-sizing: border-box;
+    /* Step 2: Middle Walls (Left & Bottom) */
+    border: 8px solid #853b51;
+    border-top: none;
+    border-right: none;
+}
+
+/* 3. The Core Pillar (Center Up) - Final inward turn */
+.cat-tail-inner::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 8px;
+    /* 標準粗細 */
+    height: 11px;
+    /* 捲入高度 */
+    background: #853b51;
+    z-index: 2;
+}
+
+@keyframes tailWiggle {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(-5deg);
+    }
+}
+
 .panel-header {
     display: flex;
     justify-content: space-between;
