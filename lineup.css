@@ -215,6 +215,42 @@ body.light-mode .history-meta {
     color: var(--text-muted) !important;
 }
 
+/* Modal and Mobile Drawer overrides in dark mode */
+body.light-mode .mobile-drawer .drawer-header {
+    background: linear-gradient(135deg, rgba(80, 25, 40, 0.9), rgba(40, 10, 20, 0.95)) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+body.light-mode .drawer-status-item,
+body.light-mode .drawer-toggle-item,
+body.light-mode .drawer-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.02) !important;
+    color: var(--text-main) !important;
+}
+
+body.light-mode .drawer-section-title {
+    color: var(--text-muted) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+body.light-mode input:not(:checked) + .slider {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.light-mode .drawer-btn i {
+    color: var(--gold-start) !important;
+}
+
+/* 固定貓咪底下的文字顏色 */
+body.light-mode .empty-state-visual p,
+body.light-mode .empty-state-visual small {
+    color: var(--text-main) !important;
+}
+
+body.light-mode .drawer-btn:active {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
 
 body.light-mode .scoreboard {
     background: rgba(18, 13, 15, 0.8) !important;
@@ -3163,9 +3199,15 @@ input:checked+.slider:before {
         font-size: 0.85rem;
     }
 
+    /* Keep mobile empty state compact and borderless */
     .empty-state-visual {
-        padding: 0px;
-        background: none;
+        padding: 0px !important;
+        background: none !important;
+    }
+
+    body.light-mode .empty-state-visual {
+        background: none !important;
+        padding: 0px !important;
     }
 }
 
