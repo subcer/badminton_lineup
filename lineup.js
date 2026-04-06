@@ -225,27 +225,32 @@ $(function () {
         renderPlayerPool();
     });
 
-    // --- Theme Toggle LocalStorage ---
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    if (currentTheme === 'light') {
-        $('body').addClass('light-mode');
-        $('#themeToggleBtn i').removeClass('fa-sun').addClass('fa-moon');
+    // --- Theme Toggle LocalStorage (Default: Pinkish/Light) ---
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+        $('body').addClass('light-mode'); // We keep the class name but use Dark colors in CSS
+        $('#themeToggleBtn i, #themeToggleBtnMobile i').removeClass('fa-moon').addClass('fa-sun');
+        $('#themeToggleBtnMobile span').text('切換淺色');
+    } else {
+        // Default (Pinkish)
+        $('#themeToggleBtn i, #themeToggleBtnMobile i').removeClass('fa-sun').addClass('fa-moon');
+        $('#themeToggleBtnMobile span').text('切換深色');
     }
 
     $('#themeToggleBtn, #themeToggleBtnMobile').click(function () {
         $('body').toggleClass('light-mode');
-        const isLight = $('body').hasClass('light-mode');
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        const isDark = $('body').hasClass('light-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
 
         const $icons = $('#themeToggleBtn i, #themeToggleBtnMobile i');
         const $text = $('#themeToggleBtnMobile span');
 
-        if (isLight) {
-            $icons.removeClass('fa-sun').addClass('fa-moon');
-            $text.text('切換深色');
-        } else {
+        if (isDark) {
             $icons.removeClass('fa-moon').addClass('fa-sun');
             $text.text('切換淺色');
+        } else {
+            $icons.removeClass('fa-sun').addClass('fa-moon');
+            $text.text('切換深色');
         }
     });
 
@@ -585,9 +590,15 @@ function renderCourts() {
                     <div class="court-visual">
                         <div class="court-side top"></div>
                         <div class="scoreboard" style="${$('#scoreModeToggle').is(':checked') ? '' : 'display:none'}">
-                            <div class="score" onclick="updateScore('${cid}', 'A', 1, event)">${c.scoreA || 0}</div>
-                            <span>:</span>
-                            <div class="score" onclick="updateScore('${cid}', 'B', 1, event)">${c.scoreB || 0}</div>
+                            <div class="score-team left">
+                                <div class="score-minus" onclick="event.stopPropagation(); updateScore('${cid}', 'A', -1, event)" title="扣 1 分"><i class="fas fa-minus"></i></div>
+                                <div class="score" onclick="updateScore('${cid}', 'A', 1, event)">${c.scoreA || 0}</div>
+                            </div>
+                            <span class="score-divider">:</span>
+                            <div class="score-team right">
+                                <div class="score" onclick="updateScore('${cid}', 'B', 1, event)">${c.scoreB || 0}</div>
+                                <div class="score-minus" onclick="event.stopPropagation(); updateScore('${cid}', 'B', -1, event)" title="扣 1 分"><i class="fas fa-minus"></i></div>
+                            </div>
                         </div>
                         <div class="court-net"></div>
                         <div class="court-side bottom"></div>
@@ -2416,7 +2427,7 @@ $(document).ready(function () {
                     <div class="history-meta">${timeStr} · 📍 <span>${entry.courtName}</span></div>
                     <div class="history-teams-layout">
                         <div class="history-team-side">${teamAHtml}</div>
-                        <div class="history-score-center">${entry.scoreA} : ${entry.scoreB}</div>
+                        <div class="history-score-center"><span class="score-hist-a">${entry.scoreA}</span> : <span class="score-hist-b">${entry.scoreB}</span></div>
                         <div class="history-team-side side-right">${teamBHtml}</div>
                     </div>
                 </div>
