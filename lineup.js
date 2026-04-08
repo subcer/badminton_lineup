@@ -77,7 +77,14 @@ const $queueContainer = $('#queueContainer');
 const $selectionBox = $('#selectionBox');
 
 // --- Global Lock System ---
-const myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
+const myClientId = (function() {
+    let id = localStorage.getItem('chat_client_id');
+    if (!id) {
+        id = 'c_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('chat_client_id', id);
+    }
+    return id;
+})();
 let lockTimeout = null;
 
 function initLockSystem() {
@@ -565,6 +572,34 @@ function renderPlayerPool() {
 
     // Restore positions
     if (poolScrollTop > 0) $playerPool.scrollTop(poolScrollTop);
+
+    // --- 同步貓砂盆化身選擇器 ---
+    updateChatIdentitySelect();
+}
+
+function updateChatIdentitySelect() {
+    const $select = $('#chatIdentitySelect');
+    const currentVal = $select.val() || localStorage.getItem('chat_pid') || 'anonymous';
+    
+    // 保留匿名選項
+    let html = `<option value="anonymous" data-avatar="👻">👻 匿名貓 (預設)</option>`;
+    
+    // 列出所有已報到球員
+    Object.keys(players).forEach(pid => {
+        const p = players[pid];
+        if (p && p.name) {
+            // 優化選項文字：只顯示 [圖標] 姓名
+            const emoji = p.gender === 'male' ? '♂️' : (p.gender === 'female' ? '♀️' : '🐱');
+            html += `<option value="${pid}">${emoji} ${p.name}</option>`;
+        }
+    });
+    
+    $select.html(html);
+    
+    // 恢復上次選擇的身分
+    if ($select.find(`option[value="${currentVal}"]`).length > 0) {
+        $select.val(currentVal);
+    }
 }
 
 function renderCourts() {
@@ -1737,7 +1772,11 @@ function resetSession() {
         if (typeof selectedPlayers !== 'undefined') selectedPlayers.clear();
         $('.player-chip').removeClass('active-chip');
 
-        showAlert('重整成功', '全場數據已重設，所有人已回歸待命。', 'success');
+        // 5. [新加入] 清空歷史紀錄與貓砂盆留言
+        db.ref('lineup/history').remove();
+        db.ref('lineup/chat').remove();
+
+        showAlert('重整成功', '全場數據已重設，所有人已回歸待命，聊天室也已清空。', 'success');
     });
 }
 
@@ -2814,3 +2853,148 @@ function renderZodiacStats() {
         });
     });
 }
+
+// --- 貓砂盆 (即時留言板) 系統邏輯 ---
+let chatUnreadCount = 0;
+let isChatOpen = false;
+
+function initChatSystem() {
+    // 1. 點擊標題列或摺疊按鈕切換展開/收合
+    $('#chatHeader').click(function(e) {
+        const $chat = $('#chatIntegrated');
+        const isCurrentlyExpanded = $chat.hasClass('expanded');
+        
+        if (isCurrentlyExpanded) {
+            $chat.removeClass('expanded').addClass('collapsed');
+            isChatOpen = false;
+        } else {
+            $chat.removeClass('collapsed').addClass('expanded');
+            isChatOpen = true;
+            chatUnreadCount = 0;
+            $('#chatUnreadCount').text('0').addClass('hidden');
+            scrollToBottom();
+        }
+    });
+
+    // 2. 監聽 Firebase 留言 (限制最近 50 則)
+    db.ref('lineup/chat').limitToLast(50).on('child_added', (snap) => {
+        const msg = snap.val();
+        renderChatMessage(msg);
+        
+        // 更新 Ticker 預覽
+        updateChatTicker(msg);
+        
+        if (!isChatOpen) {
+            chatUnreadCount++;
+            $('#chatUnreadCount').text(chatUnreadCount).removeClass('hidden');
+        }
+        
+        scrollToBottom();
+    });
+
+    // 3. 發送留言
+    $('#chatSendBtn').click(sendChatMessage);
+    $('#chatInput').keypress((e) => {
+        if (e.which === 13) sendChatMessage();
+    });
+
+    // 4. 當身分改變時，存入 localStorage 並重新渲染歷史訊息 (為了正確顯示左右側)
+    $('#chatIdentitySelect').change(function() {
+        const pid = $(this).val();
+        localStorage.setItem('chat_pid', pid);
+        // 清空並重跑渲染
+        $('#chatMessageList').empty();
+        db.ref('lineup/chat').limitToLast(50).once('value', snap => {
+            snap.forEach(child => {
+                renderChatMessage(child.val());
+            });
+            scrollToBottom();
+        });
+    });
+
+    // 5. 定期更新化身選擇器
+    setInterval(updateChatIdentitySelect, 10000);
+}
+
+function sendChatMessage() {
+    const text = $('#chatInput').val().trim();
+    if (!text) return;
+
+    const pid = $('#chatIdentitySelect').val();
+    const timestamp = firebase.database.ServerValue.TIMESTAMP;
+
+    const newMessage = {
+        pid: pid,
+        text: text,
+        timestamp: timestamp,
+        clientId: myClientId // 用於區分發言者是否為本人
+    };
+
+    db.ref('lineup/chat').push(newMessage);
+    $('#chatInput').val('');
+}
+
+function renderChatMessage(msg) {
+    if (!msg) return;
+    const $list = $('#chatMessageList');
+    $('.chat-empty-state').remove();
+
+    // 判定是否為本人：
+    // 1. 如果 ClientId 相同，絕對是本人（跨設備/重整後依然有效）
+    // 2. 如果 PID 跟目前選的一樣，也視為本人
+    const savedPid = localStorage.getItem('chat_pid') || 'anonymous';
+    const isMe = (msg.clientId === myClientId) || (msg.pid === savedPid && msg.pid !== 'anonymous');
+    
+    let name = "匿名貓";
+    let avatarHtml = "👻";
+
+    if (msg.pid !== 'anonymous' && players[msg.pid]) {
+        const p = players[msg.pid];
+        name = p.name;
+        avatarHtml = p.avatarUrl 
+            ? `<div class="chat-msg-avatar" style="background-image: url('${p.avatarUrl}')"></div>`
+            : `<div class="chat-msg-avatar">🐱</div>`;
+    } else {
+        avatarHtml = `<div class="chat-msg-avatar">👻</div>`;
+    }
+
+    const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+
+    // 緊湊排版：姓名+時間在頂部，氣泡在下方
+    const html = `
+        <div class="chat-msg ${isMe ? 'me' : ''}">
+            <div class="chat-msg-avatar-wrapper">${avatarHtml}</div>
+            <div class="chat-msg-content">
+                <div class="chat-msg-header">
+                    <span class="chat-msg-name">${name}</span>
+                    <span class="chat-msg-time">${time}</span>
+                </div>
+                <div class="chat-msg-bubble">${escapeHtml(msg.text)}</div>
+            </div>
+        </div>
+    `;
+
+    $list.append(html);
+}
+
+function scrollToBottom() {
+    const container = document.getElementById('chatMessageList');
+    if (container) container.scrollTop = container.scrollHeight;
+}
+
+// 更新收合時的最新訊息預覽
+function updateChatTicker(msg) {
+    if (!msg) return;
+    const name = (msg.pid !== 'anonymous' && players[msg.pid]) ? players[msg.pid].name : "匿名貓";
+    const $ticker = $('#tickerContent');
+    
+    // 透過切換 animate class 觸發 CSS 動畫
+    $ticker.removeClass('animate');
+    void $ticker[0].offsetWidth; // 強制瀏覽器重繪 (Reflow)
+    $ticker.text(`${name}: ${msg.text}`).addClass('animate');
+}
+
+// 在頁面載入完成後啟動聊天室
+$(function() {
+    initChatSystem();
+});

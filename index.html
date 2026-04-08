@@ -147,6 +147,52 @@
       <div id="playerPool" class="player-grid drop-zone" data-type="pool">
         <!-- Players injected here -->
       </div>
+
+      <!-- 整合式貓砂盆 (即時留言板) -->
+      <div id="chatIntegrated" class="chat-integrated collapsed">
+        <div id="chatHeader" class="chat-header">
+          <div class="chat-title">
+            <div class="chat-cat-logo">
+              <div class="geometric-cat">
+                <div class="cat-ears"></div>
+                <div class="cat-body">
+                  <div class="cat-eyes">
+                    <span class="eye-l"></span>
+                    <span class="eye-r"></span>
+                  </div>
+                </div>
+                <div class="cat-tail-spiral">
+                  <div class="cat-tail-inner"></div>
+                </div>
+              </div>
+            </div>
+            <span class="chat-title-text">貓砂盆</span>
+            <!-- 訊息預覽列 (收合時顯示) -->
+            <div id="chatTicker" class="chat-ticker">
+              <span id="tickerContent" class="ticker-content">點擊展開貓砂盆...</span>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <span id="chatUnreadCount" class="chat-badge hidden">0</span>
+            <button id="toggleChatBtn" class="icon-btn"><i class="fas fa-chevron-up"></i></button>
+          </div>
+        </div>
+        
+        <div id="chatBody" class="chat-body">
+          <div id="chatMessageList" class="chat-message-list">
+            <div class="chat-empty-state">目前還沒有人在貓砂盆...</div>
+          </div>
+          <div class="chat-input-area">
+            <select id="chatIdentitySelect" class="chat-identity-select">
+              <option value="anonymous" data-avatar="👻">👻 匿名貓</option>
+            </select>
+            <div class="chat-input-wrapper">
+              <input type="text" id="chatInput" placeholder="輸入你想說的話..." autocomplete="off" maxlength="100">
+              <button id="chatSendBtn" class="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </aside>
 
   </div>
@@ -616,6 +662,8 @@
       </div>
     </div>
   </div>
+
+  <!-- 聊天室已移入側邊欄 -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="lineup.js"></script>
