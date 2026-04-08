@@ -588,7 +588,7 @@ function renderCourts() {
                 </div>
                 <div class="court-body drop-zone" data-type="court" data-court-id="${cid}">
                     <div class="court-visual">
-                        <div class="court-side top"></div>
+                        <div class="court-side team-a-side"></div>
                         <div class="scoreboard" style="${$('#scoreModeToggle').is(':checked') ? '' : 'display:none'}">
                             <div class="score-team left">
                                 <div class="score-minus" onclick="event.stopPropagation(); updateScore('${cid}', 'A', -1, event)" title="扣 1 分"><i class="fas fa-minus"></i></div>
@@ -601,7 +601,7 @@ function renderCourts() {
                             </div>
                         </div>
                         <div class="court-net"></div>
-                        <div class="court-side bottom"></div>
+                        <div class="court-side team-b-side"></div>
                     </div>
                 </div>
                 <div class="court-actions">
@@ -637,7 +637,7 @@ function renderCourts() {
                 `;
                 // Position logic (Manual visual placement needed)
                 // For now just append to sides
-                const targetSide = idx < 2 ? '.top' : '.bottom';
+                const targetSide = idx < 2 ? '.team-a-side' : '.team-b-side';
                 $el.find(targetSide).append(chip);
             });
         }
@@ -678,6 +678,37 @@ function updateTimers() {
             $(`#timer-${cid}`).text(`${m}:${s}`).css('color', '#FFD700');
         } else {
             $(`#timer-${cid}`).text('00:00').css('color', '#aaa');
+        }
+    });
+
+    // --- Anti-Bench-Warming Routine ---
+    const now = Date.now();
+    $('.player-chip').each(function () {
+        const pid = $(this).data('id');
+        const p = players[pid];
+        if (p && p.lastPlayTime && p.status === 'idle') {
+            const waitMins = Math.floor((now - p.lastPlayTime) / 60000);
+
+            if (waitMins >= 2) {
+                if (!$(this).hasClass('freezing-bench')) {
+                    $(this).removeClass('cold-bench').addClass('freezing-bench');
+                    $(this).find('.bench-badge').remove();
+                    $(this).find('.player-avatar').append(`<div class="bench-badge freezing" title="已重度結冰等待 ${waitMins} 分鐘"><i class="fas fa-snowflake" style="color: #4169E1; font-size: 14px;"></i></div>`);
+                } else {
+                    $(this).find('.bench-badge').attr('title', `已重度結冰等待 ${waitMins} 分鐘`);
+                }
+            } else if (waitMins >= 1) {
+                if (!$(this).hasClass('cold-bench')) {
+                    $(this).removeClass('freezing-bench').addClass('cold-bench');
+                    $(this).find('.bench-badge').remove();
+                    $(this).find('.player-avatar').append(`<div class="bench-badge cold" title="已結露等待 ${waitMins} 分鐘"><i class="fas fa-snowflake" style="color: #87ceeb; font-size: 12px;"></i></div>`);
+                } else {
+                    $(this).find('.bench-badge').attr('title', `已結露等待 ${waitMins} 分鐘`);
+                }
+            } else {
+                $(this).removeClass('cold-bench freezing-bench');
+                $(this).find('.bench-badge').remove();
+            }
         }
     });
 }
@@ -1234,6 +1265,7 @@ $('#confirmAddPlayerBtn').click(() => {
                 playCount: 0,
                 wins: 0,
                 losses: 0,
+                lastPlayTime: firebase.database.ServerValue.TIMESTAMP,
                 created_at: firebase.database.ServerValue.TIMESTAMP
             };
 
@@ -1599,6 +1631,7 @@ window.endGame = function (courtId) {
         pids.forEach((pid, idx) => {
             if (!pid) return;
             updates[pid + '/status'] = 'idle';
+            updates[pid + '/lastPlayTime'] = firebase.database.ServerValue.TIMESTAMP;
             updates[pid + '/playCount'] = firebase.database.ServerValue.increment(1);
 
             if (!isPractice) {
@@ -1838,11 +1871,26 @@ function trySmartPick() {
         return;
     }
 
-    // 將閒置球員依上場次數由小到大排序（若次數相同，稍微打亂增加新鮮感）
+    // 將閒置球員依等待時間與結霜階級優先排序，再來才是上場次數
+    const now = Date.now();
     idleIds.sort((a, b) => {
-        const pA = players[a].playCount || 0;
-        const pB = players[b].playCount || 0;
-        if (pA !== pB) return pA - pB;
+        const pA = players[a];
+        const pB = players[b];
+
+        const waitA = (pA.lastPlayTime) ? Math.floor((now - pA.lastPlayTime) / 60000) : 999;
+        const waitB = (pB.lastPlayTime) ? Math.floor((now - pB.lastPlayTime) / 60000) : 999;
+
+        const tierA = waitA >= 2 ? 2 : (waitA >= 1 ? 1 : 0);
+        const tierB = waitB >= 2 ? 2 : (waitB >= 1 ? 1 : 0);
+
+        if (tierA !== tierB) return tierB - tierA; // 結霜嚴重的優先
+
+        const cA = pA.playCount || 0;
+        const cB = pB.playCount || 0;
+        if (cA !== cB) return cA - cB; // 次數少的優先
+
+        if (waitA !== waitB) return waitB - waitA; // 等比較久的優先
+
         return Math.random() - 0.5;
     });
 
