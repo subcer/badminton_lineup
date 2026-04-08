@@ -77,7 +77,7 @@ const $queueContainer = $('#queueContainer');
 const $selectionBox = $('#selectionBox');
 
 // --- Global Lock System ---
-const myClientId = (function() {
+const myClientId = (function () {
     let id = localStorage.getItem('chat_client_id');
     if (!id) {
         id = 'c_' + Math.random().toString(36).substr(2, 9);
@@ -578,27 +578,59 @@ function renderPlayerPool() {
 }
 
 function updateChatIdentitySelect() {
-    const $select = $('#chatIdentitySelect');
-    const currentVal = $select.val() || localStorage.getItem('chat_pid') || 'anonymous';
+    const currentPid = localStorage.getItem('chat_pid') || 'anonymous';
+    const $trigger = $('#chatIdentityTrigger');
+    const $popup = $('#identityPopup');
     
-    // 保留匿名選項
-    let html = `<option value="anonymous" data-avatar="👻">👻 匿名貓 (預設)</option>`;
-    
-    // 列出所有已報到球員
-    Object.keys(players).forEach(pid => {
-        const p = players[pid];
-        if (p && p.name) {
-            // 優化選項文字：只顯示 [圖標] 姓名
-            const emoji = p.gender === 'male' ? '♂️' : (p.gender === 'female' ? '♀️' : '🐱');
-            html += `<option value="${pid}">${emoji} ${p.name}</option>`;
-        }
-    });
-    
-    $select.html(html);
-    
-    // 恢復上次選擇的身分
-    if ($select.find(`option[value="${currentVal}"]`).length > 0) {
-        $select.val(currentVal);
+    if (!$trigger.length || !$popup.length) return;
+
+    // 1. 更新觸發器 UI
+    let triggerName = "匿名貓";
+    let triggerAvatar = "👻";
+
+    if (currentPid !== 'anonymous' && players[currentPid]) {
+        const p = players[currentPid];
+        triggerName = p.name;
+        triggerAvatar = p.avatarUrl 
+            ? `<div class="trigger-avatar" style="background-image: url('${p.avatarUrl}')"></div>`
+            : `<div class="trigger-avatar">🐱</div>`;
+    } else {
+        triggerAvatar = `<div class="trigger-avatar">👻</div>`;
+    }
+
+    $('#triggerAvatar').html(triggerAvatar);
+    $('#triggerName').text(triggerName);
+
+    // 2. 生成彈窗清單
+    // 如果彈窗目前是空的，或者它目前處於關閉狀態且需要定期更新，我們就重新渲染
+    const isPopupEmpty = $popup.is(':empty');
+    if (isPopupEmpty || !$trigger.hasClass('open')) {
+        let html = `
+            <div class="id-card ${currentPid === 'anonymous' ? 'active' : ''}" data-pid="anonymous">
+                <div class="id-card-avatar">👻</div>
+                <div class="id-card-name">匿名貓 (預設)</div>
+            </div>
+        `;
+
+        Object.keys(players).forEach(pid => {
+            const p = players[pid];
+            if (p && p.name) {
+                const isActive = (pid === currentPid);
+                const genderIcon = p.gender === 'male' ? '♂️' : (p.gender === 'female' ? '♀️' : '🐱');
+                const avatar = p.avatarUrl 
+                    ? `<div class="id-card-avatar" style="background-image: url('${p.avatarUrl}')"></div>`
+                    : `<div class="id-card-avatar">🐱</div>`;
+                
+                html += `
+                    <div class="id-card ${isActive ? 'active' : ''}" data-pid="${pid}">
+                        ${avatar}
+                        <div class="id-card-name">${p.name}</div>
+                        <div class="id-card-gender">${genderIcon}</div>
+                    </div>
+                `;
+            }
+        });
+        $popup.html(html);
     }
 }
 
@@ -724,7 +756,7 @@ function updateTimers() {
         if (p && p.lastPlayTime && p.status === 'idle') {
             const waitMins = Math.floor((now - p.lastPlayTime) / 60000);
 
-            if (waitMins >= 2) {
+            if (waitMins >= 30) {
                 if (!$(this).hasClass('freezing-bench')) {
                     $(this).removeClass('cold-bench').addClass('freezing-bench');
                     $(this).find('.bench-badge').remove();
@@ -732,7 +764,7 @@ function updateTimers() {
                 } else {
                     $(this).find('.bench-badge').attr('title', `已重度結冰等待 ${waitMins} 分鐘`);
                 }
-            } else if (waitMins >= 1) {
+            } else if (waitMins >= 15) {
                 if (!$(this).hasClass('cold-bench')) {
                     $(this).removeClass('freezing-bench').addClass('cold-bench');
                     $(this).find('.bench-badge').remove();
@@ -2860,10 +2892,10 @@ let isChatOpen = false;
 
 function initChatSystem() {
     // 1. 點擊標題列或摺疊按鈕切換展開/收合
-    $('#chatHeader').click(function(e) {
+    $('#chatHeader').click(function (e) {
         const $chat = $('#chatIntegrated');
         const isCurrentlyExpanded = $chat.hasClass('expanded');
-        
+
         if (isCurrentlyExpanded) {
             $chat.removeClass('expanded').addClass('collapsed');
             isChatOpen = false;
@@ -2880,15 +2912,15 @@ function initChatSystem() {
     db.ref('lineup/chat').limitToLast(50).on('child_added', (snap) => {
         const msg = snap.val();
         renderChatMessage(msg);
-        
+
         // 更新 Ticker 預覽
         updateChatTicker(msg);
-        
+
         if (!isChatOpen) {
             chatUnreadCount++;
             $('#chatUnreadCount').text(chatUnreadCount).removeClass('hidden');
         }
-        
+
         scrollToBottom();
     });
 
@@ -2898,11 +2930,57 @@ function initChatSystem() {
         if (e.which === 13) sendChatMessage();
     });
 
-    // 4. 當身分改變時，存入 localStorage 並重新渲染歷史訊息 (為了正確顯示左右側)
-    $('#chatIdentitySelect').change(function() {
-        const pid = $(this).val();
+    // 4. 自訂身分選擇器互動
+    $('#chatIdentityTrigger').on('click', function(e) {
+        e.stopPropagation();
+        
+        // 點擊時先強制更新一次內容，確保清單是最新的
+        updateChatIdentitySelect();
+        
+        const $chat = $('#chatIntegrated');
+        // 如果聊天室還沒展開，先展開它
+        if ($chat.hasClass('collapsed')) {
+            $chat.removeClass('collapsed').addClass('expanded');
+            isChatOpen = true;
+            scrollToBottom();
+        }
+        $(this).toggleClass('open');
+        $('#identityPopup').toggleClass('hidden');
+    });
+
+    // 點擊外部關閉彈窗
+    $(document).click(function () {
+        $('#chatIdentityTrigger').removeClass('open');
+        const $popup = $('#identityPopup');
+        if (!$popup.hasClass('hidden')) {
+            $popup.addClass('hidden');
+        }
+    });
+
+    // 防止彈窗內部的點擊觸發「點擊外部關閉」
+    // 但允許 .id-card 的點擊事件繼續冒泡，以便被處理
+    $('#identityPopup').click(function (e) {
+        if (!$(e.target).closest('.id-card').length) {
+            e.stopPropagation();
+        }
+    });
+
+    // 點擊身分卡片
+    $('#identityPopup').on('click', '.id-card', function (e) {
+        e.stopPropagation(); // 處理完換人後，停止冒泡
+        
+        const pid = $(this).data('pid');
         localStorage.setItem('chat_pid', pid);
-        // 清空並重跑渲染
+        
+        // 視覺更新
+        $('.id-card').removeClass('active');
+        $(this).addClass('active');
+        $('#chatIdentityTrigger').removeClass('open');
+        $('#identityPopup').addClass('hidden');
+        
+        updateChatIdentitySelect();
+
+        // 重新渲染歷史訊息 (為了正確顯示左右側)
         $('#chatMessageList').empty();
         db.ref('lineup/chat').limitToLast(50).once('value', snap => {
             snap.forEach(child => {
@@ -2912,15 +2990,16 @@ function initChatSystem() {
         });
     });
 
-    // 5. 定期更新化身選擇器
+    // 5. 定期更新化身選擇器 UI
     setInterval(updateChatIdentitySelect, 10000);
+    updateChatIdentitySelect(); // 立即初始化一次
 }
 
 function sendChatMessage() {
     const text = $('#chatInput').val().trim();
     if (!text) return;
 
-    const pid = $('#chatIdentitySelect').val();
+    const pid = localStorage.getItem('chat_pid') || 'anonymous';
     const timestamp = firebase.database.ServerValue.TIMESTAMP;
 
     const newMessage = {
@@ -2944,14 +3023,14 @@ function renderChatMessage(msg) {
     // 2. 如果 PID 跟目前選的一樣，也視為本人
     const savedPid = localStorage.getItem('chat_pid') || 'anonymous';
     const isMe = (msg.clientId === myClientId) || (msg.pid === savedPid && msg.pid !== 'anonymous');
-    
+
     let name = "匿名貓";
     let avatarHtml = "👻";
 
     if (msg.pid !== 'anonymous' && players[msg.pid]) {
         const p = players[msg.pid];
         name = p.name;
-        avatarHtml = p.avatarUrl 
+        avatarHtml = p.avatarUrl
             ? `<div class="chat-msg-avatar" style="background-image: url('${p.avatarUrl}')"></div>`
             : `<div class="chat-msg-avatar">🐱</div>`;
     } else {
@@ -2987,7 +3066,7 @@ function updateChatTicker(msg) {
     if (!msg) return;
     const name = (msg.pid !== 'anonymous' && players[msg.pid]) ? players[msg.pid].name : "匿名貓";
     const $ticker = $('#tickerContent');
-    
+
     // 透過切換 animate class 觸發 CSS 動畫
     $ticker.removeClass('animate');
     void $ticker[0].offsetWidth; // 強制瀏覽器重繪 (Reflow)
@@ -2995,6 +3074,6 @@ function updateChatTicker(msg) {
 }
 
 // 在頁面載入完成後啟動聊天室
-$(function() {
+$(function () {
     initChatSystem();
 });

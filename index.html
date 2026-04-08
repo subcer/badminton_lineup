@@ -183,9 +183,14 @@
             <div class="chat-empty-state">目前還沒有人在貓砂盆...</div>
           </div>
           <div class="chat-input-area">
-            <select id="chatIdentitySelect" class="chat-identity-select">
-              <option value="anonymous" data-avatar="👻">👻 匿名貓</option>
-            </select>
+            <div id="chatIdentityTrigger" class="chat-identity-trigger">
+              <div id="triggerAvatar" class="trigger-avatar">👻</div>
+              <span id="triggerName" class="trigger-name">匿名貓</span>
+              <i class="fas fa-chevron-up"></i>
+            </div>
+            <div id="identityPopup" class="identity-popup hidden">
+              <!-- 球員清單將由 JS 動態生成 -->
+            </div>
             <div class="chat-input-wrapper">
               <input type="text" id="chatInput" placeholder="輸入你想說的話..." autocomplete="off" maxlength="100">
               <button id="chatSendBtn" class="chat-send-btn"><i class="fas fa-paper-plane"></i></button>

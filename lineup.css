@@ -1172,7 +1172,8 @@ body::after {
     transition: width 0.3s ease;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* 防止內容溢出 */
+    overflow: hidden;
+    /* 防止內容溢出 */
     position: relative;
 }
 
@@ -1189,6 +1190,7 @@ body::after {
 .players-panel.collapsed #refreshLayoutBtn,
 .players-panel.collapsed #addPlayerBtn,
 .players-panel.collapsed h2,
+.players-panel.collapsed #chatIntegrated,
 .players-panel.collapsed #totalPlayerCount {
     display: none !important;
 }
@@ -1205,15 +1207,18 @@ body::after {
 }
 
 #playerPool {
-    flex: 1; /* 重要：讓名單佔據剩餘空間 */
+    flex: 1;
+    /* 重要：讓名單佔據剩餘空間 */
     overflow-y: auto;
     position: relative;
-    padding-bottom: 20px; /* 底部緩衝 */
+    padding-bottom: 20px;
+    /* 底部緩衝 */
     width: 100%;
     height: 100%;
     background: transparent;
     border: none;
-    overflow: auto; /* Allow scrolling if players are out of bounds */
+    overflow: auto;
+    /* Allow scrolling if players are out of bounds */
 }
 
 .filter-bar {
@@ -1699,15 +1704,15 @@ input:checked+.slider:before {
 /* FAB Button */
 .fab-btn {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--brand-gradient);
-    color: #fff;
-    padding: 18px 40px;
+    bottom: 80px; /* Above the chat header */
+    right: 32px;
+    background: linear-gradient(135deg, rgba(140, 50, 65, 1), rgba(80, 20, 30, 1)); 
+    color: #ffffff;
+    padding: 16px 36px;
     border-radius: 50px;
     font-size: 1.1rem;
     font-weight: 800;
-    box-shadow: 0 10px 30px rgba(133, 59, 81, 0.3);
+    box-shadow: 0 10px 25px rgba(80, 20, 30, 0.3);
     cursor: pointer;
     z-index: 2000;
     display: flex;
@@ -2037,20 +2042,20 @@ input:checked+.slider:before {
     }
 
     .fab-btn {
-        bottom: 25px;
-        right: 25px;
-        padding: 14px 28px;
-        font-size: 1rem;
-        background: var(--brand-gradient);
+        bottom: 100px; /* 提高位置，避開底部的聊天室與輸入區域 */
+        right: 20px;
+        padding: 12px 24px;
+        font-size: 0.95rem;
+        background: linear-gradient(135deg, #853b51, #5a1e2d); /* 統一使用酒紅漸層 */
         color: white;
         border-radius: 50px;
-        box-shadow: 0 8px 32px rgba(133, 59, 81, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(80, 20, 30, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         display: flex;
         align-items: center;
         gap: 10px;
         font-weight: 800;
-        z-index: 100;
+        z-index: 2500; /* 確保在聊天室之上 */
         animation: fabPulse 2s infinite;
     }
 
@@ -3633,16 +3638,22 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     background: var(--bg-main);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+    border-radius: 24px 24px 0 0;
     transition: height 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     z-index: 100;
-    overflow: hidden;
+    overflow: hidden; /* 恢復圓角裁剪 */
     flex-shrink: 0;
+    margin: 0 12px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
 }
 
 body.light-mode .chat-integrated {
-    background: rgba(0, 0, 0, 0.03);
-    border-top: 1px solid var(--border-light);
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-bottom: none;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
 }
 
 /* 收合狀態 */
@@ -3652,7 +3663,7 @@ body.light-mode .chat-integrated {
 
 /* 展開狀態 */
 .chat-integrated.expanded {
-    height: 480px; 
+    height: 400px;
     max-height: 60vh;
 }
 
@@ -3664,7 +3675,7 @@ body.light-mode .chat-integrated {
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    background: linear-gradient(to right, rgba(140, 50, 65, 0.85), rgba(80, 20, 30, 0.95));
+    background: linear-gradient(to right, rgba(140, 50, 65, 0.9), rgba(110, 30, 45, 1));
     color: #fff;
     flex-shrink: 0;
 }
@@ -3719,7 +3730,8 @@ body.light-mode .chat-integrated {
 }
 
 .chat-integrated.expanded .chat-ticker {
-    display: none; /* 展開時隱藏預覽 */
+    display: none;
+    /* 展開時隱藏預覽 */
 }
 
 .ticker-content {
@@ -3737,8 +3749,15 @@ body.light-mode .chat-integrated {
 }
 
 @keyframes ticker-slide {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .chat-header-actions {
@@ -3791,10 +3810,19 @@ body.light-mode .chat-integrated {
     overflow: hidden;
     opacity: 0;
     transition: opacity 0.3s;
+    background: #ffffff; /* 亮色模式預設 */
+}
+
+/* 當 body 有 .light-mode 類別時，實際上是顯示暗色樣式 */
+body.light-mode .chat-body {
+    background: #1e1e22;
 }
 
 .chat-integrated.expanded .chat-body {
     opacity: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .chat-message-list {
@@ -3808,11 +3836,18 @@ body.light-mode .chat-integrated {
 
 .chat-input-area {
     padding: 12px 15px;
-    background: rgba(0, 0, 0, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #ffffff; /* 亮色模式預設 */
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
     gap: 8px;
+    position: relative; /* 作為彈窗的基準點 */
+}
+
+/* 當 body 有 .light-mode 時切換為深色輸入區 */
+body.light-mode .chat-input-area {
+    background: #25252a;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 body.light-mode .chat-input-area {
@@ -3820,17 +3855,7 @@ body.light-mode .chat-input-area {
     border-top: 1px solid var(--border-light);
 }
 
-.chat-identity-select {
-    width: 100%;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 0.8rem;
-    font-family: inherit;
-    appearance: none;
-}
+/* 身分選取器已重構為自訂彈窗 */
 
 body.light-mode .chat-identity-select {
     background: #fff;
@@ -3844,15 +3869,22 @@ body.light-mode .chat-identity-select {
 
 .chat-input-wrapper input {
     flex: 1;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff; /* 亮色模式預設 */
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 20px;
     padding: 8px 15px;
     font-size: 0.9rem;
     outline: none;
     transition: border-color 0.2s;
     min-width: 0;
+}
+
+/* 當 body 有 .light-mode 時切換為深色輸入框 */
+body.light-mode .chat-input-wrapper input {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 body.light-mode .chat-input-wrapper input {
@@ -3882,4 +3914,327 @@ body.light-mode .chat-input-wrapper input {
 .chat-send-btn:hover {
     transform: scale(1.05);
     background: #e5b35f;
-}
+}
+
+/* --- Chat Message Bubble Styles (Step 1-3) --- */
+.chat-msg {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    max-width: 85%;
+    align-self: flex-start;
+    animation: bubblePop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes bubblePop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.chat-msg.me {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-msg-avatar-wrapper {
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.chat-msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 2px solid #fff;
+}
+
+body.light-mode .chat-msg-avatar {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.chat-msg-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.chat-msg.me .chat-msg-content {
+    align-items: flex-end;
+}
+
+.chat-msg-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+}
+
+.chat-msg.me .chat-msg-header {
+    flex-direction: row-reverse;
+}
+
+.chat-msg-name {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #bbb; /* 暗色模式姓名顏色 */
+}
+
+body.light-mode .chat-msg-name {
+    color: var(--text-muted);
+}
+
+.chat-msg-time {
+    font-size: 0.65rem;
+    color: #ccc;
+    opacity: 0.8;
+}
+
+/* 氣泡預設樣式 (亮色) */
+.chat-msg-bubble {
+    background: #f0f0f0;
+    color: #333;
+    padding: 10px 14px;
+    border-radius: 18px 18px 18px 4px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+    word-break: break-all;
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+/* 當 body 有 .light-mode 時切換為暗色氣泡 */
+body.light-mode .chat-msg-bubble {
+    background: #2c2c34;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.chat-msg.me .chat-msg-bubble {
+    background: var(--brand-gradient);
+    color: #ffffff;
+    border-radius: 18px 18px 4px 18px;
+    box-shadow: 0 4px 15px rgba(133, 59, 81, 0.15);
+    border: none;
+}
+
+body.light-mode .chat-msg-bubble {
+    background: rgba(255, 255, 255, 0.08);
+    color: #eee;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+body.light-mode .chat-msg.me .chat-msg-bubble {
+    background: var(--brand-gradient);
+    color: #fff;
+}
+
+.chat-empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.6;
+}
+
+/* --- Scrollbar & List Optimization (Step 5) --- */
+.chat-message-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(133, 59, 81, 0.2) transparent;
+}
+
+.chat-message-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.chat-message-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb {
+    background: rgba(133, 59, 81, 0.1);
+    border-radius: 10px;
+}
+
+.chat-message-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(133, 59, 81, 0.3);
+}
+
+body.light-mode .chat-message-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Custom Identity Selector (Step 2-3) --- */
+/* 切換器預設樣式 (亮色) */
+.chat-identity-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* 當 body 有 .light-mode 時切換為暗色膠囊 */
+body.light-mode .chat-identity-trigger {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.light-mode .chat-identity-trigger {
+    background: #f8f9fa;
+    border-color: var(--border-light);
+}
+
+.chat-identity-trigger:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--gold-start);
+    transform: translateY(-1px);
+}
+
+.trigger-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+/* 名字文字預設樣式 (亮色) */
+.trigger-name {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 當 body 有 .light-mode 時切換為淺色文字 */
+body.light-mode .trigger-name {
+    color: #e0e0e0;
+}
+
+.chat-identity-trigger i {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform 0.3s;
+}
+
+.chat-identity-trigger.open i {
+    transform: rotate(180deg);
+}
+
+.identity-popup {
+    position: absolute;
+    bottom: 70px; /* 提高位置，使其浮在輸入框上方 */
+    left: 10px;
+    right: 10px;
+    background: rgba(45, 20, 30, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 3000; /* 提高層級，確保在最前方 */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 8px; /* 增加上下內距，避免第一項被遮住 */
+    animation: popupSlide 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes popupSlide {
+    from { transform: translateY(20px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.identity-popup.hidden {
+    display: none !important;
+}
+
+body.light-mode .identity-popup {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.id-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+}
+
+.id-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(4px);
+}
+
+body.light-mode .id-card:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.id-card.active {
+    background: rgba(133, 59, 81, 0.15);
+    border: 1px solid rgba(133, 59, 81, 0.3);
+}
+
+.id-card-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.id-card-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff; /* 改為純白色以確保在深色背景下清晰 */
+}
+
+.id-card-gender {
+    font-size: 0.8rem;
+    color: var(--gold-start); /* 改為品牌金，更有質感 */
+    margin-left: auto;
+}
+
