@@ -501,7 +501,7 @@ function renderPlayerPool() {
             // Desktop Chip: ~80-100px -> Spacing 95x105 (Very tight for 5 columns)
             const isDesktop = window.innerWidth > 768;
             const itemWidth = isDesktop ? 95 : 80;
-            const itemHeight = isDesktop ? 105 : 90;
+            const itemHeight = isDesktop ? 115 : 95; // 調高到 125，避免雪花標籤遮到上一排球員的名字點
 
             const availableCols = Math.floor(Math.max(containerWidth, isDesktop ? 320 : 300) / itemWidth);
             const cols = Math.max(isDesktop ? 2 : 3, availableCols);
@@ -529,7 +529,7 @@ function renderPlayerPool() {
                     const c = slotIdx % cols;
                     const r = Math.floor(slotIdx / cols);
                     const testX = 10 + (c * itemWidth);
-                    const testY = 10 + (r * itemHeight);
+                    const testY = 20 + (r * itemHeight); // 從 35 往上微調回 30，讓皇冠更貼近頂部一點
 
                     let candidateCollides = false;
                     for (let pos of occupiedPositions) {
@@ -769,9 +769,6 @@ function renderCourts() {
         $legend.find('i').css('color', '#ccc').removeClass('pulse-ripple');
         $legend.find('span').text('目前暫無比賽');
     }
-
-    // Add "New Court" button at the end if needed, or just let header button do it
-    updateTimers();
 }
 
 function updateTimers() {
@@ -794,29 +791,37 @@ function updateTimers() {
     $('.player-chip').each(function () {
         const pid = $(this).data('id');
         const p = players[pid];
+
+        // 核心判斷：只有閒置球員且等待時間 >= 15 分鐘才處理顯示
         if (p && p.lastPlayTime && p.status === 'idle') {
             const waitMins = Math.floor((now - p.lastPlayTime) / 60000);
+            const minsHtml = `<span class="bench-mins">${waitMins}m</span>`;
 
             if (waitMins >= 30) {
                 if (!$(this).hasClass('freezing-bench')) {
                     $(this).removeClass('cold-bench').addClass('freezing-bench');
                     $(this).find('.bench-badge').remove();
-                    $(this).find('.player-avatar').append(`<div class="bench-badge freezing" title="已重度結冰等待 ${waitMins} 分鐘"><i class="fas fa-snowflake" style="color: #4169E1; font-size: 14px;"></i></div>`);
+                    $(this).find('.player-avatar').append(`<div class="bench-badge freezing" title="已重度結冰等待 ${waitMins} 分鐘"><i class="fas fa-snowflake" style="color: #4169E1; font-size: 14px;"></i>${minsHtml}</div>`);
                 } else {
-                    $(this).find('.bench-badge').attr('title', `已重度結冰等待 ${waitMins} 分鐘`);
+                    $(this).find('.bench-badge').attr('title', `已重度結冰等待 ${waitMins} 分鐘`).find('.bench-mins').text(`${waitMins}m`);
                 }
             } else if (waitMins >= 15) {
                 if (!$(this).hasClass('cold-bench')) {
                     $(this).removeClass('freezing-bench').addClass('cold-bench');
                     $(this).find('.bench-badge').remove();
-                    $(this).find('.player-avatar').append(`<div class="bench-badge cold" title="已結露等待 ${waitMins} 分鐘"><i class="fas fa-snowflake" style="color: #87ceeb; font-size: 12px;"></i></div>`);
+                    $(this).find('.player-avatar').append(`<div class="bench-badge cold" title="已結露等待 ${waitMins} 分鐘"><i class="fas fa-snowflake" style="color: #87ceeb; font-size: 12px;"></i>${minsHtml}</div>`);
                 } else {
-                    $(this).find('.bench-badge').attr('title', `已結露等待 ${waitMins} 分鐘`);
+                    $(this).find('.bench-badge').attr('title', `已結露等待 ${waitMins} 分鐘`).find('.bench-mins').text(`${waitMins}m`);
                 }
             } else {
+                // 等待時間不足，清空
                 $(this).removeClass('cold-bench freezing-bench');
                 $(this).find('.bench-badge').remove();
             }
+        } else {
+            // 球員正在比賽中、或根本不具備閒置條件，必須強制清除標籤
+            $(this).removeClass('cold-bench freezing-bench');
+            $(this).find('.bench-badge').remove();
         }
     });
 }
@@ -1828,7 +1833,7 @@ function resetSession() {
             playerUpdates[pid + '/x'] = null;
             playerUpdates[pid + '/y'] = null;
             playerUpdates[pid + '/partners'] = null; // [新加入] 清空搭檔紀錄，實現徹底重置
-            playerUpdates[pid + '/lastPlayTime'] = null; // [新加入] 清空等待時間，消除雪花狀態
+            playerUpdates[pid + '/lastPlayTime'] = Date.now(); // [優化] 重製後立即從 0 分鐘開始重新計時
         });
 
         if (Object.keys(playerUpdates).length > 0) {
