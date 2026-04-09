@@ -379,34 +379,41 @@ function initListeners() {
     db.ref('lineup/players').on('value', snapshot => {
         const rawVal = snapshot.val() || {};
 
-        // 1. Check if there are any 'null' values in the dataset (Firebase array behavior)
-        let hasNulls = false;
+        // 1. 強力修復：偵測是否被 Firebase 誤判為陣列或包含 null 值
+        let needsRepair = false;
         let cleanPlayers = {};
-        let nullKeys = [];
 
-        Object.keys(rawVal).forEach(key => {
-            if (rawVal[key] === null || rawVal[key] === undefined) {
-                hasNulls = true;
-                nullKeys.push(key);
-            } else {
-                cleanPlayers[key] = rawVal[key];
-            }
-        });
-
-        // 2. Perform silent cleanup if nulls were found
-        if (hasNulls) {
-            nullKeys.forEach(key => {
-                db.ref(`lineup/players/${key}`).remove();
-                console.warn(`[System] Detected and cleaned corrupted null data at players/${key}`);
+        // 如果是陣列，代表 Firebase 把 0, 1, 2... 當成 Index 了，且中間可能有 null
+        if (Array.isArray(rawVal)) {
+            needsRepair = true;
+            rawVal.forEach((val, idx) => {
+                if (val && typeof val === 'object') {
+                    cleanPlayers[idx] = val;
+                }
             });
-
-            // Show a non-intrusive alert about the cleanup
-            const msg = `偵測到資料庫有 ${nullKeys.length} 筆損毀數據 (null)，系統已自動清理並進行修復，不影響正常運作。✨`;
-            if (window.showAlert) window.showAlert("數據庫自動修復", msg);
-            else alert(msg);
+        } else {
+            // 如果是物件，檢查內容是否有損毀 (null) 或缺失關鍵欄位 (name)
+            Object.keys(rawVal).forEach(key => {
+                const p = rawVal[key];
+                if (p === null || p === undefined || !p.name) {
+                    needsRepair = true;
+                } else {
+                    cleanPlayers[key] = p;
+                }
+            });
         }
 
-        // 3. Assign clean data to global players object
+        // 2. 靜默修復：若發現壞資料，強制覆寫資料庫為乾淨的物件結構
+        if (needsRepair) {
+            console.warn("[System] 偵測到 Firebase 數據結構異常，正在自動修復...");
+            // 使用 set 而非 update，確保徹底蓋掉原本的「陣列結構」
+            db.ref('lineup/players').set(cleanPlayers).then(() => {
+                const msg = `偵測到資料庫結構不穩定，系統已自動修復，並優化了讀取效能。✨`;
+                if (window.showAlert) window.showAlert("數據庫自動維護", msg);
+            });
+        }
+
+        // 3. 更新全域變數
         players = cleanPlayers;
         const count = Object.keys(players).length;
         $('#totalPlayerCount').text(count);
@@ -421,7 +428,41 @@ function initListeners() {
 
     // 3. Queue
     db.ref('lineup/queue').on('value', snapshot => {
-        queue = snapshot.val() || [];
+        const rawQueue = snapshot.val() || {};
+        const cleanQueue = [];
+        let hasInvalidGroups = false;
+
+        // 遍歷所有組別進行健康檢查
+        Object.keys(rawQueue).forEach(key => {
+            const group = rawQueue[key];
+            if (!group || !group.members) {
+                db.ref(`lineup/queue/${key}`).remove();
+                hasInvalidGroups = true;
+                return;
+            }
+
+            // 檢查組員是否都正確存在於目前的 players 名單中且具備姓名
+            const allMembersValid = group.members.every(pid => players[pid] && players[pid].name);
+
+            if (!allMembersValid) {
+                console.warn(`[System] 偵測到列隊組別 ${key} 包含無效球員，正在自動將其餘成員狀態重設並解散...`);
+
+                // 補救措施：確保組內其餘正常的球員恢復為 'idle'
+                group.members.forEach(mId => {
+                    if (players[mId]) {
+                        db.ref(`lineup/players/${mId}/status`).set('idle');
+                    }
+                });
+
+                db.ref(`lineup/queue/${key}`).remove();
+                hasInvalidGroups = true;
+            } else {
+                cleanQueue.push(group);
+            }
+        });
+
+        // 只有在資料完全正確的情況下才更新前端狀態
+        queue = cleanQueue;
         renderQueue();
     });
 }
@@ -581,7 +622,7 @@ function updateChatIdentitySelect() {
     const currentPid = localStorage.getItem('chat_pid') || 'anonymous';
     const $trigger = $('#chatIdentityTrigger');
     const $popup = $('#identityPopup');
-    
+
     if (!$trigger.length || !$popup.length) return;
 
     // 1. 更新觸發器 UI
@@ -591,7 +632,7 @@ function updateChatIdentitySelect() {
     if (currentPid !== 'anonymous' && players[currentPid]) {
         const p = players[currentPid];
         triggerName = p.name;
-        triggerAvatar = p.avatarUrl 
+        triggerAvatar = p.avatarUrl
             ? `<div class="trigger-avatar" style="background-image: url('${p.avatarUrl}')"></div>`
             : `<div class="trigger-avatar">🐱</div>`;
     } else {
@@ -617,10 +658,10 @@ function updateChatIdentitySelect() {
             if (p && p.name) {
                 const isActive = (pid === currentPid);
                 const genderIcon = p.gender === 'male' ? '♂️' : (p.gender === 'female' ? '♀️' : '🐱');
-                const avatar = p.avatarUrl 
+                const avatar = p.avatarUrl
                     ? `<div class="id-card-avatar" style="background-image: url('${p.avatarUrl}')"></div>`
                     : `<div class="id-card-avatar">🐱</div>`;
-                
+
                 html += `
                     <div class="id-card ${isActive ? 'active' : ''}" data-pid="${pid}">
                         ${avatar}
@@ -848,13 +889,17 @@ function renderQueue() {
 function renderPlayerChipHtml(pid) {
     const p = players[pid];
     if (!p) return '';
+
+    // 防禦性渲染：確保姓名不會是 undefined
+    const name = p.name || "未知球員";
     const avatarHtml = p.avatarUrl
         ? `<img src="${p.avatarUrl}" class="avatar-img">`
-        : `<i class="fas fa-user"></i>`;
+        : `<i class="fas fa-paw" style="opacity: 0.5;"></i>`; // 使用爪印作為預設頭像更契合主題
+
     return `
-        <div class="player-chip active-chip ${p.gender}" style="position:relative;">
+        <div class="player-chip active-chip ${p.gender || 'unknown'}" style="position:relative;">
             <div class="player-avatar">${avatarHtml}</div>
-            <div class="player-name ${getNameLenClass(p.name)}">${escapeHtml(p.name)}</div>
+            <div class="player-name ${getNameLenClass(name)}">${escapeHtml(name)}</div>
         </div>
     `;
 }
@@ -1768,7 +1813,12 @@ window.endGame = function (courtId) {
 // --- Reset Session (主力重整：清場、解散、場次歸零) ---
 function resetSession() {
     showConfirm('重整版面', '您確定要清空目前的所有場地、列隊，並將全體今日場次與勝率歸零嗎？(已報到人員會保留)', () => {
-        // 1. 重設所有球員資料庫中的狀態與今日數據
+        // 1. 暫停自動化邏輯，避免重整中途被自動補人介入
+        const $autoToggle = $('#autoModeToggle');
+        const wasAuto = $autoToggle.is(':checked');
+        if (wasAuto) $autoToggle.prop('checked', false).trigger('change');
+
+        // 2. 重設所有球員資料庫中的狀態與今日數據
         let playerUpdates = {};
         Object.keys(players).forEach(pid => {
             playerUpdates[pid + '/status'] = 'idle';
@@ -1777,16 +1827,17 @@ function resetSession() {
             playerUpdates[pid + '/losses'] = 0;
             playerUpdates[pid + '/x'] = null;
             playerUpdates[pid + '/y'] = null;
+            playerUpdates[pid + '/partners'] = null; // [新加入] 清空搭檔紀錄，實現徹底重置
         });
 
         if (Object.keys(playerUpdates).length > 0) {
             db.ref('lineup/players').update(playerUpdates);
         }
 
-        // 2. 清空等待列隊
+        // 3. 清空等待列隊
         db.ref('lineup/queue').remove();
 
-        // 3. 清空所有場地、重設比分與狀態
+        // 4. 清空所有場地、重設比分與狀態
         db.ref('lineup/courts').once('value', snap => {
             const allCourts = snap.val() || {};
             let courtUpdates = {};
@@ -1797,7 +1848,12 @@ function resetSession() {
                 courtUpdates[cid + '/status'] = 'active';
                 courtUpdates[cid + '/startTime'] = null;
             });
-            db.ref('lineup/courts').update(courtUpdates);
+            db.ref('lineup/courts').update(courtUpdates, (err) => {
+                if (!err && wasAuto) {
+                    // 重整完成後，若原本有開自動則恢復
+                    setTimeout(() => $autoToggle.prop('checked', true).trigger('change'), 500);
+                }
+            });
         });
 
         // 4. 清理前端本地狀態
@@ -2931,12 +2987,12 @@ function initChatSystem() {
     });
 
     // 4. 自訂身分選擇器互動
-    $('#chatIdentityTrigger').on('click', function(e) {
+    $('#chatIdentityTrigger').on('click', function (e) {
         e.stopPropagation();
-        
+
         // 點擊時先強制更新一次內容，確保清單是最新的
         updateChatIdentitySelect();
-        
+
         const $chat = $('#chatIntegrated');
         // 如果聊天室還沒展開，先展開它
         if ($chat.hasClass('collapsed')) {
@@ -2968,16 +3024,16 @@ function initChatSystem() {
     // 點擊身分卡片
     $('#identityPopup').on('click', '.id-card', function (e) {
         e.stopPropagation(); // 處理完換人後，停止冒泡
-        
+
         const pid = $(this).data('pid');
         localStorage.setItem('chat_pid', pid);
-        
+
         // 視覺更新
         $('.id-card').removeClass('active');
         $(this).addClass('active');
         $('#chatIdentityTrigger').removeClass('open');
         $('#identityPopup').addClass('hidden');
-        
+
         updateChatIdentitySelect();
 
         // 重新渲染歷史訊息 (為了正確顯示左右側)
