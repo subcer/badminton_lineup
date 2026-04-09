@@ -1828,6 +1828,7 @@ function resetSession() {
             playerUpdates[pid + '/x'] = null;
             playerUpdates[pid + '/y'] = null;
             playerUpdates[pid + '/partners'] = null; // [新加入] 清空搭檔紀錄，實現徹底重置
+            playerUpdates[pid + '/lastPlayTime'] = null; // [新加入] 清空等待時間，消除雪花狀態
         });
 
         if (Object.keys(playerUpdates).length > 0) {
