@@ -1951,8 +1951,8 @@ function trySmartPick() {
         const waitA = (pA.lastPlayTime) ? Math.floor((now - pA.lastPlayTime) / 60000) : 999;
         const waitB = (pB.lastPlayTime) ? Math.floor((now - pB.lastPlayTime) / 60000) : 999;
 
-        const tierA = waitA >= 2 ? 2 : (waitA >= 1 ? 1 : 0);
-        const tierB = waitB >= 2 ? 2 : (waitB >= 1 ? 1 : 0);
+        const tierA = waitA >= 30 ? 2 : (waitA >= 15 ? 1 : 0);
+        const tierB = waitB >= 30 ? 2 : (waitB >= 15 ? 1 : 0);
 
         if (tierA !== tierB) return tierB - tierA; // 結霜嚴重的優先
 
@@ -2044,8 +2044,8 @@ function trySmartPick() {
                 let overlap2 = (players[pair[1][0]].partners && players[pair[1][0]].partners[pair[1][1]]) || 0;
                 let totalOverlap = overlap1 + overlap2;
 
-                // 性別權重設為極大值 (10000)，確保它優於任何搭檔紀錄 (10)
-                let currentPairScore = totalOverlap * 10 + balancePenalty * 10000;
+                // 性別權重設為極大值 (10000)，確保它優於任何搭檔紀錄 (120)
+                let currentPairScore = totalOverlap * 120 + balancePenalty * 10000;
 
                 if (currentPairScore < minPairScore) {
                     minPairScore = currentPairScore;
