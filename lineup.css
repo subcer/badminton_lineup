@@ -2438,7 +2438,7 @@ input:checked+.slider:before {
 
 .drawer-header {
     padding: 20px;
-    background: var(--gold-end);
+    background: linear-gradient(to right, rgba(140, 50, 65, 0.9), rgba(110, 30, 45, 1));
     color: white;
     display: flex;
     justify-content: space-between;
