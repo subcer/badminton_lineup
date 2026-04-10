@@ -2983,6 +2983,11 @@ function initChatSystem() {
             chatUnreadCount++;
             $('#chatUnreadCount').text(chatUnreadCount).removeClass('hidden');
             $('#chatIntegrated').addClass('has-unread'); // 加入晃動提示類別
+            
+            // 手機版特有：彈出訊息雲朵
+            if (window.innerWidth <= 768) {
+                showChatSpeechBubble(msg);
+            }
         }
 
         scrollToBottom();
@@ -3005,12 +3010,39 @@ function initChatSystem() {
         // 如果聊天室還沒展開，先展開它
         if ($chat.hasClass('collapsed')) {
             $chat.removeClass('collapsed').addClass('expanded');
+            $chat.removeClass('has-unread'); // 清除晃動
+            $('.chat-speech-bubble').remove(); // 點開即移除對話雲朵
             isChatOpen = true;
             scrollToBottom();
         }
         $(this).toggleClass('open');
         $('#identityPopup').toggleClass('hidden');
     });
+
+    function showChatSpeechBubble(msg) {
+        // 先移除舊的雲朵
+        $('.chat-speech-bubble').remove();
+
+        // 正確解析發言人姓名
+        let name = "匿名貓";
+        if (msg.pid !== 'anonymous' && players && players[msg.pid]) {
+            name = players[msg.pid].name;
+        } else if (msg.senderName) {
+            name = msg.senderName;
+        }
+
+        const content = msg.text || "";
+        const preview = `${name}: ${content}`;
+
+        const $bubble = $(`<div class="chat-speech-bubble">${preview}</div>`);
+        $('body').append($bubble);
+
+        // 4秒後自動淡出並移除
+        setTimeout(() => {
+            $bubble.addClass('chat-bubble-fadeout');
+            setTimeout(() => $bubble.remove(), 500);
+        }, 4000);
+    }
 
     // 點擊外部關閉彈窗
     $(document).click(function () {
