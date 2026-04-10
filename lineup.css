@@ -4025,7 +4025,11 @@ body.light-mode .chat-integrated {
     font-size: 0.85rem;
     font-weight: 700;
     color: #333;
-    max-width: 200px;
+    max-width: 240px; /* 稍微放寬，讓文字更舒適 */
+    word-wrap: break-word; /* 舊版瀏覽器相容 */
+    overflow-wrap: break-word; /* 現代折行標準 */
+    word-break: break-word; /* 強制超長單字折行 */
+    line-height: 1.4;
     pointer-events: none;
     animation: bubble-slide-in 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
 }
