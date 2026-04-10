@@ -2983,11 +2983,9 @@ function initChatSystem() {
             chatUnreadCount++;
             $('#chatUnreadCount').text(chatUnreadCount).removeClass('hidden');
             $('#chatIntegrated').addClass('has-unread'); // 加入晃動提示類別
-            
-            // 手機版特有：彈出訊息雲朵
-            if (window.innerWidth <= 768) {
-                showChatSpeechBubble(msg);
-            }
+
+            // 彈出訊息雲朵 (手機版與電腦版收合時均顯示)
+            showChatSpeechBubble(msg);
         }
 
         scrollToBottom();

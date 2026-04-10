@@ -489,7 +489,10 @@ body::after {
     overflow: hidden;
     padding: 16px;
     gap: 16px;
+    height: calc(100vh - 100px);
+    /* 桌面版固定高度，防止跑版 */
 }
+
 
 /* --- Panels (Glassmorphism) --- */
 .panel {
@@ -1166,14 +1169,15 @@ body::after {
 
 /* --- Players --- */
 .players-panel {
-    /* Widen to fit 4-5 columns comfortably */
+    /* 穩定側邊欄寬與高，為貓頭推擠做準備 */
     width: 500px;
+    height: 100%;
+    /* 繼承自 main-container */
     flex-shrink: 0;
     transition: width 0.3s ease;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* 防止內容溢出 */
     position: relative;
 }
 
@@ -1208,17 +1212,30 @@ body::after {
 
 #playerPool {
     flex: 1;
-    /* 重要：讓名單佔據剩餘空間 */
+    /* 名單佔據所有剩餘空間，推擠邏輯的核心 */
     overflow-y: auto;
+    overflow-x: hidden; /* 強制禁止水平捲軸 */
     position: relative;
-    padding-bottom: 20px;
-    /* 底部緩衝 */
+    padding: 0 10px 20px 10px; /* 增加左右內距，防止捲軸蓋到內容 */
     width: 100%;
-    height: 100%;
     background: transparent;
     border: none;
-    overflow: auto;
-    /* Allow scrolling if players are out of bounds */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(133, 59, 81, 0.2) transparent;
+}
+
+/* 美化側邊欄捲軸 */
+#playerPool::-webkit-scrollbar {
+    width: 6px;
+}
+
+#playerPool::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#playerPool::-webkit-scrollbar-thumb {
+    background: rgba(133, 59, 81, 0.15);
+    border-radius: 10px;
 }
 
 .filter-bar {
@@ -1807,6 +1824,7 @@ input:checked+.slider:before {
     .panel {
         padding: 0px !important;
     }
+
 }
 
 @media (max-width: 1200px) {
@@ -3659,11 +3677,49 @@ input:checked+.slider:before {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-bottom: none;
     border-radius: 24px 24px 0 0;
-    transition: height 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    /* 關鍵動畫曲線 */
     z-index: 100;
-    /* 恢復圓角裁剪 */
     flex-shrink: 0;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    overflow: visible !important;
+    /* 確保紅點不被裁切 */
+}
+
+/* 電腦版收合狀態：變身氣泡 */
+@media (min-width: 769px) {
+    .chat-integrated.collapsed {
+        height: 60px !important;
+        width: 60px !important;
+        border-radius: 50% !important;
+        margin: 0 20px 20px auto !important;
+        /* 靠側邊欄右下角 */
+        box-shadow: 0 10px 25px rgba(133, 59, 81, 0.4) !important;
+        animation: bubble-pulse 2s infinite ease-in-out;
+    }
+
+    /* 收合時隱藏所有文字與輸入框，僅留貓頭 */
+    .chat-integrated.collapsed .chat-title-text,
+    .chat-integrated.collapsed .chat-ticker,
+    .chat-integrated.collapsed #toggleChatBtn,
+    .chat-integrated.collapsed .chat-body {
+        display: none !important;
+    }
+
+    .chat-integrated.collapsed .chat-header {
+        background: transparent !important;
+        padding: 0 !important;
+        height: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    /* 展開狀態的高度 */
+    .chat-integrated.expanded {
+        height: 400px !important;
+        width: 100% !important;
+    }
 }
 
 body.light-mode .chat-integrated {
@@ -3696,7 +3752,8 @@ body.light-mode .chat-integrated {
         margin: 0 !important;
         box-shadow: 0 10px 30px rgba(133, 59, 81, 0.4) !important;
         transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
-        overflow: visible !important; /* 重要：防止紅點被圓形裁切 */
+        overflow: visible !important;
+        /* 重要：防止紅點被圓形裁切 */
         z-index: 5000 !important;
     }
 
@@ -3707,13 +3764,15 @@ body.light-mode .chat-integrated {
         display: none !important;
     }
 
-    /* 手機版氣泡上的紅點定位 */
+    /* 氣泡模式下的紅點定位 (精確對準右耳朵) */
     .chat-integrated.collapsed .chat-header-actions {
         display: flex !important;
         position: absolute !important;
         top: -2px !important;
         right: -2px !important;
         z-index: 5010 !important;
+        padding: 0 !important;
+        background: transparent !important;
     }
 
     .chat-integrated.collapsed .chat-badge {
@@ -3853,8 +3912,13 @@ body.light-mode .chat-integrated {
     transform-origin: center;
     flex-shrink: 0;
     position: absolute;
-    /* 修正由於原組件位移導致的中間偏誤 */
     left: -10px;
+}
+
+/* 氣泡模式下的貓頭比例優化 (穩定比例) */
+.chat-integrated.collapsed .chat-cat-logo .geometric-cat {
+    transform: scale(0.4) !important;
+    left: -2px !important;
 }
 
 
@@ -3906,6 +3970,9 @@ body.light-mode .chat-integrated {
 }
 
 .chat-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
     background: #ff4d4f;
     color: #fff;
     font-size: 10px;
@@ -3922,22 +3989,38 @@ body.light-mode .chat-integrated {
 }
 
 @keyframes badge-heartbeat {
-    0% { transform: scale(1); }
-    15% { transform: scale(1.3); }
-    30% { transform: scale(1); }
-    45% { transform: scale(1.3); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    15% {
+        transform: scale(1.3);
+    }
+
+    30% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
-/* --- 手機版對話雲朵 (Speech Bubble) --- */
+/* --- 電腦版對話雲朵 (Speech Bubble) --- */
 .chat-speech-bubble {
     position: fixed;
-    bottom: 90px;
-    right: 25px;
+    bottom: 115px;
+    /* 提升高度，避免遮擋貓頭 */
+    right: 60px;
+    /* 向左偏移，對準左上方 */
     background: white;
     padding: 10px 15px;
     border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     z-index: 5000;
     font-size: 0.85rem;
     font-weight: 700;
@@ -3945,6 +4028,24 @@ body.light-mode .chat-integrated {
     max-width: 200px;
     pointer-events: none;
     animation: bubble-slide-in 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@media (max-width: 1200px) {
+    .chat-speech-bubble {
+        bottom: 100px;
+        /* 提升高度，避免遮擋貓頭 */
+        right: 45px;
+        /* 向左偏移，對準左上方 */
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-speech-bubble {
+        bottom: 90px;
+        /* 提升高度，避免遮擋貓頭 */
+        right: 35px;
+        /* 向左偏移，對準左上方 */
+    }
 }
 
 .chat-speech-bubble::after {
@@ -3962,6 +4063,7 @@ body.light-mode .chat-integrated {
         opacity: 0;
         transform: translateY(20px) scale(0.8);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
