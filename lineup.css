@@ -2043,7 +2043,7 @@ input:checked+.slider:before {
     }
 
     .fab-btn {
-        bottom: 100px;
+        bottom: 130px; 
         /* 提高位置，避開底部的聊天室與輸入區域 */
         right: 20px;
         padding: 12px 24px;
@@ -3684,6 +3684,93 @@ body.light-mode .chat-integrated {
     height: 400px;
     max-height: 60vh;
 }
+
+/* 手機版：進化為懸浮貓咪泡泡 (Floating Bubble) */
+@media (max-width: 768px) {
+    .chat-integrated {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 50% !important;
+        border: 2px solid var(--gold-start) !important;
+        margin: 0 !important;
+        box-shadow: 0 10px 30px rgba(133, 59, 81, 0.4) !important;
+        transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
+        background: var(--brand-gradient) !important;
+    }
+
+    .chat-integrated.collapsed .chat-title-text,
+    .chat-integrated.collapsed .chat-ticker,
+    .chat-integrated.collapsed .chat-header-actions,
+    .chat-integrated.collapsed .chat-body {
+        display: none !important;
+    }
+
+    .chat-integrated.collapsed .chat-header {
+        background: transparent !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        height: 100% !important;
+    }
+
+    .chat-integrated.collapsed .chat-cat-logo {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+    }
+
+    .chat-integrated.collapsed .chat-cat-logo .geometric-cat {
+        transform: scale(0.4) !important;
+        left: 0px !important;
+    }
+
+    /* 手機版展開狀態：從泡泡彈出對話窗 */
+    .chat-integrated.expanded {
+        width: calc(100% - 40px) !important;
+        max-width: 380px !important;
+        height: 70vh !important;
+        max-height: 80vh !important;
+        border-radius: 28px !important;
+        bottom: 20px !important;
+        transform: none !important;
+        background: var(--bg-main) !important;
+    }
+
+    .chat-integrated.expanded .chat-header {
+        border-radius: 28px 28px 0 0 !important;
+    }
+
+    .chat-integrated.expanded .chat-body {
+        display: flex !important;
+    }
+
+    /* 氣泡呼吸動畫 */
+    .chat-integrated.collapsed {
+        animation: bubble-pulse 2s infinite ease-in-out;
+    }
+
+    /* 新訊息晃動提示 */
+    .chat-integrated.collapsed.has-unread {
+        animation: bubble-shake 0.5s ease-in-out infinite;
+    }
+}
+
+@keyframes bubble-pulse {
+    0% { transform: scale(1); box-shadow: 0 5px 15px rgba(133, 59, 81, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 10px 25px rgba(133, 59, 81, 0.6); }
+    100% { transform: scale(1); box-shadow: 0 5px 15px rgba(133, 59, 81, 0.4); }
+}
+
+@keyframes bubble-shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
 
 /* 標題與 Ticker */
 .chat-integrated .chat-header {

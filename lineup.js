@@ -2963,6 +2963,7 @@ function initChatSystem() {
             isChatOpen = false;
         } else {
             $chat.removeClass('collapsed').addClass('expanded');
+            $chat.removeClass('has-unread'); // 點開即清除搖晃提示
             isChatOpen = true;
             chatUnreadCount = 0;
             $('#chatUnreadCount').text('0').addClass('hidden');
@@ -2981,6 +2982,7 @@ function initChatSystem() {
         if (!isChatOpen) {
             chatUnreadCount++;
             $('#chatUnreadCount').text(chatUnreadCount).removeClass('hidden');
+            $('#chatIntegrated').addClass('has-unread'); // 加入晃動提示類別
         }
 
         scrollToBottom();
