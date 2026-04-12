@@ -317,11 +317,12 @@ body {
     font-family: 'Nunito', 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif;
     background-color: var(--bg-dark);
     color: var(--text-main);
-    height: 100vh;
-    height: 100dvh; /* Fix Safari viewport height */
+    height: 100dvh;
+    /* Fix Safari viewport height */
     width: 100%;
     overflow: hidden;
-    overscroll-behavior-y: none; /* Prevent iOS bouncy scrolling */
+    overscroll-behavior-y: none;
+    /* Prevent iOS bouncy scrolling */
     display: flex;
     flex-direction: column;
 }
@@ -1217,9 +1218,11 @@ body::after {
     flex: 1;
     /* 名單佔據所有剩餘空間，推擠邏輯的核心 */
     overflow-y: auto;
-    overflow-x: hidden; /* 強制禁止水平捲軸 */
+    overflow-x: hidden;
+    /* 強制禁止水平捲軸 */
     position: relative;
-    padding: 0 10px 20px 10px; /* 增加左右內距，防止捲軸蓋到內容 */
+    padding: 0 10px 20px 10px;
+    /* 增加左右內距，防止捲軸蓋到內容 */
     width: 100%;
     background: transparent;
     border: none;
@@ -1253,7 +1256,8 @@ body::after {
     padding: 12px 16px;
     border-radius: 20px;
     color: var(--text-main);
-    font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
+    font-size: 16px;
+    /* explicitly 16px to prevent iOS auto-zoom */
 }
 
 .filter-bar input:focus {
@@ -1577,7 +1581,8 @@ body::after {
     .modal input,
     .modal select {
         padding: 10px 14px;
-        font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
+        font-size: 16px;
+        /* explicitly 16px to prevent iOS auto-zoom */
     }
 
     /* Compress Career Stats Card on Mobile */
@@ -1637,7 +1642,8 @@ body::after {
     color: var(--text-main);
     font-family: inherit;
     font-weight: 600;
-    font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
+    font-size: 16px;
+    /* explicitly 16px to prevent iOS auto-zoom */
 }
 
 .modal input:focus,
@@ -4030,10 +4036,14 @@ body.light-mode .chat-integrated {
     font-size: 0.85rem;
     font-weight: 700;
     color: #333;
-    max-width: 240px; /* 稍微放寬，讓文字更舒適 */
-    word-wrap: break-word; /* 舊版瀏覽器相容 */
-    overflow-wrap: break-word; /* 現代折行標準 */
-    word-break: break-word; /* 強制超長單字折行 */
+    max-width: 240px;
+    /* 稍微放寬，讓文字更舒適 */
+    word-wrap: break-word;
+    /* 舊版瀏覽器相容 */
+    overflow-wrap: break-word;
+    /* 現代折行標準 */
+    word-break: break-word;
+    /* 強制超長單字折行 */
     line-height: 1.4;
     pointer-events: none;
     animation: bubble-slide-in 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
@@ -4182,7 +4192,8 @@ body.light-mode .chat-identity-select {
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 20px;
     padding: 8px 15px;
-    font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
+    font-size: 16px;
+    /* explicitly 16px to prevent iOS auto-zoom */
     outline: none;
     transition: all 0.2s;
 }
@@ -4567,6 +4578,7 @@ body.light-mode .id-card.active {
     /* 改為品牌金，更有質感 */
     margin-left: auto;
 }
+
 /* --- Score Modal Styling (Horizontal/Premium) --- */
 .score-modal {
     max-width: 360px !important;
@@ -4623,6 +4635,7 @@ body.light-mode .id-card.active {
     -webkit-appearance: none;
     margin: 0;
 }
+
 .score-input-item input[type=number] {
     -moz-appearance: textfield;
 }
@@ -4632,6 +4645,7 @@ body.light-mode .id-card.active {
     color: var(--gold-start) !important;
     border: 2px solid rgba(133, 59, 81, 0.2) !important;
 }
+
 #manualScoreA:focus {
     border-color: var(--gold-start) !important;
 }
@@ -4640,6 +4654,7 @@ body.light-mode .id-card.active {
     color: var(--accent-green) !important;
     border: 2px solid rgba(51, 94, 49, 0.2) !important;
 }
+
 #manualScoreB:focus {
     border-color: var(--accent-green) !important;
 }
@@ -4648,6 +4663,7 @@ body.light-mode .id-card.active {
     font-size: 2.2rem;
     font-weight: 900;
     color: var(--gold-start);
-    padding-top: 25px; /* Offset label height */
+    padding-top: 25px;
+    /* Offset label height */
     opacity: 0.5;
 }

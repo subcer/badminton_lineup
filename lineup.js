@@ -745,7 +745,7 @@ function renderCourts() {
                     </button>
                     ${!c.startTime ?
                 `<button class="btn btn-silver btn-sm" onclick="startTimer('${cid}')" style="flex: 1;">開始</button>` :
-                `<button class="btn btn-silver btn-sm" onclick="resetTimer('${cid}')" style="flex: 1;">停止</button>`
+                `<button class="btn btn-silver btn-sm" onclick="undoMatch('${cid}')" style="flex: 1;"><i class='fas fa-undo'></i> 撤回</button>`
             }
                 </div>
             </div>
@@ -1838,6 +1838,52 @@ window.endGame = function (courtId) {
 
         // Auto Rotation Trigger
         setTimeout(tryAutoRotate, 500);
+    });
+};
+
+window.undoMatch = function (courtId) {
+    const c = courts[courtId];
+    if (!c || !c.players || c.players.length === 0) return;
+
+    showConfirm('撤回配對', '確定要將此隊伍撤回到等待列的最前面嗎？(原 Group 1 將往後移)', () => {
+        const pids = c.players;
+
+        // 1. 取得目前列隊並插在最前面 (Group 1)
+        db.ref('lineup/queue').once('value', snapshot => {
+            const currentQueue = snapshot.val() || [];
+            const newGroup = { 
+                members: pids, 
+                timestamp: Date.now() 
+            };
+            
+            // 優先插隊！
+            const updatedQueue = [newGroup, ...currentQueue];
+            
+            // 2. 準備批次更新
+            let updates = {};
+            
+            // 更新列隊
+            updates['lineup/queue'] = updatedQueue;
+            
+            // 更新人員狀態回「等待中」
+            pids.forEach(pid => {
+                if (pid) updates['lineup/players/' + pid + '/status'] = 'queued';
+            });
+            
+            // 清市場地
+            updates['lineup/courts/' + courtId + '/players'] = [];
+            updates['lineup/courts/' + courtId + '/startTime'] = null;
+            updates['lineup/courts/' + courtId + '/scoreA'] = 15;
+            updates['lineup/courts/' + courtId + '/scoreB'] = 15;
+            updates['lineup/courts/' + courtId + '/status'] = 'active';
+
+            // 執行更新
+            db.ref().update(updates, (error) => {
+                if (!error) {
+                    showAlert('撤回成功', '隊伍已回到等待列第一順位 (Group 1)。', 'success');
+                }
+            });
+        });
     });
 };
 
