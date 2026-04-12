@@ -318,7 +318,10 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     height: 100vh;
+    height: 100dvh; /* Fix Safari viewport height */
+    width: 100%;
     overflow: hidden;
+    overscroll-behavior-y: none; /* Prevent iOS bouncy scrolling */
     display: flex;
     flex-direction: column;
 }
@@ -1250,6 +1253,7 @@ body::after {
     padding: 12px 16px;
     border-radius: 20px;
     color: var(--text-main);
+    font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
 }
 
 .filter-bar input:focus {
@@ -1573,7 +1577,7 @@ body::after {
     .modal input,
     .modal select {
         padding: 10px 14px;
-        font-size: 0.9rem;
+        font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
     }
 
     /* Compress Career Stats Card on Mobile */
@@ -1633,6 +1637,7 @@ body::after {
     color: var(--text-main);
     font-family: inherit;
     font-weight: 600;
+    font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
 }
 
 .modal input:focus,
@@ -4177,7 +4182,7 @@ body.light-mode .chat-identity-select {
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 20px;
     padding: 8px 15px;
-    font-size: 0.9rem;
+    font-size: 16px; /* explicitly 16px to prevent iOS auto-zoom */
     outline: none;
     transition: all 0.2s;
 }
