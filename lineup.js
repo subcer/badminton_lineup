@@ -213,6 +213,32 @@ $(function () {
         $('#helpModal').addClass('hidden');
     });
 
+    // Score Modal Actions
+    $('#cancelScoreModalBtn').click(function() {
+        $('#scoreModalOverlay').addClass('hidden');
+    });
+
+    $('#confirmScoreModalBtn').click(function() {
+        const cid = $('#scoreModalOverlay').data('cid');
+        const sA = parseInt($('#manualScoreA').val(), 10);
+        const sB = parseInt($('#manualScoreB').val(), 10);
+        
+        console.log("[ScoreModal] 儲存分數:", cid, sA, sB);
+        if (!isNaN(sA) && !isNaN(sB)) {
+            db.ref('lineup/courts/' + cid + '/scoreA').set(sA);
+            db.ref('lineup/courts/' + cid + '/scoreB').set(sB);
+            $('#scoreModalOverlay').addClass('hidden');
+        }
+    });
+
+    // Delegated listener for score divider (more robust than inline onclick)
+    $(document).on('click', '.score-divider', function(e) {
+        e.stopPropagation();
+        const cid = $(this).closest('.court-card').data('id');
+        console.log("[ScoreModal] 點擊冒號, cid:", cid);
+        manualInputScore(cid);
+    });
+
     // Smart Pick Events
     $('.form-toggle-btn').click(function () {
         $(this).toggleClass('active');
@@ -700,11 +726,11 @@ function renderCourts() {
                         <div class="scoreboard" style="${$('#scoreModeToggle').is(':checked') ? '' : 'display:none'}">
                             <div class="score-team left">
                                 <div class="score-minus" onclick="event.stopPropagation(); updateScore('${cid}', 'A', -1, event)" title="扣 1 分"><i class="fas fa-minus"></i></div>
-                                <div class="score" onclick="updateScore('${cid}', 'A', 1, event)">${c.scoreA || 0}</div>
+                                <div class="score" onclick="updateScore('${cid}', 'A', 1, event)">${c.scoreA || 15}</div>
                             </div>
-                            <span class="score-divider">:</span>
+                            <span class="score-divider" style="cursor:pointer;" title="點擊手動輸入比分">:</span>
                             <div class="score-team right">
-                                <div class="score" onclick="updateScore('${cid}', 'B', 1, event)">${c.scoreB || 0}</div>
+                                <div class="score" onclick="updateScore('${cid}', 'B', 1, event)">${c.scoreB || 15}</div>
                                 <div class="score-minus" onclick="event.stopPropagation(); updateScore('${cid}', 'B', -1, event)" title="扣 1 分"><i class="fas fa-minus"></i></div>
                             </div>
                         </div>
@@ -1788,8 +1814,8 @@ window.endGame = function (courtId) {
 
         // Remove game status or reset timer
         db.ref('lineup/courts/' + courtId + '/startTime').remove();
-        db.ref('lineup/courts/' + courtId + '/scoreA').set(0);
-        db.ref('lineup/courts/' + courtId + '/scoreB').set(0);
+        db.ref('lineup/courts/' + courtId + '/scoreA').set(15);
+        db.ref('lineup/courts/' + courtId + '/scoreB').set(15);
 
         // Clean court players
         db.ref('lineup/courts/' + courtId + '/players').set([]);
@@ -1849,8 +1875,8 @@ function resetSession() {
             let courtUpdates = {};
             Object.keys(allCourts).forEach(cid => {
                 courtUpdates[cid + '/players'] = [];
-                courtUpdates[cid + '/scoreA'] = 0;
-                courtUpdates[cid + '/scoreB'] = 0;
+                courtUpdates[cid + '/scoreA'] = 15;
+                courtUpdates[cid + '/scoreB'] = 15;
                 courtUpdates[cid + '/status'] = 'active';
                 courtUpdates[cid + '/startTime'] = null;
             });
@@ -1873,6 +1899,23 @@ function resetSession() {
         showAlert('重整成功', '全場數據已重設，所有人已回歸待命，聊天室也已清空。', 'success');
     });
 }
+
+window.manualInputScore = function(cid) {
+    console.log("[ScoreModal] 準備開啟彈窗, cid:", cid);
+    const c = courts[cid];
+    if (!c) return console.error("[ScoreModal] 找不到場地資料:", cid);
+    
+    // 取得目前分數，預設為 15
+    const currentA = (c.scoreA !== undefined) ? c.scoreA : 15;
+    const currentB = (c.scoreB !== undefined) ? c.scoreB : 15;
+    
+    // 填入彈窗
+    $('#manualScoreA').val(currentA);
+    $('#manualScoreB').val(currentB);
+    
+    // 將當前場地 ID 存入彈窗數據，供確認按鈕使用
+    $('#scoreModalOverlay').data('cid', cid).removeClass('hidden');
+};
 
 // --- Refresh Layout (輔助整理：僅重設球員圖標位置) ---
 function refreshLayout() {
@@ -1918,7 +1961,9 @@ window.addEventListener('contextmenu', function (e) {
 
 window.updateScore = function (cid, side, delta, event) {
     const c = courts[cid];
-    let s = (side === 'A' ? c.scoreA : c.scoreB) || 0;
+    // 基於球友習慣，若資料庫還沒分數，預設從 15 開始計算
+    let s = (side === 'A' ? c.scoreA : c.scoreB);
+    if (s === undefined || s === null) s = 15;
     if (delta === -999) s = 0;
     else s += delta;
     if (s < 0) s = 0;

@@ -673,6 +673,28 @@
 
   <!-- 聊天室已移入側邊欄 -->
 
+  <!-- 手動輸入分數彈窗 (Manual Score Input) -->
+  <div id="scoreModalOverlay" class="modal-overlay hidden">
+    <div class="modal score-modal">
+      <h3>手動輸入比分</h3>
+      <div class="score-input-group">
+        <div class="score-input-item">
+          <label>Team A (左)</label>
+          <input type="number" id="manualScoreA" value="15" min="0" max="99">
+        </div>
+        <div class="score-separator">:</div>
+        <div class="score-input-item">
+          <label>Team B (右)</label>
+          <input type="number" id="manualScoreB" value="15" min="0" max="99">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelScoreModalBtn" class="btn btn-silver">取消</button>
+        <button id="confirmScoreModalBtn" class="btn btn-gold">確認</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="lineup.js"></script>
 </body>
