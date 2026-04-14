@@ -525,12 +525,14 @@ function renderPlayerPool() {
             // Responsive spacing to match Chip Size
             // Mobile Chip: ~64px -> Spacing 80x90
             // Desktop Chip: ~80-100px -> Spacing 95x105 (Very tight for 5 columns)
-            const isDesktop = window.innerWidth > 768;
-            const itemWidth = isDesktop ? 95 : 80;
-            const itemHeight = isDesktop ? 115 : 95; // 調高到 125，避免雪花標籤遮到上一排球員的名字點
+            // 佈局定位門檻：768px 以上用桌機級尺寸與 2 欄排版
+            const isDesktopSizing = window.innerWidth > 768;
+            const itemWidth = isDesktopSizing ? 95 : 80;
+            const itemHeight = isDesktopSizing ? 115 : 95;
 
-            const availableCols = Math.floor(Math.max(containerWidth, isDesktop ? 320 : 300) / itemWidth);
-            const cols = Math.max(isDesktop ? 2 : 3, availableCols);
+            // 修正：移除 Math.max(..., 320/300)，直接讀取真實寬度進行計算，避免球員溢出
+            const availableCols = Math.floor(containerWidth / itemWidth);
+            const cols = Math.max(isDesktopSizing ? 2 : 3, availableCols);
 
             let left = p.x;
             let top = p.y;
@@ -599,7 +601,7 @@ function renderPlayerPool() {
 
             const playCount = p.playCount || 0;
 
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth <= 1210;
 
             const html = `
                 <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''}" 
@@ -628,6 +630,7 @@ function renderPlayerPool() {
         if (bottom > maxBottom) maxBottom = bottom;
     });
 
+    // 只有在真正的窄螢幕手機 (<= 768) 才使用自動撐高
     if (window.innerWidth <= 768) {
         $playerPool.css('height', 'auto');
         $playerPool.css('min-height', Math.max(maxBottom + 120, 300) + 'px');
@@ -884,7 +887,7 @@ function renderQueue() {
     }
 
     queue.forEach((group, idx) => {
-        const isMobile = window.innerWidth <= 768;
+        const isMobile = window.innerWidth <= 1210;
         const groupSig = [...group.members].sort().join(',');
         const teamA = group.members.slice(0, 2);
         const teamB = group.members.slice(2, 4);
@@ -1081,7 +1084,7 @@ function initDragAndDrop() {
     // HTML5 drag events bubble.
 
     document.addEventListener('dragstart', function (e) {
-        if (window.innerWidth <= 768) return; // Block dragging on mobile
+        if (window.innerWidth <= 1210) return; // Block dragging on mobile
         const target = e.target.closest('.player-chip');
         const groupTarget = e.target.closest('.group-card');
 
@@ -1167,7 +1170,7 @@ function initDragAndDrop() {
 
 
     // Initialize Touch Drag for Mobile (Only if not already blocked)
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 1210) {
         initTouchDrag();
     }
 }
