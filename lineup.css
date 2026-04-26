@@ -4783,7 +4783,7 @@ body.light-mode .id-card.active {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         padding: 0 !important;
         border-width: 2px !important;
         pointer-events: none !important; /* 核心修復：讓點擊穿透到晶片容器 */
