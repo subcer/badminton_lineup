@@ -1228,8 +1228,8 @@ body::after {
     overflow-x: hidden;
     /* 強制禁止水平捲軸 */
     position: relative;
-    padding: 0 10px 20px 10px;
-    /* 增加左右內距，防止捲軸蓋到內容 */
+    padding: 0 10px 120px 10px;
+    /* 增加底部內距，防止 fab-btn (加入列隊按鈕) 蓋到最後一排球員 */
     width: 100%;
     background: transparent;
     border: none;

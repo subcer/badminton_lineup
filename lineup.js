@@ -630,6 +630,10 @@ function renderPlayerPool() {
         if (bottom > maxBottom) maxBottom = bottom;
     });
 
+    // 加入一個透明的墊高元素，強制撐出底部滾動空間 (讓絕對定位的球員可以往上滑，不被加入列隊按鈕擋住)
+    $playerPool.find('.scroll-spacer').remove();
+    $playerPool.append(`<div class="scroll-spacer" style="position: absolute; top: ${maxBottom}px; left: 0; width: 1px; height: 120px;"></div>`);
+
     // 只有在真正的窄螢幕手機 (<= 768) 才使用自動撐高
     if (window.innerWidth <= 768) {
         $playerPool.css('height', 'auto');
