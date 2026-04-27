@@ -328,6 +328,26 @@ $(function () {
         const group = queue[idx];
         if (!group) return;
 
+        // 檢查是否有球員已經在其他場地上 (防分身)
+        let busyPlayerName = null;
+        for (let pid of group.members) {
+            let isFighting = false;
+            for (let cid in courts) {
+                if (courts[cid].players && courts[cid].players.includes(pid)) {
+                    isFighting = true;
+                    break;
+                }
+            }
+            if (isFighting) {
+                busyPlayerName = players[pid]?.name || '某位球員';
+                break;
+            }
+        }
+        if (busyPlayerName) {
+            window.showAlert("無法開賽", `球員「${escapeHtml(busyPlayerName)}」正在其他場地比賽中，必須等他下場才能進行此場比賽！`, "warning");
+            return;
+        }
+
         // Find first empty court
         const emptyCourtId = Object.keys(courts).find(cid => {
             const c = courts[cid];
@@ -450,6 +470,7 @@ function initListeners() {
     db.ref('lineup/courts').on('value', snapshot => {
         courts = snapshot.val() || {};
         renderCourts();
+        renderPlayerPool(); // 重新渲染名單以更新動態標籤
     });
 
     // 3. Queue
@@ -473,10 +494,10 @@ function initListeners() {
             if (!allMembersValid) {
                 console.warn(`[System] 偵測到列隊組別 ${key} 包含無效球員，正在自動將其餘成員狀態重設並解散...`);
 
-                // 補救措施：確保組內其餘正常的球員恢復為 'idle'
+                // 補救措施：確保組內其餘正常的球員狀態重算
                 group.members.forEach(mId => {
                     if (players[mId]) {
-                        db.ref(`lineup/players/${mId}/status`).set('idle');
+                        db.ref(`lineup/players/${mId}/status`).set(window.recalculatePlayerStatus(mId));
                     }
                 });
 
@@ -490,6 +511,7 @@ function initListeners() {
         // 只有在資料完全正確的情況下才更新前端狀態
         queue = cleanQueue;
         renderQueue();
+        renderPlayerPool(); // 重新渲染名單以更新排隊標籤次數
     });
 }
 
@@ -517,8 +539,29 @@ function renderPlayerPool() {
         if (p && p.name && p.name.toLowerCase().includes(filterText)) {
             const isSelected = selectedPlayers.has(pid);
 
-            if (p.status !== 'idle' && p.status !== undefined) {
-                return; // Skip non-idle players
+            // 移除原本的狀態過濾，讓所有人都顯示在名單中
+            // if (p.status !== 'idle' && p.status !== undefined) {
+            //     return; // Skip non-idle players
+            // }
+
+            // 計算動態狀態標籤
+            const currentStatus = window.recalculatePlayerStatus(pid);
+            let statusBadgeHtml = '';
+            let extraClass = '';
+            if (currentStatus === 'fighting') {
+                extraClass = 'status-fighting';
+                // 綠色播放圖示代表場上
+                statusBadgeHtml = `<div class="state-badge fighting" title="場上比賽中"><i class="fas fa-play"></i></div>`;
+            } else if (currentStatus === 'queued') {
+                let qCount = 0;
+                if (queue) {
+                    queue.forEach(g => {
+                        if (g.members && g.members.includes(pid)) qCount++;
+                    });
+                }
+                extraClass = 'status-queued';
+                // 橘色數字代表排隊次數
+                statusBadgeHtml = `<div class="state-badge queued" title="已預排 ${qCount} 場">${qCount}</div>`;
             }
 
             // Assign position if not set (Grid Layout)
@@ -604,9 +647,10 @@ function renderPlayerPool() {
             const isMobile = window.innerWidth <= 1210;
 
             const html = `
-                <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''}" 
+                <div class="player-chip ${p.gender} ${isSelected ? 'selected' : ''} ${extraClass}" 
                      id="player-${pid}" data-id="${pid}" draggable="${!isMobile}"
                      style="left: ${left}px; top: ${top}px; position: absolute;">
+                    ${statusBadgeHtml}
                     <div class="play-count-badge" title="上場次數">${playCount}</div>
                     <div class="player-level" title="程度">${p.level}</div>
                     <div class="player-avatar">
@@ -1284,6 +1328,27 @@ function handleDrop(data, zone, targetElement, clientPos) {
 
         } else if (zoneType === 'court') {
             const courtId = zone.dataset.courtId;
+            
+            // 檢查是否有球員已經在其他場地上 (防分身)
+            let busyPlayerName = null;
+            for (let pid of pids) {
+                let isFighting = false;
+                for (let cid in courts) {
+                    if (cid !== courtId && courts[cid].players && courts[cid].players.includes(pid)) {
+                        isFighting = true;
+                        break;
+                    }
+                }
+                if (isFighting) {
+                    busyPlayerName = players[pid]?.name || '某位球員';
+                    break;
+                }
+            }
+            if (busyPlayerName) {
+                window.showAlert("無法加入", `球員「${escapeHtml(busyPlayerName)}」正在其他場地比賽中！`, "warning");
+                return;
+            }
+
             // Add to court logic
             // Check occupancy
             const court = courts[courtId];
@@ -1310,6 +1375,26 @@ function handleDrop(data, zone, targetElement, clientPos) {
         if (zoneType === 'court') {
             const courtId = zone.dataset.courtId;
             const group = queue[data.gid];
+
+            // 檢查是否有球員已經在其他場地上 (防分身)
+            let busyPlayerName = null;
+            for (let pid of group.members) {
+                let isFighting = false;
+                for (let cid in courts) {
+                    if (cid !== courtId && courts[cid].players && courts[cid].players.includes(pid)) {
+                        isFighting = true;
+                        break;
+                    }
+                }
+                if (isFighting) {
+                    busyPlayerName = players[pid]?.name || '某位球員';
+                    break;
+                }
+            }
+            if (busyPlayerName) {
+                window.showAlert("無法開賽", `球員「${escapeHtml(busyPlayerName)}」正在其他場地比賽中，必須等他下場才能進行此場比賽！`, "warning");
+                return;
+            }
 
             // Move group to court
             // 1. Check if court has existing players -> Reset them to idle
@@ -1741,12 +1826,14 @@ window.removeFromQueue = function (idx, signature = null, keepStatus = false) {
     isDeletingQueue = true;
     setTimeout(() => { isDeletingQueue = false; }, 500); // 500ms strict cooldown
 
-    // Logic to remove group and set players back to idle
+    const newQ = queue.filter((_, i) => i !== idx);
+
+    // Logic to remove group and set players back to proper status
     const group = queue[idx];
     if (group && !keepStatus) {
         let updates = {};
         group.members.forEach(pid => {
-            updates[pid + '/status'] = 'idle';
+            updates[pid + '/status'] = window.recalculatePlayerStatus(pid, newQ, null);
             // Reset position so they flow back to the default grid instead of getting stuck on edges
             updates[pid + '/x'] = null;
             updates[pid + '/y'] = null;
@@ -1754,7 +1841,6 @@ window.removeFromQueue = function (idx, signature = null, keepStatus = false) {
         db.ref('lineup/players').update(updates);
     }
 
-    const newQ = queue.filter((_, i) => i !== idx);
     db.ref('lineup/queue').set(newQ);
 };
 
@@ -1778,9 +1864,15 @@ window.endGame = function (courtId) {
         let teamAWins = scoreA > scoreB;
         let teamBWins = scoreB > scoreA;
 
+        // 建立預測的場地狀態 (此場地已清空)
+        let newCourts = { ...courts };
+        if (newCourts[courtId]) {
+            newCourts[courtId] = { ...newCourts[courtId], players: [] };
+        }
+
         pids.forEach((pid, idx) => {
             if (!pid) return;
-            updates[pid + '/status'] = 'idle';
+            updates[pid + '/status'] = window.recalculatePlayerStatus(pid, null, newCourts);
             updates[pid + '/lastPlayTime'] = firebase.database.ServerValue.TIMESTAMP;
             updates[pid + '/playCount'] = firebase.database.ServerValue.increment(1);
 
@@ -1872,9 +1964,15 @@ window.undoMatch = function (courtId) {
             // 更新列隊
             updates['lineup/queue'] = updatedQueue;
             
-            // 更新人員狀態回「等待中」
+            // 建立預測的場地狀態 (此場地已清空)
+            const newCourts = { ...courts };
+            if (newCourts[courtId]) {
+                newCourts[courtId] = { ...newCourts[courtId], players: [] };
+            }
+
+            // 更新人員狀態
             pids.forEach(pid => {
-                if (pid) updates['lineup/players/' + pid + '/status'] = 'queued';
+                if (pid) updates['lineup/players/' + pid + '/status'] = window.recalculatePlayerStatus(pid, updatedQueue, newCourts);
             });
             
             // 清市場地
@@ -2067,7 +2165,34 @@ function tryAutoRotate() {
 
     if (emptyCourts.length > 0 && queue.length > 0) {
         const targetCourtId = emptyCourts[0];
-        const group = queue[0]; // First in queue
+
+        // 尋找排隊列中第一組「所有成員都沒有在其他場地打球」的隊伍
+        let validGroupIdx = -1;
+        let group = null;
+
+        for (let i = 0; i < queue.length; i++) {
+            const g = queue[i];
+            let canPlay = true;
+            for (let pid of g.members) {
+                // 檢查是否已在場上
+                let isFighting = false;
+                for (let cid in courts) {
+                    if (courts[cid].players && courts[cid].players.includes(pid)) {
+                        isFighting = true;
+                        break;
+                    }
+                }
+                if (isFighting) { canPlay = false; break; }
+            }
+            if (canPlay) {
+                validGroupIdx = i;
+                group = g;
+                break;
+            }
+        }
+
+        // 如果全部排隊的隊伍都有人卡在場上，就先不輪轉 (等待)
+        if (validGroupIdx === -1) return;
 
         // Move to court
         db.ref('lineup/courts/' + targetCourtId + '/players').set(group.members);
@@ -2078,7 +2203,7 @@ function tryAutoRotate() {
 
         // Remove from queue (keepStatus = true, players are now fighting)
         // Fix: Pass null for signature so it doesn't fail
-        window.removeFromQueue(0, null, true);
+        window.removeFromQueue(validGroupIdx, null, true);
 
         // Auto start timer
         startTimer(targetCourtId);
@@ -2259,6 +2384,29 @@ function trySmartPick() {
     best.members.forEach(pid => updates[pid + '/status'] = 'queued');
     db.ref('lineup/players').update(updates);
 }
+
+window.recalculatePlayerStatus = function (pid, overrideQueue = null, overrideCourts = null) {
+    const currentCourts = overrideCourts || courts;
+    const currentQueue = overrideQueue || queue;
+
+    // 檢查是否在任何進行中的場地上
+    for (let cid in currentCourts) {
+        const c = currentCourts[cid];
+        if (c.players && c.players.includes(pid)) {
+            return 'fighting';
+        }
+    }
+    // 檢查是否在任何排隊列中
+    if (currentQueue) {
+        for (let i = 0; i < currentQueue.length; i++) {
+            const group = currentQueue[i];
+            if (group.members && group.members.includes(pid)) {
+                return 'queued';
+            }
+        }
+    }
+    return 'idle';
+};
 
 window.escapeHtml = function (text) {
     if (!text) return text;

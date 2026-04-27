@@ -4786,11 +4786,14 @@ body.light-mode .id-card.active {
         overflow: visible !important;
         padding: 0 !important;
         border-width: 2px !important;
-        pointer-events: none !important; /* 核心修復：讓點擊穿透到晶片容器 */
+        pointer-events: none !important;
+        /* 核心修復：讓點擊穿透到晶片容器 */
     }
 
     /* 確保所有標籤也不會攔截點擊 */
-    .play-count-badge, .player-level, .bench-badge {
+    .play-count-badge,
+    .player-level,
+    .bench-badge {
         pointer-events: none !important;
     }
 
@@ -4817,28 +4820,35 @@ body.light-mode .id-card.active {
     /* V13 修復：精密空間對正，確保場地並排且不擠壓側邊欄 */
     .courts-grid {
         display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* 加強版：防止內容撐爆寬度 */
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        /* 加強版：防止內容撐爆寬度 */
         grid-auto-rows: auto !important;
         align-content: start !important;
-        gap: 15px !important; /* 縮減間距以留出寬度空間 */
+        gap: 15px !important;
+        /* 縮減間距以留出寬度空間 */
     }
 
     .court-card {
         height: auto !important;
         min-height: unset !important;
         overflow: visible !important;
-        padding: 16px 15px 50px 15px !important; /* 縮減左右 Padding 釋放寬度 */
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+        padding: 16px 15px 50px 15px !important;
+        /* 縮減左右 Padding 釋放寬度 */
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
         margin-bottom: 20px;
-        width: 100% !important; /* 鎖死寬度 */
+        width: 100% !important;
+        /* 鎖死寬度 */
     }
 
 
     .court-visual {
         flex: 0 0 auto !important;
-        min-height: 380px !important; /* 場地加高 */
-        margin-bottom: 35px !important; /* 縮減與按鈕群的間距 */
-        padding: 0 !important; /* 移除內距，修正對齊偏移 */
+        min-height: 380px !important;
+        /* 場地加高 */
+        margin-bottom: 35px !important;
+        /* 縮減與按鈕群的間距 */
+        padding: 0 !important;
+        /* 移除內距，修正對齊偏移 */
     }
 
     /* 確保場地內左右球員絕對居中 */
@@ -4873,4 +4883,45 @@ body.light-mode .id-card.active {
     #toggleSidebarBtn {
         margin-right: 2px !important;
     }
+}
+
+/* Advance Multi-Queuing State Badges */
+.state-badge {
+    position: absolute;
+    bottom: 20px;
+    left: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    z-index: 15;
+    pointer-events: none;
+    border: 1.5px solid white;
+}
+
+.state-badge.fighting {
+    background: #4CAF50;
+    font-size: 0.6rem;
+    /* Make the play icon a bit smaller to fit */
+}
+
+.state-badge.queued {
+    background: #FF9800;
+}
+
+/* Override borders only if NOT selected */
+.player-chip.status-fighting:not(.selected) .player-avatar {
+    border: 3px solid #4CAF50 !important;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.player-chip.status-queued:not(.selected) .player-avatar {
+    border: 3px solid #FF9800 !important;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
 }
