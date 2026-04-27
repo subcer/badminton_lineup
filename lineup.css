@@ -2079,10 +2079,11 @@ input:checked+.slider:before {
     }
 
     .fab-btn {
-        bottom: 130px;
+        bottom: 25px;
         /* 提高位置，避開底部的聊天室與輸入區域 */
-        right: 20px;
-        padding: 12px 24px;
+        right: 50;
+        transform: translateX(-50%) !important;
+
         font-size: 0.95rem;
         background: linear-gradient(135deg, #853b51, #5a1e2d);
         /* 統一使用酒紅漸層 */
