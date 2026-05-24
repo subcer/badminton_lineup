@@ -321,33 +321,51 @@ function parseVoiceText(rawText) {
   // 名字長的先比對，避免「抹茶拿鐵」先被「拿鐵」截走
   const sortedMenu = Object.values(menuItems).sort((a, b) => b.name.length - a.name.length);
 
-  let workText = rawText;
+  // Step 1：掃描全句找出所有品項位置，不重疊
+  const taken = new Array(rawText.length).fill(false);
+  const found = []; // { name, price, start, end }
 
   for (const menuItem of sortedMenu) {
-    const idx = workText.indexOf(menuItem.name);
-    if (idx === -1) continue;
+    let from = 0;
+    while (from < rawText.length) {
+      const idx = rawText.indexOf(menuItem.name, from);
+      if (idx === -1) break;
+      const end = idx + menuItem.name.length;
+      if (!taken.slice(idx, end).some(Boolean)) {
+        found.push({ name: menuItem.name, price: menuItem.price || 0, start: idx, end });
+        for (let k = idx; k < end; k++) taken[k] = true;
+      }
+      from = end;
+    }
+  }
 
-    const nameLen  = menuItem.name.length;
-    const winStart = Math.max(0, idx - 6);
-    const winEnd   = Math.min(workText.length, idx + nameLen + 8);
+  if (found.length === 0) return results;
 
-    const before = workText.slice(winStart, idx);
-    const after  = workText.slice(idx + nameLen, winEnd);
+  // Step 2：依出現位置排序
+  found.sort((a, b) => a.start - b.start);
 
-    // 數量：優先取品名前面的數字
+  // Step 3：每個品項各自從「前後區段」抓數量與修飾詞
+  // lookBefore = 上一個品項結尾 ～ 本品項開頭
+  // lookAfter  = 本品項結尾 ～ 下一個品項開頭
+  for (let i = 0; i < found.length; i++) {
+    const item      = found[i];
+    const prevEnd   = i > 0               ? found[i - 1].end   : 0;
+    const nextStart = i < found.length - 1 ? found[i + 1].start : rawText.length;
+
+    const lookBefore = rawText.slice(prevEnd, item.start);
+    const lookAfter  = rawText.slice(item.end, nextStart);
+
+    // 數量：優先品名前的數字，沒有再找後面
     let qty = 1;
-    const numBefore = extractNum(before);
-    const numAfter  = extractNum(after);
+    const numBefore = extractNum(lookBefore);
+    const numAfter  = extractNum(lookAfter);
     if (numBefore !== null && numBefore > 0) qty = numBefore;
     else if (numAfter !== null && numAfter > 0) qty = numAfter;
 
-    // 備註：只保留已知修飾詞（溫度/甜度/大小），雜字一律丟棄
-    const note = extractModifiers(before + after);
+    // 備註：只保留已知修飾詞
+    const note = extractModifiers(lookBefore + lookAfter);
 
-    results.push({ name: menuItem.name, qty, note, price: menuItem.price || 0 });
-
-    // 把已比對區段遮蔽，避免重複
-    workText = workText.slice(0, winStart) + '　'.repeat(winEnd - winStart) + workText.slice(winEnd);
+    results.push({ name: item.name, qty, note, price: item.price });
   }
 
   return results;
