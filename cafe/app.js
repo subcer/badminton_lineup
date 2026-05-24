@@ -298,15 +298,84 @@ function renderMenuPicker() {
   sorted.forEach(([, item]) => {
     const chip = document.createElement('button');
     chip.className = 'menu-pick-chip';
-    chip.innerHTML = `<span class="mpc-name">${item.name}</span><span class="mpc-price">${item.price > 0 ? '$' + item.price : '—'}</span>`;
+    const hasOpts = (item.options || []).some(g => g.choices?.length > 0);
+    chip.innerHTML = `
+      <span class="mpc-name">${item.name}</span>
+      ${hasOpts ? '<span class="mpc-options-dot" title="有必選選項"></span>' : ''}
+      <span class="mpc-price">${item.price > 0 ? '$' + item.price : '—'}</span>
+    `;
     chip.addEventListener('click', () => {
-      document.getElementById('inputItemName').value  = item.name;
-      document.getElementById('inputItemPrice').value = item.price || '';
-      document.getElementById('inputItemName').focus();
+      const opts = (item.options || []).filter(g => g.choices?.length > 0);
+      if (opts.length > 0) {
+        openOptionPicker(item, opts);
+      } else {
+        document.getElementById('inputItemName').value  = item.name;
+        document.getElementById('inputItemPrice').value = item.price || '';
+        document.getElementById('inputItemName').focus();
+      }
     });
     picker.appendChild(chip);
   });
 }
+
+// ── Option Picker Modal ──
+let _pendingOptionItem = null;
+
+function openOptionPicker(item, opts) {
+  _pendingOptionItem = item;
+  document.getElementById('optionPickerTitle').textContent = item.name;
+
+  const content = document.getElementById('optionPickerContent');
+  content.innerHTML = opts.map((grp, gi) => `
+    <div class="option-picker-group">
+      <p class="option-picker-group-label">${grp.label || '選項'}</p>
+      <div class="option-picker-choices">
+        ${(grp.choices || []).map((c, ci) => `
+          <label class="option-picker-choice">
+            <input type="radio" name="optgrp-${gi}" value="${c}" ${ci === 0 ? 'checked' : ''}>
+            <span class="option-picker-choice-label">${c}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('optionPickerModal').classList.add('open');
+}
+
+function closeOptionPicker() {
+  document.getElementById('optionPickerModal').classList.remove('open');
+  _pendingOptionItem = null;
+}
+
+document.getElementById('btnCloseOptionPicker').addEventListener('click', closeOptionPicker);
+document.getElementById('btnOptionCancel').addEventListener('click', closeOptionPicker);
+document.getElementById('optionPickerModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeOptionPicker();
+});
+
+document.getElementById('btnOptionConfirm').addEventListener('click', () => {
+  if (!_pendingOptionItem || !activeTableId) return;
+
+  const item  = _pendingOptionItem;
+  const opts  = (item.options || []).filter(g => g.choices?.length > 0);
+  const chosen = opts.map((grp, gi) => {
+    const radio = document.querySelector(`#optionPickerContent input[name="optgrp-${gi}"]:checked`);
+    return radio ? radio.value : null;
+  }).filter(Boolean);
+
+  const table = tables[activeTableId];
+  if (!table.items) table.items = {};
+  const itemId = 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  table.items[itemId] = {
+    name: item.name, qty: 1, price: item.price || 0,
+    note: chosen.join('、'), done: false
+  };
+  if (table.status === 'empty') table.status = 'ordering';
+  dbOrders.child(activeTableId).set(table);
+  showToast(`已加入「${item.name}」${chosen.length ? '（' + chosen.join('、') + '）' : ''}`);
+  closeOptionPicker();
+});
 
 // ══════════════════════════════════════════════════
 //  語音點餐
@@ -327,9 +396,19 @@ const MODIFIERS = [
   '加奶', '不加奶', '少奶', '外帶', '內用', '打包'
 ];
 
+function buildDynamicModifiers() {
+  const all = new Set(MODIFIERS);
+  Object.values(menuItems).forEach(item => {
+    (item.options || []).forEach(grp => {
+      (grp.choices || []).forEach(c => { if (c.trim()) all.add(c.trim()); });
+    });
+  });
+  return [...all];
+}
+
 function extractModifiers(text) {
   const found = [];
-  const sorted = [...MODIFIERS].sort((a, b) => b.length - a.length);
+  const sorted = buildDynamicModifiers().sort((a, b) => b.length - a.length);
   let remaining = text;
   for (const mod of sorted) {
     if (remaining.includes(mod)) {
@@ -677,8 +756,16 @@ function renderMenuItemsList() {
       const row = document.createElement('div');
       row.className = 'menu-manage-row';
       row.id = `menu-row-${id}`;
+      const activeOpts = (item.options || []).filter(g => g.choices?.length > 0);
+      const optTagsHtml = activeOpts.length > 0
+        ? `<div class="menu-has-options">${activeOpts.map(g =>
+            `<span class="menu-option-tag">${g.label || '選項'}：${g.choices.join(' / ')}</span>`
+          ).join('')}</div>` : '';
       row.innerHTML = `
-        <span class="menu-manage-name">${item.name}</span>
+        <div style="flex:1;min-width:0">
+          <span class="menu-manage-name">${item.name}</span>
+          ${optTagsHtml}
+        </div>
         <span class="menu-manage-price">${item.price > 0 ? '$' + item.price : '未定價'}</span>
         <button class="btn-edit-item" onclick="startEditMenuItem('${id}')" title="編輯">
           <span class="material-symbols-outlined">edit</span>
@@ -693,9 +780,12 @@ function renderMenuItemsList() {
   });
 }
 
+let _editingOptions = [];
+
 function startEditMenuItem(id) {
   const item = menuItems[id];
   if (!item) return;
+  _editingOptions = JSON.parse(JSON.stringify(item.options || []));
 
   const existing = new Set(['咖啡','茶飲','甜點','輕食','其他']);
   Object.values(menuItems).forEach(i => { if (i.category) existing.add(i.category); });
@@ -711,6 +801,7 @@ function startEditMenuItem(id) {
       <input class="menu-edit-cat-input" id="editCat-${id}" value="${item.category || ''}" placeholder="分類" list="${editListId}" autocomplete="off">
       ${datalistHtml}
     </div>
+    <div class="edit-options-section" id="editOptions-${id}"></div>
     <div class="menu-edit-btns">
       <button class="btn-edit-save" onclick="saveEditMenuItem('${id}')" title="儲存">
         <span class="material-symbols-outlined">check</span>儲存
@@ -721,14 +812,71 @@ function startEditMenuItem(id) {
     </div>
   `;
   document.getElementById(`editName-${id}`).focus();
+  renderEditOptionsUI(id);
+}
+
+function renderEditOptionsUI(id) {
+  const container = document.getElementById(`editOptions-${id}`);
+  if (!container) return;
+  const groupsHtml = _editingOptions.map((grp, gi) => `
+    <div class="edit-option-group">
+      <div class="edit-option-top">
+        <input class="menu-edit-input edit-option-label-input"
+               placeholder="選項名稱（如：內容選擇）"
+               value="${grp.label || ''}"
+               id="editOptLabel-${id}-${gi}">
+        <button class="btn-edit-cancel" onclick="removeEditOptionGroup(${gi},'${id}')">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <input class="menu-edit-input edit-option-choices-input"
+             placeholder="選項值（逗號分隔，如：果醬+起司片、有鹽奶油）"
+             value="${(grp.choices || []).join('、')}"
+             id="editOptChoices-${id}-${gi}">
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="edit-options-header">
+      <span class="edit-options-title">必選選項組</span>
+      <button class="edit-add-group-btn" onclick="addEditOptionGroup('${id}')">
+        <span class="material-symbols-outlined">add</span>新增選項組
+      </button>
+    </div>
+    ${groupsHtml}
+  `;
+}
+
+function syncEditOptionsFromInputs(id) {
+  _editingOptions.forEach((grp, gi) => {
+    const labelEl   = document.getElementById(`editOptLabel-${id}-${gi}`);
+    const choicesEl = document.getElementById(`editOptChoices-${id}-${gi}`);
+    if (labelEl)   grp.label   = labelEl.value.trim();
+    if (choicesEl) grp.choices = choicesEl.value.split(/[,、，]+/).map(s => s.trim()).filter(Boolean);
+  });
+}
+
+function addEditOptionGroup(id) {
+  syncEditOptionsFromInputs(id);
+  _editingOptions.push({ label: '', choices: [] });
+  renderEditOptionsUI(id);
+  document.getElementById(`editOptLabel-${id}-${_editingOptions.length - 1}`)?.focus();
+}
+
+function removeEditOptionGroup(gi, id) {
+  syncEditOptionsFromInputs(id);
+  _editingOptions.splice(gi, 1);
+  renderEditOptionsUI(id);
 }
 
 function saveEditMenuItem(id) {
+  syncEditOptionsFromInputs(id);
   const name  = document.getElementById(`editName-${id}`)?.value.trim();
   const price = parseFloat(document.getElementById(`editPrice-${id}`)?.value) || 0;
   const cat   = document.getElementById(`editCat-${id}`)?.value.trim() || '其他';
   if (!name) return;
-  dbMenu.child(id).update({ name, price, category: cat });
+  const options = _editingOptions.filter(g => g.label || g.choices.length > 0);
+  dbMenu.child(id).update({ name, price, category: cat, options });
   showToast(`已更新「${name}」`);
 }
 

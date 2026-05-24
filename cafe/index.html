@@ -418,6 +418,30 @@
   </div>
 
   <!-- ══════════════════════════════════════
+       選項選擇 Modal（chip 點選有選項的品項時用）
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="optionPickerModal">
+    <div class="modal option-picker-modal">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="material-symbols-outlined" style="color:var(--primary);font-size:1.2rem;">tune</span>
+          <span class="modal-title" id="optionPickerTitle">選擇品項選項</span>
+        </div>
+        <button class="modal-close" id="btnCloseOptionPicker">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="optionPickerContent" class="option-picker-content"></div>
+      <div class="option-picker-actions">
+        <button class="btn btn-served" id="btnOptionCancel" style="flex:1">取消</button>
+        <button class="btn-primary-lg" id="btnOptionConfirm" style="flex:2;padding:10px;">
+          <span class="material-symbols-outlined">add_shopping_cart</span>加入訂單
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
        自訂確認框 Modal
   ══════════════════════════════════════ -->
   <div class="modal-overlay confirm-overlay" id="confirmModal">

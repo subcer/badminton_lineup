@@ -985,6 +985,106 @@ body {
 .history-meta { font-size: 0.72rem; color: var(--text-muted); }
 
 /* ══════════════════════════════════════════
+   Option Picker Modal
+══════════════════════════════════════════ */
+.option-picker-modal {
+  width: min(92vw, 400px);
+  padding: 0;
+  overflow: hidden;
+}
+.option-picker-content {
+  padding: 8px 20px 4px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.option-picker-group { display: flex; flex-direction: column; gap: 8px; }
+.option-picker-group-label {
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.option-picker-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.option-picker-choice { position: relative; }
+.option-picker-choice input[type="radio"] {
+  position: absolute; opacity: 0; width: 0; height: 0;
+}
+.option-picker-choice-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-low);
+  font-size: 0.88rem; font-weight: 600; color: var(--text-sub);
+  cursor: pointer; transition: all 0.15s;
+  user-select: none;
+}
+.option-picker-choice input[type="radio"]:checked + .option-picker-choice-label {
+  border-color: var(--primary);
+  background: var(--primary-faint);
+  color: var(--primary);
+}
+.option-picker-choice-label:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.option-picker-actions {
+  display: flex; gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-faint);
+}
+
+/* Menu item options display in manage list */
+.menu-has-options {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-top: 4px;
+}
+.menu-option-tag {
+  font-size: 0.65rem; font-weight: 700; color: var(--primary);
+  background: var(--primary-faint);
+  border-radius: 99px; padding: 2px 8px;
+}
+
+/* Option group editor in menu edit mode */
+.edit-options-section {
+  border-top: 1px solid var(--border-faint);
+  padding-top: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.edit-options-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2px;
+}
+.edit-options-title {
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.edit-add-group-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: var(--radius-xs);
+  background: none; border: 1.5px dashed var(--border);
+  font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.edit-add-group-btn:hover { border-color: var(--primary); color: var(--primary); }
+.edit-add-group-btn .material-symbols-outlined { font-size: 0.9rem; }
+.edit-option-group {
+  background: var(--surface-low);
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.edit-option-top {
+  display: flex; align-items: center; gap: 8px;
+}
+.edit-option-label-input { flex: 1; }
+.edit-option-choices-input { width: 100%; box-sizing: border-box; }
+
+/* Chip indicator for items with options */
+.mpc-options-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--primary); flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════
    Custom Confirm Modal
 ══════════════════════════════════════════ */
 .confirm-overlay {
