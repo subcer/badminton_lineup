@@ -7,9 +7,10 @@ const dbMenu   = firebase.database().ref('cafe_menu');
 const dbDaily  = firebase.database().ref('cafe_daily');
 
 // ── State ──
-let tables    = {};
-let menuItems = {};
-let activeTableId = null;
+let tables         = {};
+let menuItems      = {};
+let activeTableId  = null;
+let showPaidTables = false;
 
 const STATUS       = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
 const STATUS_LABEL = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
@@ -53,15 +54,53 @@ function renderStats() {
 }
 
 function renderTodaySection() {
-  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid' && isToday(t.paidAt));
-  const count = paidToday.length;
-  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || 0), 0);
-  const names = paidToday.map(([, t]) => t.name).join('、');
+  const paid = Object.entries(tables).filter(([, t]) => t.status === 'paid');
+  const count = paid.length;
+  const revenue = paid.reduce((sum, [, t]) => sum + (t.paidTotal || calcTotal(t)), 0);
+  const names = paid.map(([, t]) => t.name).join('、');
 
   document.getElementById('todayPaidCount').textContent = count;
   document.getElementById('todayPaidTables').textContent = names;
   document.getElementById('todayRevenue').textContent = count > 0 ? '$' + revenue : '—';
+
+  renderPaidTablesGrid(paid);
 }
+
+function renderPaidTablesGrid(paid) {
+  const grid = document.getElementById('paidTablesGrid');
+  grid.innerHTML = '';
+  if (!paid || paid.length === 0) {
+    grid.style.display = 'none';
+    showPaidTables = false;
+    updateToggleBtn();
+    return;
+  }
+  if (!showPaidTables) return;
+  grid.style.display = 'grid';
+  paid.forEach(([id, table]) => grid.appendChild(buildTableCard(id, table)));
+}
+
+function updateToggleBtn() {
+  const btn = document.getElementById('btnTogglePaid');
+  const icon = document.getElementById('togglePaidIcon');
+  const label = document.getElementById('togglePaidLabel');
+  if (showPaidTables) {
+    btn.classList.add('active');
+    icon.textContent = 'visibility_off';
+    label.textContent = '隱藏已結帳';
+  } else {
+    btn.classList.remove('active');
+    icon.textContent = 'visibility';
+    label.textContent = '查看已結帳';
+  }
+}
+
+document.getElementById('btnTogglePaid').addEventListener('click', () => {
+  showPaidTables = !showPaidTables;
+  updateToggleBtn();
+  const paid = Object.entries(tables).filter(([, t]) => t.status === 'paid');
+  renderPaidTablesGrid(paid);
+});
 
 // ── Render Tables ──
 function renderTables() {
@@ -627,12 +666,12 @@ function renderMenuItemsList() {
 
 // ── Daily Settlement ──
 function openSettlementModal() {
-  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid' && isToday(t.paidAt));
+  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid');
   if (paidToday.length === 0) { showToast('今日尚無已結帳桌次'); return; }
 
-  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || 0), 0);
+  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || calcTotal(t)), 0);
   const rowsHtml = paidToday.map(([, t]) =>
-    `<div class="settlement-row"><span class="name">${t.name}</span><span class="amount">$${t.paidTotal || 0}</span></div>`
+    `<div class="settlement-row"><span class="name">${t.name}</span><span class="amount">$${t.paidTotal || calcTotal(t)}</span></div>`
   ).join('');
 
   document.getElementById('settlementSummary').innerHTML = `
@@ -647,19 +686,19 @@ function openSettlementModal() {
 }
 
 function doSettlement() {
-  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid' && isToday(t.paidAt));
+  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid');
   if (paidToday.length === 0) return;
 
   const now = new Date();
   const dateKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || 0), 0);
+  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || calcTotal(t)), 0);
 
   const record = {
     date: dateKey,
     settledAt: Date.now(),
     tableCount: paidToday.length,
     revenue,
-    tables: paidToday.map(([, t]) => ({ name: t.name, total: t.paidTotal || 0 }))
+    tables: paidToday.map(([, t]) => ({ name: t.name, total: t.paidTotal || calcTotal(t) }))
   };
 
   dbDaily.child(dateKey).set(record)
