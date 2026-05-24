@@ -4,6 +4,7 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
 const dbOrders = firebase.database().ref('cafe_orders');
 const dbMenu   = firebase.database().ref('cafe_menu');
+const dbDaily  = firebase.database().ref('cafe_daily');
 
 // ── State ──
 let tables    = {};
@@ -19,6 +20,7 @@ dbOrders.on('value', snap => {
   tables = snap.val() || {};
   renderTables();
   renderStats();
+  renderTodaySection();
   if (activeTableId && tables[activeTableId]) updateModalContent(activeTableId);
 });
 
@@ -29,6 +31,12 @@ dbMenu.on('value', snap => {
 });
 
 // ── Helpers ──
+function isToday(ts) {
+  if (!ts) return false;
+  const d = new Date(ts), now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
 function calcTotal(table) {
   return Object.values(table.items || {}).reduce((sum, item) => {
     return sum + (Number(item.price) || 0) * (Number(item.qty) || 1);
@@ -44,19 +52,31 @@ function renderStats() {
   document.getElementById('statPaid').textContent     = all.filter(t => t.status === 'paid').length;
 }
 
+function renderTodaySection() {
+  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid' && isToday(t.paidAt));
+  const count = paidToday.length;
+  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || 0), 0);
+  const names = paidToday.map(([, t]) => t.name).join('、');
+
+  document.getElementById('todayPaidCount').textContent = count;
+  document.getElementById('todayPaidTables').textContent = names;
+  document.getElementById('todayRevenue').textContent = count > 0 ? '$' + revenue : '—';
+}
+
 // ── Render Tables ──
 function renderTables() {
   const grid = document.getElementById('tablesGrid');
   const sorted = Object.entries(tables).sort((a, b) => a[1].order - b[1].order);
+  const visible = sorted.filter(([, t]) => t.status !== 'paid');
   grid.innerHTML = '';
 
-  if (sorted.length === 0) {
+  if (visible.length === 0) {
     grid.innerHTML = `<div class="empty-state">
       <span class="material-symbols-outlined">table_restaurant</span>
       <p>還沒有餐桌，點右上角「新增餐桌」</p>
     </div>`;
   } else {
-    sorted.forEach(([id, table]) => grid.appendChild(buildTableCard(id, table)));
+    visible.forEach(([id, table]) => grid.appendChild(buildTableCard(id, table)));
   }
 
   const addCard = document.createElement('div');
@@ -486,10 +506,13 @@ document.getElementById('btnMarkServed').addEventListener('click', () => {
 document.getElementById('btnMarkPaid').addEventListener('click', () => {
   const table = tables[activeTableId];
   if (!table) return;
-  table.status = 'paid';
-  dbOrders.child(activeTableId).set(table);
   const total = calcTotal(table);
+  table.status   = 'paid';
+  table.paidAt   = Date.now();
+  table.paidTotal = total;
+  dbOrders.child(activeTableId).set(table);
   showToast(`已結帳！${total > 0 ? ' 共 $' + total : ''}`);
+  closeTableModal();
 });
 
 document.getElementById('btnDeleteTable').addEventListener('click', () => {
@@ -601,6 +624,103 @@ function renderMenuItemsList() {
     list.appendChild(section);
   });
 }
+
+// ── Daily Settlement ──
+function openSettlementModal() {
+  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid' && isToday(t.paidAt));
+  if (paidToday.length === 0) { showToast('今日尚無已結帳桌次'); return; }
+
+  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || 0), 0);
+  const rowsHtml = paidToday.map(([, t]) =>
+    `<div class="settlement-row"><span class="name">${t.name}</span><span class="amount">$${t.paidTotal || 0}</span></div>`
+  ).join('');
+
+  document.getElementById('settlementSummary').innerHTML = `
+    ${rowsHtml}
+    <div class="settlement-divider"></div>
+    <div class="settlement-row settlement-total">
+      <span class="name">共 ${paidToday.length} 桌</span>
+      <span class="amount">$${revenue}</span>
+    </div>
+  `;
+  document.getElementById('settlementModal').classList.add('open');
+}
+
+function doSettlement() {
+  const paidToday = Object.entries(tables).filter(([, t]) => t.status === 'paid' && isToday(t.paidAt));
+  if (paidToday.length === 0) return;
+
+  const now = new Date();
+  const dateKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const revenue = paidToday.reduce((sum, [, t]) => sum + (t.paidTotal || 0), 0);
+
+  const record = {
+    date: dateKey,
+    settledAt: Date.now(),
+    tableCount: paidToday.length,
+    revenue,
+    tables: paidToday.map(([, t]) => ({ name: t.name, total: t.paidTotal || 0 }))
+  };
+
+  dbDaily.child(dateKey).set(record)
+    .then(() => Promise.all(paidToday.map(([id]) => dbOrders.child(id).remove())))
+    .then(() => {
+      document.getElementById('settlementModal').classList.remove('open');
+      showToast(`日結完成！今日營業額 $${revenue}`);
+    })
+    .catch(() => showToast('日結失敗，請重試'));
+}
+
+function renderHistoryList() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div class="history-empty">載入中…</div>';
+
+  dbDaily.orderByKey().limitToLast(30).once('value', snap => {
+    const data = snap.val();
+    if (!data) {
+      list.innerHTML = '<div class="history-empty">尚無歷史紀錄</div>';
+      return;
+    }
+    const entries = Object.values(data).sort((a, b) => b.settledAt - a.settledAt);
+    list.innerHTML = '';
+    entries.forEach(rec => {
+      const card = document.createElement('div');
+      card.className = 'history-card';
+      const tableDetail = rec.tables ? rec.tables.map(t => `${t.name} $${t.total}`).join('・') : '';
+      card.innerHTML = `
+        <div class="history-card-header">
+          <span class="history-date">${rec.date}</span>
+          <span class="history-total">$${rec.revenue}</span>
+        </div>
+        <div class="history-meta">${rec.tableCount} 桌${tableDetail ? '・' + tableDetail : ''}</div>
+      `;
+      list.appendChild(card);
+    });
+  });
+}
+
+document.getElementById('btnSettlement').addEventListener('click', openSettlementModal);
+document.getElementById('btnConfirmSettlement').addEventListener('click', doSettlement);
+document.getElementById('btnCancelSettlement').addEventListener('click', () => {
+  document.getElementById('settlementModal').classList.remove('open');
+});
+document.getElementById('btnCloseSettlement').addEventListener('click', () => {
+  document.getElementById('settlementModal').classList.remove('open');
+});
+document.getElementById('settlementModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('settlementModal').classList.remove('open');
+});
+
+document.getElementById('btnHistory').addEventListener('click', () => {
+  document.getElementById('historyModal').classList.add('open');
+  renderHistoryList();
+});
+document.getElementById('btnCloseHistory').addEventListener('click', () => {
+  document.getElementById('historyModal').classList.remove('open');
+});
+document.getElementById('historyModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('historyModal').classList.remove('open');
+});
 
 // ── Toast ──
 function showToast(msg) {
