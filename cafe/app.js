@@ -11,7 +11,7 @@ let menuItems = {};
 let activeTableId = null;
 
 const STATUS       = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
-const STATUS_LABEL = { empty: 'EMPTY', ordering: 'IN-USE', served: 'SERVED', paid: 'PAID' };
+const STATUS_LABEL = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
 const STATUS_ORDER = ['empty', 'ordering', 'served', 'paid'];
 
 // ── Firebase Listeners ──
