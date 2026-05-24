@@ -1084,6 +1084,43 @@ body {
   background: var(--primary); flex-shrink: 0;
 }
 
+
+/* ══════════════════════════════════════════
+   Voice Keywords Section
+══════════════════════════════════════════ */
+.voice-keywords-section {
+  border-top: 1px solid var(--border-faint);
+  padding: 16px 20px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.voice-keywords-header { display: flex; flex-direction: column; gap: 4px; }
+.voice-keywords-title-row { display: flex; align-items: center; gap: 6px; }
+.voice-keywords-hint {
+  font-size: 0.72rem; color: var(--text-muted);
+  padding-left: 2px;
+}
+.voice-keywords-input-row { display: flex; gap: 8px; }
+.voice-keywords-input-row .input-field { flex: 1; }
+.voice-keyword-tags {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  min-height: 32px;
+}
+.voice-keyword-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 99px;
+  background: var(--primary-faint);
+  border: 1.5px solid var(--primary);
+  font-size: 0.8rem; font-weight: 700; color: var(--primary);
+}
+.voice-keyword-tag button {
+  background: none; border: none; cursor: pointer;
+  color: var(--primary); opacity: 0.6;
+  padding: 0; line-height: 1;
+  font-size: 0.85rem; font-family: inherit;
+  transition: opacity 0.15s;
+}
+.voice-keyword-tag button:hover { opacity: 1; }
+
 /* ══════════════════════════════════════════
    Custom Confirm Modal
 ══════════════════════════════════════════ */

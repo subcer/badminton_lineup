@@ -2,15 +2,17 @@
 const firebaseConfig = { databaseURL: "https://fir-60db1.firebaseio.com/" };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-const dbOrders = firebase.database().ref('cafe_orders');
-const dbMenu   = firebase.database().ref('cafe_menu');
-const dbDaily  = firebase.database().ref('cafe_daily');
+const dbOrders          = firebase.database().ref('cafe_orders');
+const dbMenu            = firebase.database().ref('cafe_menu');
+const dbDaily           = firebase.database().ref('cafe_daily');
+const dbCustomModifiers = firebase.database().ref('cafe_custom_modifiers');
 
 // ── State ──
-let tables         = {};
-let menuItems      = {};
-let activeTableId  = null;
-let showPaidTables = false;
+let tables          = {};
+let menuItems       = {};
+let customModifiers = [];   // string[]
+let activeTableId   = null;
+let showPaidTables  = false;
 
 const STATUS       = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
 const STATUS_LABEL = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
@@ -29,6 +31,11 @@ dbMenu.on('value', snap => {
   menuItems = snap.val() || {};
   renderMenuPicker();
   renderMenuItemsList();
+});
+
+dbCustomModifiers.on('value', snap => {
+  customModifiers = snap.val() || [];
+  renderVoiceKeywordTags();
 });
 
 // ── Helpers ──
@@ -403,6 +410,7 @@ function buildDynamicModifiers() {
       (grp.choices || []).forEach(c => { if (c.trim()) all.add(c.trim()); });
     });
   });
+  customModifiers.forEach(k => { if (k && k.trim()) all.add(k.trim()); });
   return [...all];
 }
 
@@ -696,6 +704,41 @@ document.getElementById('menuModal').addEventListener('click', e => {
 
 document.getElementById('btnAddMenuItem').addEventListener('click', addMenuItem);
 document.getElementById('inputMenuName').addEventListener('keydown', e => { if (e.key === 'Enter') addMenuItem(); });
+
+// ── Voice Keywords (Custom Modifiers) ──
+function renderVoiceKeywordTags() {
+  const container = document.getElementById('voiceKeywordTags');
+  if (!container) return;
+  if (!customModifiers.length) {
+    container.innerHTML = '<span style="font-size:0.75rem;color:var(--text-muted);padding:4px 2px;">尚無自訂關鍵字</span>';
+    return;
+  }
+  container.innerHTML = customModifiers.map((kw, i) => `
+    <span class="voice-keyword-tag">
+      ${kw}
+      <button onclick="deleteVoiceKeyword(${i})" title="刪除">×</button>
+    </span>
+  `).join('');
+}
+
+function addVoiceKeyword() {
+  const input = document.getElementById('inputVoiceKeyword');
+  const kw = input.value.trim();
+  if (!kw) return;
+  if (customModifiers.includes(kw)) { showToast(`「${kw}」已在清單中`); input.value = ''; return; }
+  const updated = [...customModifiers, kw];
+  dbCustomModifiers.set(updated);
+  input.value = '';
+  input.focus();
+}
+
+function deleteVoiceKeyword(index) {
+  const updated = customModifiers.filter((_, i) => i !== index);
+  dbCustomModifiers.set(updated);
+}
+
+document.getElementById('btnAddVoiceKeyword').addEventListener('click', addVoiceKeyword);
+document.getElementById('inputVoiceKeyword').addEventListener('keydown', e => { if (e.key === 'Enter') addVoiceKeyword(); });
 
 function addMenuItem() {
   const name     = document.getElementById('inputMenuName').value.trim();

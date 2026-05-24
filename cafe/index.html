@@ -368,6 +368,24 @@
 
       <!-- Menu list -->
       <div id="menuItemsList" class="menu-items-list"></div>
+
+      <!-- Voice keywords section -->
+      <div class="voice-keywords-section">
+        <div class="voice-keywords-header">
+          <div class="voice-keywords-title-row">
+            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--primary)">mic</span>
+            <span class="edit-options-title">自訂語音關鍵字</span>
+          </div>
+          <span class="voice-keywords-hint">語音點餐時可辨識的口語詞（如：果醬起司、不加冰）</span>
+        </div>
+        <div class="voice-keywords-input-row">
+          <input type="text" id="inputVoiceKeyword" class="input-field" placeholder="輸入關鍵字，按 Enter 新增" autocomplete="off">
+          <button class="btn-primary-sm" id="btnAddVoiceKeyword">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+        </div>
+        <div id="voiceKeywordTags" class="voice-keyword-tags"></div>
+      </div>
     </div>
   </div>
 
