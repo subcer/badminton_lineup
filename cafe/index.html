@@ -3,33 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>咖啡廳點餐系統</title>
+  <title>點餐管理系統</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet">
+
+  <!-- Font Awesome (for icons already in use) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
   <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-  <!-- ── Header ── -->
+  <!-- ══════════════════════════════════════
+       Header
+  ══════════════════════════════════════ -->
   <header class="app-header">
-    <i class="fa-solid fa-mug-hot" style="color:#fff;font-size:1.3rem;"></i>
-    <h1>點餐管理</h1>
-    <span class="header-subtitle" id="tableCount">0 桌</span>
-    <button class="btn-icon" id="btnOpenMenu" title="菜單管理">
-      <i class="fa-solid fa-book-open"></i>
-    </button>
-    <button class="btn-icon" id="btnHeaderAdd" title="新增餐桌">
-      <i class="fa-solid fa-plus"></i>
-    </button>
+    <div class="header-brand">
+      <div class="brand-icon">
+        <span class="material-symbols-outlined">restaurant</span>
+      </div>
+      <div class="brand-text">
+        <h1>點餐管理</h1>
+        <p class="brand-sub">餐桌管理系統</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-header-action" id="btnOpenMenu" title="菜單管理">
+        <span class="material-symbols-outlined">restaurant_menu</span>
+        <span class="btn-action-label">菜單</span>
+      </button>
+      <button class="btn-header-add" id="btnHeaderAdd">
+        <span class="material-symbols-outlined">add</span>
+        新增餐桌
+      </button>
+    </div>
   </header>
 
-  <!-- ── Main ── -->
+  <!-- ══════════════════════════════════════
+       Stats Bar
+  ══════════════════════════════════════ -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-total">
+        <span class="material-symbols-outlined">table_restaurant</span>
+      </div>
+      <div>
+        <p class="stat-label">總桌數</p>
+        <p class="stat-value" id="statTotal">0</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-empty">
+        <span class="material-symbols-outlined">event_seat</span>
+      </div>
+      <div>
+        <p class="stat-label">空桌</p>
+        <p class="stat-value" id="statEmpty">0</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-ordering">
+        <span class="material-symbols-outlined">timer</span>
+      </div>
+      <div>
+        <p class="stat-label">點餐中</p>
+        <p class="stat-value" id="statOrdering">0</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-served">
+        <span class="material-symbols-outlined">check_circle</span>
+      </div>
+      <div>
+        <p class="stat-label">已出餐</p>
+        <p class="stat-value" id="statServed">0</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-paid">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+      <div>
+        <p class="stat-label">已結帳</p>
+        <p class="stat-value" id="statPaid">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Main
+  ══════════════════════════════════════ -->
   <main class="main">
-    <div class="section-title">餐桌狀況</div>
+    <div class="section-header">
+      <div>
+        <h2 class="section-title-lg">餐桌概況</h2>
+        <p class="section-subtitle">即時樓面狀況</p>
+      </div>
+    </div>
     <div class="tables-grid" id="tablesGrid"></div>
   </main>
 
@@ -38,86 +118,140 @@
   ══════════════════════════════════════ -->
   <div class="modal-overlay" id="tableModal">
     <div class="modal">
+
+      <!-- Modal Header -->
       <div class="modal-header">
-        <span class="modal-title" id="modalTitle">桌號</span>
-        <button class="modal-close" id="btnCloseModal"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <!-- Status progress dots -->
-      <div class="status-flow">
-        <div class="status-dot" title="空桌"></div>
-        <div class="status-dot" title="點餐中"></div>
-        <div class="status-dot" title="已出餐"></div>
-        <div class="status-dot" title="已結帳"></div>
-      </div>
-
-      <!-- Voice Section -->
-      <div class="voice-section">
-        <button class="voice-btn" id="btnVoice">
-          <i class="fa-solid fa-microphone"></i>
-          <span>語音點餐</span>
+        <div class="modal-header-left">
+          <span class="modal-table-label">餐桌</span>
+          <span class="modal-title" id="modalTitle">桌號</span>
+        </div>
+        <button class="modal-close" id="btnCloseModal">
+          <span class="material-symbols-outlined">close</span>
         </button>
-        <span class="voice-status" id="voiceStatus"></span>
       </div>
 
-      <!-- Voice Result (hidden until recognition) -->
+      <!-- Status Flow -->
+      <div class="status-flow">
+        <div class="status-step">
+          <div class="status-dot" title="空桌"></div>
+          <span class="status-step-label">空桌</span>
+        </div>
+        <div class="status-line"></div>
+        <div class="status-step">
+          <div class="status-dot" title="點餐中"></div>
+          <span class="status-step-label">點餐中</span>
+        </div>
+        <div class="status-line"></div>
+        <div class="status-step">
+          <div class="status-dot" title="已出餐"></div>
+          <span class="status-step-label">已出餐</span>
+        </div>
+        <div class="status-line"></div>
+        <div class="status-step">
+          <div class="status-dot" title="已結帳"></div>
+          <span class="status-step-label">已結帳</span>
+        </div>
+      </div>
+
+      <!-- ── 語音點餐區 ── -->
+      <div class="voice-section" id="voiceSection">
+        <div class="voice-idle-row">
+          <button class="voice-btn" id="btnVoice">
+            <span class="material-symbols-outlined">mic</span>
+            <span class="voice-btn-label">語音點餐</span>
+          </button>
+          <span class="voice-status" id="voiceStatus"></span>
+        </div>
+
+        <!-- Waveform (visible when recording) -->
+        <div class="voice-active-area" id="voiceActiveArea">
+          <div class="mic-pulse-wrap">
+            <div class="mic-pulse-ring ring-outer"></div>
+            <div class="mic-pulse-ring ring-inner"></div>
+            <div class="mic-btn-large">
+              <span class="material-symbols-outlined">mic</span>
+            </div>
+          </div>
+          <div class="waveform" id="voiceWaveform">
+            <div class="waveform-bar" style="animation-delay:0.0s"></div>
+            <div class="waveform-bar" style="animation-delay:0.15s"></div>
+            <div class="waveform-bar" style="animation-delay:0.3s"></div>
+            <div class="waveform-bar" style="animation-delay:0.1s"></div>
+            <div class="waveform-bar" style="animation-delay:0.25s"></div>
+            <div class="waveform-bar" style="animation-delay:0.4s"></div>
+            <div class="waveform-bar" style="animation-delay:0.05s"></div>
+            <div class="waveform-bar" style="animation-delay:0.2s"></div>
+          </div>
+          <p class="voice-listening-label">聆聽中…</p>
+        </div>
+      </div>
+
+      <!-- Voice Result -->
       <div class="voice-result" id="voiceResult" style="display:none">
         <div class="voice-result-header">
-          <i class="fa-solid fa-waveform-lines"></i>
+          <span class="material-symbols-outlined voice-result-icon">graphic_eq</span>
           <span class="voice-result-text" id="voiceResultText"></span>
           <button class="voice-result-close" id="btnClearVoice">
-            <i class="fa-solid fa-xmark"></i>
+            <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="voice-parsed-list" id="voiceParsedList"></div>
         <div class="voice-no-match" id="voiceNoMatch" style="display:none">
-          <i class="fa-solid fa-circle-exclamation"></i> 找不到菜單品項，請先到「菜單管理」新增品項，或手動輸入
+          <span class="material-symbols-outlined">warning</span>
+          找不到菜單品項，請先到「菜單管理」新增品項
         </div>
         <button class="btn-voice-confirm" id="btnVoiceConfirm" style="display:none">
-          <i class="fa-solid fa-check"></i> 全部加入訂單
+          <span class="material-symbols-outlined">send</span>
+          全部加入訂單
         </button>
       </div>
 
       <!-- Order List -->
+      <div class="order-section-label">目前訂單</div>
       <div class="order-list" id="orderList"></div>
 
       <!-- Total Bar -->
       <div class="order-total" id="orderTotal" style="display:none">
-        <span class="order-total-label"><i class="fa-solid fa-calculator"></i> 小計</span>
+        <span class="order-total-label">
+          <span class="material-symbols-outlined">receipt</span> 小計
+        </span>
         <span class="order-total-amount" id="orderTotalAmount">$0</span>
       </div>
 
-      <!-- Add item form -->
+      <!-- Add Item Form -->
       <div class="add-item-form">
-        <!-- Menu Quick-Pick (loaded from Firebase) -->
-        <div id="menuPickerWrap">
-          <div class="form-label" style="margin-bottom:6px;">菜單快選</div>
+        <!-- Menu Quick Pick -->
+        <div class="menu-picker-wrap">
+          <p class="form-label-sm">菜單快選</p>
           <div class="menu-picker" id="menuPicker">
             <span class="menu-picker-empty">尚無菜單，請先到「菜單管理」新增品項</span>
           </div>
         </div>
 
-        <div class="add-item-row">
-          <input type="text"   id="inputItemName"  placeholder="品項名稱" autocomplete="off">
-          <input type="number" id="inputItemPrice" class="price-input" placeholder="價格" min="0">
-          <input type="number" id="inputItemQty"   class="qty-input"   value="1" min="1" max="99">
-          <button class="btn-add-item" id="btnAddItem">加入</button>
+        <div class="add-item-inputs">
+          <input type="text"   id="inputItemName"  class="input-field input-name"  placeholder="品項名稱" autocomplete="off">
+          <input type="number" id="inputItemPrice" class="input-field input-price" placeholder="價格" min="0">
+          <input type="number" id="inputItemQty"   class="input-field input-qty"   value="1" min="1" max="99">
+          <button class="btn-add-item" id="btnAddItem">
+            <span class="material-symbols-outlined">add</span>
+          </button>
         </div>
-        <input type="text" id="inputItemNote" class="note-input"
-               placeholder="備註（例：少糖、去冰）" autocomplete="off"
-               style="border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;background:#fff;outline:none;width:100%;">
+        <input type="text" id="inputItemNote" class="input-field input-note" placeholder="備註（少糖、去冰…）" autocomplete="off">
       </div>
 
-      <!-- Actions -->
+      <!-- Action Buttons -->
       <div class="modal-actions">
         <button class="btn btn-served" id="btnMarkServed">
-          <i class="fa-solid fa-bell-concierge"></i> 已出餐
+          <span class="material-symbols-outlined">bell_notification_active</span>
+          已出餐
         </button>
         <button class="btn btn-paid" id="btnMarkPaid">
-          <i class="fa-solid fa-circle-check"></i> 已結帳
+          <span class="material-symbols-outlined">payments</span>
+          已結帳
         </button>
         <button class="btn btn-delete" id="btnDeleteTable">
-          <i class="fa-solid fa-trash"></i> 刪除桌
+          <span class="material-symbols-outlined">delete</span>
+          刪除桌
         </button>
       </div>
     </div>
@@ -127,34 +261,41 @@
        新增餐桌 Modal
   ══════════════════════════════════════ -->
   <div class="modal-overlay" id="addTableModal">
-    <div class="modal">
+    <div class="modal modal-sm">
       <div class="modal-header">
-        <span class="modal-title">新增餐桌</span>
-        <button class="modal-close" id="btnCloseAddModal"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="add-table-form">
-        <div>
-          <label class="form-label">桌號 / 名稱</label>
-          <input type="text" class="form-input" id="inputTableName"
-                 placeholder="例：桌1、吧台、戶外A" autocomplete="off">
+        <div class="modal-header-left">
+          <span class="modal-table-label">新增</span>
+          <span class="modal-title">餐桌</span>
         </div>
-        <div>
-          <label class="form-label">快速選擇</label>
-          <div class="preset-chips">
-            <span class="chip table-preset" data-name="桌1">桌1</span>
-            <span class="chip table-preset" data-name="桌2">桌2</span>
-            <span class="chip table-preset" data-name="桌3">桌3</span>
-            <span class="chip table-preset" data-name="桌4">桌4</span>
-            <span class="chip table-preset" data-name="桌5">桌5</span>
-            <span class="chip table-preset" data-name="吧台">吧台</span>
-            <span class="chip table-preset" data-name="戶外A">戶外A</span>
-            <span class="chip table-preset" data-name="外帶">外帶</span>
-          </div>
-        </div>
-        <button class="btn-primary" id="btnAddTable">
-          <i class="fa-solid fa-plus"></i> 新增餐桌
+        <button class="modal-close" id="btnCloseAddModal">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
+
+      <div class="form-group">
+        <label class="form-label-sm">桌號 / 名稱</label>
+        <input type="text" class="input-field" id="inputTableName"
+               placeholder="例：桌1、吧台、戶外A" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label-sm">快速選擇</label>
+        <div class="preset-chips">
+          <button class="chip table-preset" data-name="桌1">桌1</button>
+          <button class="chip table-preset" data-name="桌2">桌2</button>
+          <button class="chip table-preset" data-name="桌3">桌3</button>
+          <button class="chip table-preset" data-name="桌4">桌4</button>
+          <button class="chip table-preset" data-name="桌5">桌5</button>
+          <button class="chip table-preset" data-name="吧台">吧台</button>
+          <button class="chip table-preset" data-name="戶外A">戶外A</button>
+          <button class="chip table-preset" data-name="外帶">外帶</button>
+        </div>
+      </div>
+
+      <button class="btn-primary-lg" id="btnAddTable">
+        <span class="material-symbols-outlined">add</span>
+        新增餐桌
+      </button>
     </div>
   </div>
 
@@ -164,30 +305,35 @@
   <div class="modal-overlay" id="menuModal">
     <div class="modal modal-menu">
       <div class="modal-header">
-        <span class="modal-title"><i class="fa-solid fa-book-open" style="color:var(--primary);margin-right:6px;"></i>菜單管理</span>
-        <button class="modal-close" id="btnCloseMenuModal"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-header-left">
+          <span class="material-symbols-outlined" style="color:var(--primary);font-size:1.3rem;">restaurant_menu</span>
+          <span class="modal-title">菜單管理</span>
+        </div>
+        <button class="modal-close" id="btnCloseMenuModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
 
-      <!-- Add menu item form -->
+      <!-- Add item form -->
       <div class="menu-add-form">
-        <div class="form-label">新增品項</div>
+        <p class="form-label-sm" style="margin-bottom:10px;">新增品項</p>
         <div class="menu-add-row">
-          <input type="text"   id="inputMenuName"     class="form-input" placeholder="品項名稱（例：拿鐵）" autocomplete="off">
-          <input type="number" id="inputMenuPrice"    class="form-input price-field" placeholder="價格" min="0">
-          <select id="inputMenuCategory" class="form-input cat-select">
+          <input type="text"   id="inputMenuName"     class="input-field" placeholder="品項名稱" autocomplete="off" style="flex:2">
+          <input type="number" id="inputMenuPrice"    class="input-field" placeholder="定價" min="0" style="width:80px;flex:none">
+          <select id="inputMenuCategory" class="input-field" style="flex:1.2">
             <option value="咖啡">☕ 咖啡</option>
             <option value="茶飲">🍵 茶飲</option>
             <option value="甜點">🍰 甜點</option>
             <option value="輕食">🥪 輕食</option>
             <option value="其他">📦 其他</option>
           </select>
-          <button class="btn-primary" id="btnAddMenuItem" style="white-space:nowrap;">
-            <i class="fa-solid fa-plus"></i> 新增
+          <button class="btn-primary-sm" id="btnAddMenuItem">
+            <span class="material-symbols-outlined">add</span>
           </button>
         </div>
       </div>
 
-      <!-- Menu items list -->
+      <!-- Menu list -->
       <div id="menuItemsList" class="menu-items-list"></div>
     </div>
   </div>

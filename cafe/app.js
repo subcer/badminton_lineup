@@ -11,13 +11,14 @@ let menuItems = {};
 let activeTableId = null;
 
 const STATUS       = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
+const STATUS_LABEL = { empty: 'EMPTY', ordering: 'IN-USE', served: 'SERVED', paid: 'PAID' };
 const STATUS_ORDER = ['empty', 'ordering', 'served', 'paid'];
 
 // ── Firebase Listeners ──
 dbOrders.on('value', snap => {
   tables = snap.val() || {};
   renderTables();
-  updateHeaderCount();
+  renderStats();
   if (activeTableId && tables[activeTableId]) updateModalContent(activeTableId);
 });
 
@@ -34,9 +35,13 @@ function calcTotal(table) {
   }, 0);
 }
 
-function updateHeaderCount() {
-  const count = Object.keys(tables).length;
-  document.getElementById('tableCount').textContent = `${count} 桌`;
+function renderStats() {
+  const all = Object.values(tables);
+  document.getElementById('statTotal').textContent    = all.length;
+  document.getElementById('statEmpty').textContent    = all.filter(t => t.status === 'empty').length;
+  document.getElementById('statOrdering').textContent = all.filter(t => t.status === 'ordering').length;
+  document.getElementById('statServed').textContent   = all.filter(t => t.status === 'served').length;
+  document.getElementById('statPaid').textContent     = all.filter(t => t.status === 'paid').length;
 }
 
 // ── Render Tables ──
@@ -46,9 +51,9 @@ function renderTables() {
   grid.innerHTML = '';
 
   if (sorted.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <i class="fa-solid fa-mug-hot"></i>
-      <p>還沒有餐桌，點右上角「+桌」新增</p>
+    grid.innerHTML = `<div class="empty-state">
+      <span class="material-symbols-outlined">table_restaurant</span>
+      <p>還沒有餐桌，點右上角「新增餐桌」</p>
     </div>`;
   } else {
     sorted.forEach(([id, table]) => grid.appendChild(buildTableCard(id, table)));
@@ -56,7 +61,7 @@ function renderTables() {
 
   const addCard = document.createElement('div');
   addCard.className = 'add-table-card';
-  addCard.innerHTML = '<i class="fa-solid fa-plus"></i><span>新增餐桌</span>';
+  addCard.innerHTML = `<span class="material-symbols-outlined">add_circle</span><span class="label">新增餐桌</span>`;
   addCard.onclick = openAddTableModal;
   grid.appendChild(addCard);
 }
@@ -69,17 +74,32 @@ function buildTableCard(id, table) {
   const items = Object.values(table.items || {});
   const doneCount = items.filter(i => i.done).length;
   const total = calcTotal(table);
-  const summaryText = items.slice(0, 3).map(i => `${i.name}${i.qty > 1 ? ' ×' + i.qty : ''}`).join('、');
+
+  const itemsHtml = items.length === 0
+    ? `<p class="tc-empty-body">尚無訂單</p>`
+    : items.slice(0, 3).map(i => {
+        const lineTotal = (Number(i.price) || 0) * (Number(i.qty) || 1);
+        return `<div class="tc-order-item">
+          <span>${i.name}${i.qty > 1 ? ` ×${i.qty}` : ''}</span>
+          <span>${lineTotal > 0 ? '$' + lineTotal : i.done ? '✓' : '—'}</span>
+        </div>`;
+      }).join('');
 
   card.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-      <span class="table-name">${table.name}</span>
-      <span class="table-status-badge">${STATUS[table.status]}</span>
+    <div class="tc-header">
+      <div>
+        <span class="tc-label">餐桌</span>
+        <h3 class="tc-name">${table.name}</h3>
+      </div>
+      <span class="tc-badge">${STATUS_LABEL[table.status]}</span>
     </div>
-    <div class="table-summary">${summaryText || '無訂單'}</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px;">
-      ${items.length > 0 ? `<span class="table-item-count">✓ ${doneCount}/${items.length}</span>` : '<span></span>'}
-      <span class="table-total">${total > 0 ? '$' + total : '—'}</span>
+    <div class="tc-body">${itemsHtml}</div>
+    <div class="tc-footer">
+      <div class="tc-total-wrap">
+        <span class="tc-total-label">小計</span>
+        <span class="tc-total-amount">${total > 0 ? '$' + total : '—'}</span>
+      </div>
+      ${items.length > 0 ? `<span class="tc-progress">✓ ${doneCount}/${items.length}</span>` : ''}
     </div>
   `;
   return card;
@@ -89,6 +109,7 @@ function buildTableCard(id, table) {
 function openTableModal(tableId) {
   activeTableId = tableId;
   clearVoiceResult();
+  document.getElementById('voiceSection').classList.remove('recording');
   document.getElementById('tableModal').classList.add('open');
   updateModalContent(tableId);
 }
@@ -278,7 +299,8 @@ function initSpeechRecognition() {
 
   recognition.onstart = () => {
     document.getElementById('btnVoice').classList.add('recording');
-    document.getElementById('voiceStatus').textContent = '🔴 聆聽中…';
+    document.getElementById('voiceStatus').textContent = '';
+    document.getElementById('voiceSection').classList.add('recording');
   };
 
   recognition.onresult = e => {
@@ -297,6 +319,7 @@ function initSpeechRecognition() {
 function stopRecording() {
   document.getElementById('btnVoice').classList.remove('recording');
   document.getElementById('voiceStatus').textContent = '';
+  document.getElementById('voiceSection').classList.remove('recording');
 }
 
 document.getElementById('btnVoice').addEventListener('click', () => {
