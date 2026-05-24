@@ -786,42 +786,57 @@ body {
 .btn-edit-item:hover { background: var(--primary-faint); border-color: var(--primary); color: var(--primary); }
 .btn-edit-item .material-symbols-outlined { font-size: 0.95rem; }
 
-.menu-manage-row.editing { gap: 6px; flex-wrap: wrap; padding: 10px 0; }
-.menu-edit-input {
-  flex: 1; min-width: 100px;
-  padding: 6px 10px; border-radius: var(--radius-xs);
-  border: 1.5px solid var(--primary); background: var(--surface);
-  font-size: 0.88rem; font-family: inherit; color: var(--text);
-  outline: none;
+.menu-manage-row.editing {
+  flex-direction: column; align-items: stretch; gap: 8px;
+  padding: 12px 14px; margin: 4px 0;
+  background: var(--primary-faint);
+  border-radius: var(--radius-sm);
+  border-bottom: none;
 }
-.menu-edit-price {
-  width: 80px;
-  padding: 6px 10px; border-radius: var(--radius-xs);
+.menu-edit-fields {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.menu-edit-input {
+  flex: 1; min-width: 120px;
+  padding: 8px 12px; border-radius: var(--radius-xs);
   border: 1.5px solid var(--border); background: var(--surface);
   font-size: 0.88rem; font-family: inherit; color: var(--text);
-  outline: none;
+  outline: none; transition: border-color 0.15s;
+}
+.menu-edit-input:focus { border-color: var(--primary); }
+.menu-edit-price {
+  width: 90px; flex: none;
+  padding: 8px 12px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 0.88rem; font-family: inherit; color: var(--text);
+  outline: none; transition: border-color 0.15s;
 }
 .menu-edit-price:focus { border-color: var(--primary); }
-.menu-edit-cat {
-  padding: 6px 8px; border-radius: var(--radius-xs);
+.menu-edit-cat-input {
+  width: 90px; flex: none;
+  padding: 8px 12px; border-radius: var(--radius-xs);
   border: 1.5px solid var(--border); background: var(--surface);
-  font-size: 0.82rem; font-family: inherit; color: var(--text);
-  cursor: pointer; outline: none;
+  font-size: 0.88rem; font-family: inherit; color: var(--text);
+  outline: none; transition: border-color 0.15s;
 }
-.menu-edit-cat:focus { border-color: var(--primary); }
+.menu-edit-cat-input:focus { border-color: var(--primary); }
+.menu-edit-btns {
+  display: flex; gap: 8px; align-items: center;
+}
 .btn-edit-save {
-  display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: var(--radius-xs);
+  display: flex; align-items: center; gap: 4px;
+  padding: 7px 16px; border-radius: var(--radius-xs);
   background: var(--green); border: none; color: #fff;
-  cursor: pointer; flex-shrink: 0; transition: opacity 0.15s;
+  font-size: 0.82rem; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: opacity 0.15s;
 }
 .btn-edit-save:hover { opacity: 0.85; }
-.btn-edit-save .material-symbols-outlined { font-size: 1rem; }
+.btn-edit-save .material-symbols-outlined { font-size: 0.95rem; }
 .btn-edit-cancel {
   display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: var(--radius-xs);
-  background: var(--surface-low); border: 1.5px solid var(--border);
-  color: var(--text-muted); cursor: pointer; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: var(--radius-xs);
+  background: none; border: 1.5px solid var(--border);
+  color: var(--text-muted); cursor: pointer;
   transition: all 0.15s;
 }
 .btn-edit-cancel:hover { border-color: var(--red); color: var(--red); }

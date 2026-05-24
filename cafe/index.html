@@ -352,13 +352,14 @@
         <div class="menu-add-row">
           <input type="text"   id="inputMenuName"     class="input-field" placeholder="品項名稱" autocomplete="off" style="flex:2">
           <input type="number" id="inputMenuPrice"    class="input-field" placeholder="定價" min="0" style="width:80px;flex:none">
-          <select id="inputMenuCategory" class="input-field" style="flex:1.2">
-            <option value="咖啡">☕ 咖啡</option>
-            <option value="茶飲">🍵 茶飲</option>
-            <option value="甜點">🍰 甜點</option>
-            <option value="輕食">🥪 輕食</option>
-            <option value="其他">📦 其他</option>
-          </select>
+          <input type="text" id="inputMenuCategory" class="input-field" placeholder="分類" list="categoryList" autocomplete="off" style="flex:1.2">
+          <datalist id="categoryList">
+            <option value="咖啡">
+            <option value="茶飲">
+            <option value="甜點">
+            <option value="輕食">
+            <option value="其他">
+          </datalist>
           <button class="btn-primary-sm" id="btnAddMenuItem">
             <span class="material-symbols-outlined">add</span>
           </button>

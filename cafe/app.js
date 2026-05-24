@@ -621,7 +621,7 @@ document.getElementById('inputMenuName').addEventListener('keydown', e => { if (
 function addMenuItem() {
   const name     = document.getElementById('inputMenuName').value.trim();
   const price    = parseFloat(document.getElementById('inputMenuPrice').value) || 0;
-  const category = document.getElementById('inputMenuCategory').value;
+  const category = document.getElementById('inputMenuCategory').value.trim() || '其他';
   if (!name) return;
   const id = 'menu_' + Date.now();
   dbMenu.child(id).set({ name, price, category, order: Date.now() });
@@ -645,7 +645,16 @@ function deleteMenuItem(id) {
   });
 }
 
+function syncCategoryDatalist() {
+  const dl = document.getElementById('categoryList');
+  if (!dl) return;
+  const existing = new Set(['咖啡','茶飲','甜點','輕食','其他']);
+  Object.values(menuItems).forEach(i => { if (i.category) existing.add(i.category); });
+  dl.innerHTML = [...existing].map(c => `<option value="${c}">`).join('');
+}
+
 function renderMenuItemsList() {
+  syncCategoryDatalist();
   const list = document.getElementById('menuItemsList');
   const sorted = Object.entries(menuItems).sort((a, b) => a[1].order - b[1].order);
 
@@ -659,9 +668,6 @@ function renderMenuItemsList() {
     if (!groups[item.category]) groups[item.category] = [];
     groups[item.category].push([id, item]);
   });
-
-  const CATS = ['咖啡','茶飲','甜點','輕食','其他'];
-  const catOptions = CATS.map(c => `<option value="${c}">${c}</option>`).join('');
 
   list.innerHTML = '';
   Object.entries(groups).forEach(([cat, items]) => {
@@ -691,21 +697,28 @@ function startEditMenuItem(id) {
   const item = menuItems[id];
   if (!item) return;
 
-  const CATS = ['咖啡','茶飲','甜點','輕食','其他'];
-  const catOptions = CATS.map(c => `<option value="${c}"${c === item.category ? ' selected' : ''}>${c}</option>`).join('');
+  const existing = new Set(['咖啡','茶飲','甜點','輕食','其他']);
+  Object.values(menuItems).forEach(i => { if (i.category) existing.add(i.category); });
+  const editListId = `editCatList-${id}`;
+  const datalistHtml = `<datalist id="${editListId}">${[...existing].map(c=>`<option value="${c}">`).join('')}</datalist>`;
 
   const row = document.getElementById(`menu-row-${id}`);
   row.classList.add('editing');
   row.innerHTML = `
-    <input class="menu-edit-input" id="editName-${id}" value="${item.name}" placeholder="品項名稱">
-    <input class="menu-edit-price" id="editPrice-${id}" type="number" value="${item.price || ''}" placeholder="定價">
-    <select class="menu-edit-cat" id="editCat-${id}">${catOptions}</select>
-    <button class="btn-edit-save" onclick="saveEditMenuItem('${id}')" title="儲存">
-      <span class="material-symbols-outlined">check</span>
-    </button>
-    <button class="btn-edit-cancel" onclick="renderMenuItemsList()" title="取消">
-      <span class="material-symbols-outlined">close</span>
-    </button>
+    <div class="menu-edit-fields">
+      <input class="menu-edit-input" id="editName-${id}" value="${item.name}" placeholder="品項名稱">
+      <input class="menu-edit-price" id="editPrice-${id}" type="number" value="${item.price || ''}" placeholder="定價">
+      <input class="menu-edit-cat-input" id="editCat-${id}" value="${item.category || ''}" placeholder="分類" list="${editListId}" autocomplete="off">
+      ${datalistHtml}
+    </div>
+    <div class="menu-edit-btns">
+      <button class="btn-edit-save" onclick="saveEditMenuItem('${id}')" title="儲存">
+        <span class="material-symbols-outlined">check</span>儲存
+      </button>
+      <button class="btn-edit-cancel" onclick="renderMenuItemsList()" title="取消">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
   `;
   document.getElementById(`editName-${id}`).focus();
 }
@@ -713,7 +726,7 @@ function startEditMenuItem(id) {
 function saveEditMenuItem(id) {
   const name  = document.getElementById(`editName-${id}`)?.value.trim();
   const price = parseFloat(document.getElementById(`editPrice-${id}`)?.value) || 0;
-  const cat   = document.getElementById(`editCat-${id}`)?.value;
+  const cat   = document.getElementById(`editCat-${id}`)?.value.trim() || '其他';
   if (!name) return;
   dbMenu.child(id).update({ name, price, category: cat });
   showToast(`已更新「${name}」`);
