@@ -233,8 +233,32 @@ function renderMenuPicker() {
 // ══════════════════════════════════════════════════
 
 const CN_NUM_MAP = { '零':0,'一':1,'兩':2,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10 };
-// 量詞、動詞填充詞，辨識後去除
-const FILLER_RE  = /[要來給我想幫各份杯個碗盤支罐瓶袋盒碟]/g;
+
+// 只保留這些已知修飾詞當備註，其他雜字丟棄（長的先比對）
+const MODIFIERS = [
+  // 溫度
+  '去冰', '少冰', '微冰', '半冰', '加冰', '正常冰', '常溫', '室溫',
+  '熱的', '冰的', '溫的', '熱', '冰', '溫',
+  // 甜度
+  '無糖', '微糖', '少糖', '半糖', '七分糖', '三分糖', '全糖', '不加糖', '少甜', '不甜',
+  // 大小
+  '大杯', '中杯', '小杯', '大的', '小的',
+  // 其他常見
+  '加奶', '不加奶', '少奶', '外帶', '內用', '打包'
+];
+
+function extractModifiers(text) {
+  const found = [];
+  const sorted = [...MODIFIERS].sort((a, b) => b.length - a.length);
+  let remaining = text;
+  for (const mod of sorted) {
+    if (remaining.includes(mod)) {
+      found.push(mod);
+      remaining = remaining.split(mod).join('');
+    }
+  }
+  return found.join('、');
+}
 
 let recognition      = null;
 let voiceParsedItems = [];
@@ -317,15 +341,10 @@ function parseVoiceText(rawText) {
     if (numBefore !== null && numBefore > 0) qty = numBefore;
     else if (numAfter !== null && numAfter > 0) qty = numAfter;
 
-    // 備註：去掉數字、填充詞後剩下的字
-    const noteRaw = (before + after)
-      .replace(/\d+/g, '')
-      .replace(new RegExp(Object.keys(CN_NUM_MAP).join('|'), 'g'), '')
-      .replace(FILLER_RE, '')
-      .replace(/[，,。、！!？?\s]/g, '')
-      .trim();
+    // 備註：只保留已知修飾詞（溫度/甜度/大小），雜字一律丟棄
+    const note = extractModifiers(before + after);
 
-    results.push({ name: menuItem.name, qty, note: noteRaw, price: menuItem.price || 0 });
+    results.push({ name: menuItem.name, qty, note, price: menuItem.price || 0 });
 
     // 把已比對區段遮蔽，避免重複
     workText = workText.slice(0, winStart) + '　'.repeat(winEnd - winStart) + workText.slice(winEnd);
