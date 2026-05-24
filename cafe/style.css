@@ -920,6 +920,70 @@ body {
 .history-meta { font-size: 0.72rem; color: var(--text-muted); }
 
 /* ══════════════════════════════════════════
+   Custom Confirm Modal
+══════════════════════════════════════════ */
+.confirm-overlay {
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+.confirm-modal {
+  width: min(88vw, 340px);
+  border-radius: var(--radius);
+  padding: 32px 28px 24px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  gap: 0;
+  animation: modal-pop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modal-pop {
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.confirm-icon-wrap {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff3e0;
+  margin-bottom: 16px;
+}
+.confirm-icon-wrap .material-symbols-outlined {
+  font-size: 1.8rem; color: var(--orange);
+}
+.confirm-icon-wrap.danger { background: #fde8e8; }
+.confirm-icon-wrap.danger .material-symbols-outlined { color: var(--red); }
+.confirm-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.05rem; font-weight: 800;
+  color: var(--text); margin: 0 0 8px;
+}
+.confirm-message {
+  font-size: 0.88rem; color: var(--text-sub); line-height: 1.6;
+  margin: 0 0 24px;
+}
+.confirm-actions {
+  display: flex; gap: 10px; width: 100%;
+}
+.btn-confirm-cancel {
+  flex: 1;
+  padding: 11px 0; border-radius: var(--radius-xs);
+  background: var(--surface-low); border: 1.5px solid var(--border);
+  font-size: 0.9rem; font-weight: 700; color: var(--text-sub);
+  cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-confirm-cancel:hover { border-color: var(--primary); color: var(--primary); }
+.btn-confirm-ok {
+  flex: 1;
+  padding: 11px 0; border-radius: var(--radius-xs);
+  background: var(--red); border: none;
+  font-size: 0.9rem; font-weight: 700; color: #fff;
+  cursor: pointer; font-family: inherit;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-confirm-ok:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-confirm-ok.safe { background: var(--primary); }
+
+/* ══════════════════════════════════════════
    Toast
 ══════════════════════════════════════════ */
 .toast {

@@ -555,10 +555,18 @@ document.getElementById('btnMarkPaid').addEventListener('click', () => {
 });
 
 document.getElementById('btnDeleteTable').addEventListener('click', () => {
-  if (!confirm(`確定要刪除「${tables[activeTableId]?.name}」並清空所有訂單？`)) return;
-  dbOrders.child(activeTableId).remove();
-  closeTableModal();
-  showToast('餐桌已刪除');
+  const name = tables[activeTableId]?.name;
+  showConfirm({
+    title: '刪除餐桌',
+    message: `確定要刪除「${name}」並清空所有訂單？此操作無法復原。`,
+    danger: true,
+    okLabel: '刪除',
+    icon: 'delete'
+  }, () => {
+    dbOrders.child(activeTableId).remove();
+    closeTableModal();
+    showToast('餐桌已刪除');
+  });
 });
 
 // ── Close Table Modal ──
@@ -624,9 +632,17 @@ function addMenuItem() {
 }
 
 function deleteMenuItem(id) {
-  if (!confirm(`確定刪除「${menuItems[id]?.name}」？`)) return;
-  dbMenu.child(id).remove();
-  showToast('已刪除品項');
+  const name = menuItems[id]?.name;
+  showConfirm({
+    title: '刪除品項',
+    message: `確定要刪除菜單品項「${name}」？`,
+    danger: true,
+    okLabel: '刪除',
+    icon: 'delete'
+  }, () => {
+    dbMenu.child(id).remove();
+    showToast('已刪除品項');
+  });
 }
 
 function renderMenuItemsList() {
@@ -759,6 +775,37 @@ document.getElementById('btnCloseHistory').addEventListener('click', () => {
 });
 document.getElementById('historyModal').addEventListener('click', e => {
   if (e.target === e.currentTarget) document.getElementById('historyModal').classList.remove('open');
+});
+
+// ── Custom Confirm Dialog ──
+let _confirmCallback = null;
+
+function showConfirm({ title = '確認操作', message, danger = true, okLabel = '確定', icon = 'warning' }, onConfirm) {
+  document.getElementById('confirmTitle').textContent   = title;
+  document.getElementById('confirmMessage').textContent = message;
+  document.getElementById('confirmIcon').textContent    = icon;
+  const iconWrap = document.getElementById('confirmIconWrap');
+  iconWrap.className = 'confirm-icon-wrap' + (danger ? ' danger' : '');
+  const okBtn = document.getElementById('btnConfirmOk');
+  okBtn.textContent = okLabel;
+  okBtn.className   = 'btn-confirm-ok' + (danger ? '' : ' safe');
+  _confirmCallback = onConfirm;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+document.getElementById('btnConfirmOk').addEventListener('click', () => {
+  document.getElementById('confirmModal').classList.remove('open');
+  if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
+});
+document.getElementById('btnConfirmCancel').addEventListener('click', () => {
+  document.getElementById('confirmModal').classList.remove('open');
+  _confirmCallback = null;
+});
+document.getElementById('confirmModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('confirmModal').classList.remove('open');
+    _confirmCallback = null;
+  }
 });
 
 // ── Toast ──
