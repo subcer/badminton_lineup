@@ -777,6 +777,121 @@ body {
 .menu-manage-price { font-family: 'Manrope', sans-serif; font-size: 0.88rem; font-weight: 800; color: var(--primary); min-width: 60px; text-align: right; }
 
 /* ══════════════════════════════════════════
+   Today Settlement Section
+══════════════════════════════════════════ */
+.today-section {
+  margin-top: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.today-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-faint);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.today-title-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.today-icon {
+  width: 40px; height: 40px;
+  background: var(--green-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green); font-size: 1.2rem;
+}
+.today-title { font-family: 'Manrope', sans-serif; font-size: 1rem; font-weight: 800; }
+.today-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+.today-revenue-wrap { text-align: right; }
+.today-revenue-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); display: block; }
+.today-revenue-amount { font-family: 'Manrope', sans-serif; font-size: 1.6rem; font-weight: 900; color: var(--primary); }
+
+.today-actions {
+  display: flex; gap: 10px; padding: 14px 20px;
+}
+
+.btn-settlement {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green); color: #fff;
+  border: none; border-radius: var(--radius-xs);
+  padding: 10px 18px;
+  font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(68,99,69,0.25);
+}
+.btn-settlement:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-settlement .material-symbols-outlined { font-size: 1rem; }
+
+.btn-history {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface-low);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 10px 16px;
+  font-size: 0.85rem; font-weight: 700; color: var(--text-sub);
+  cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-history:hover { border-color: var(--primary); color: var(--primary); }
+.btn-history .material-symbols-outlined { font-size: 1rem; }
+
+/* Settlement Modal */
+.settlement-summary {
+  background: var(--surface-low);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.settlement-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.85rem;
+}
+.settlement-row .name { color: var(--text-sub); }
+.settlement-row .amount { font-family: 'Manrope', sans-serif; font-weight: 700; color: var(--primary); }
+.settlement-divider { height: 1px; background: var(--border-faint); margin: 4px 0; }
+.settlement-total { font-size: 1rem; font-weight: 800; }
+.settlement-total .amount { font-size: 1.2rem; color: var(--primary); }
+
+.settlement-warning {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--orange-light);
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  font-size: 0.78rem; color: var(--orange);
+  font-weight: 600;
+}
+.settlement-warning .material-symbols-outlined { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+/* History List */
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-empty { text-align: center; color: var(--text-muted); padding: 32px 0; font-size: 0.88rem; }
+
+.history-card {
+  background: var(--surface-low);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.history-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.history-date { font-family: 'Manrope', sans-serif; font-size: 0.9rem; font-weight: 800; }
+.history-total { font-family: 'Manrope', sans-serif; font-size: 1.1rem; font-weight: 900; color: var(--primary); }
+.history-meta { font-size: 0.72rem; color: var(--text-muted); }
+
+/* ══════════════════════════════════════════
    Toast
 ══════════════════════════════════════════ */
 .toast {

@@ -111,6 +111,33 @@
       </div>
     </div>
     <div class="tables-grid" id="tablesGrid"></div>
+
+    <!-- 今日結帳區塊 -->
+    <div class="today-section" id="todaySection">
+      <div class="today-section-header">
+        <div class="today-title-row">
+          <span class="material-symbols-outlined today-icon">receipt_long</span>
+          <div>
+            <h3 class="today-title">今日已結帳</h3>
+            <p class="today-sub">共 <span id="todayPaidCount">0</span> 桌・<span id="todayPaidTables"></span></p>
+          </div>
+        </div>
+        <div class="today-revenue-wrap">
+          <span class="today-revenue-label">今日營業額</span>
+          <span class="today-revenue-amount" id="todayRevenue">—</span>
+        </div>
+      </div>
+      <div class="today-actions">
+        <button class="btn-settlement" id="btnSettlement">
+          <span class="material-symbols-outlined">event_available</span>
+          執行日結
+        </button>
+        <button class="btn-history" id="btnHistory">
+          <span class="material-symbols-outlined">history</span>
+          歷史紀錄
+        </button>
+      </div>
+    </div>
   </main>
 
   <!-- ══════════════════════════════════════
@@ -335,6 +362,52 @@
 
       <!-- Menu list -->
       <div id="menuItemsList" class="menu-items-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       日結確認 Modal
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="settlementModal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="material-symbols-outlined" style="color:var(--green);font-size:1.3rem;">event_available</span>
+          <span class="modal-title">今日日結</span>
+        </div>
+        <button class="modal-close" id="btnCloseSettlement">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="settlement-summary" id="settlementSummary"></div>
+      <div class="settlement-warning">
+        <span class="material-symbols-outlined">info</span>
+        執行日結後，今日已結帳紀錄將儲存至歷史並從桌面清除。
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-served" id="btnCancelSettlement" style="flex:1">取消</button>
+        <button class="btn-primary-lg" id="btnConfirmSettlement" style="flex:2;padding:10px;">
+          <span class="material-symbols-outlined">check</span>確認日結
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       歷史紀錄 Modal
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal modal-menu">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="material-symbols-outlined" style="color:var(--primary);font-size:1.3rem;">history</span>
+          <span class="modal-title">日結歷史紀錄</span>
+        </div>
+        <button class="modal-close" id="btnCloseHistory">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="historyList" class="history-list"></div>
     </div>
   </div>
 
