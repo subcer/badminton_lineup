@@ -660,6 +660,9 @@ function renderMenuItemsList() {
     groups[item.category].push([id, item]);
   });
 
+  const CATS = ['咖啡','茶飲','甜點','輕食','其他'];
+  const catOptions = CATS.map(c => `<option value="${c}">${c}</option>`).join('');
+
   list.innerHTML = '';
   Object.entries(groups).forEach(([cat, items]) => {
     const section = document.createElement('div');
@@ -667,9 +670,13 @@ function renderMenuItemsList() {
     items.forEach(([id, item]) => {
       const row = document.createElement('div');
       row.className = 'menu-manage-row';
+      row.id = `menu-row-${id}`;
       row.innerHTML = `
         <span class="menu-manage-name">${item.name}</span>
         <span class="menu-manage-price">${item.price > 0 ? '$' + item.price : '未定價'}</span>
+        <button class="btn-edit-item" onclick="startEditMenuItem('${id}')" title="編輯">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
         <button class="btn-del-item" onclick="deleteMenuItem('${id}')">
           <i class="fa-solid fa-trash"></i>
         </button>
@@ -678,6 +685,38 @@ function renderMenuItemsList() {
     });
     list.appendChild(section);
   });
+}
+
+function startEditMenuItem(id) {
+  const item = menuItems[id];
+  if (!item) return;
+
+  const CATS = ['咖啡','茶飲','甜點','輕食','其他'];
+  const catOptions = CATS.map(c => `<option value="${c}"${c === item.category ? ' selected' : ''}>${c}</option>`).join('');
+
+  const row = document.getElementById(`menu-row-${id}`);
+  row.classList.add('editing');
+  row.innerHTML = `
+    <input class="menu-edit-input" id="editName-${id}" value="${item.name}" placeholder="品項名稱">
+    <input class="menu-edit-price" id="editPrice-${id}" type="number" value="${item.price || ''}" placeholder="定價">
+    <select class="menu-edit-cat" id="editCat-${id}">${catOptions}</select>
+    <button class="btn-edit-save" onclick="saveEditMenuItem('${id}')" title="儲存">
+      <span class="material-symbols-outlined">check</span>
+    </button>
+    <button class="btn-edit-cancel" onclick="renderMenuItemsList()" title="取消">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  `;
+  document.getElementById(`editName-${id}`).focus();
+}
+
+function saveEditMenuItem(id) {
+  const name  = document.getElementById(`editName-${id}`)?.value.trim();
+  const price = parseFloat(document.getElementById(`editPrice-${id}`)?.value) || 0;
+  const cat   = document.getElementById(`editCat-${id}`)?.value;
+  if (!name) return;
+  dbMenu.child(id).update({ name, price, category: cat });
+  showToast(`已更新「${name}」`);
 }
 
 // ── Daily Settlement ──

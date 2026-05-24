@@ -776,6 +776,57 @@ body {
 .menu-manage-name  { flex: 1; font-weight: 700; font-size: 0.88rem; }
 .menu-manage-price { font-family: 'Manrope', sans-serif; font-size: 0.88rem; font-weight: 800; color: var(--primary); min-width: 60px; text-align: right; }
 
+.btn-edit-item {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-xs);
+  background: none; border: 1.5px solid transparent;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.btn-edit-item:hover { background: var(--primary-faint); border-color: var(--primary); color: var(--primary); }
+.btn-edit-item .material-symbols-outlined { font-size: 0.95rem; }
+
+.menu-manage-row.editing { gap: 6px; flex-wrap: wrap; padding: 10px 0; }
+.menu-edit-input {
+  flex: 1; min-width: 100px;
+  padding: 6px 10px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--primary); background: var(--surface);
+  font-size: 0.88rem; font-family: inherit; color: var(--text);
+  outline: none;
+}
+.menu-edit-price {
+  width: 80px;
+  padding: 6px 10px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 0.88rem; font-family: inherit; color: var(--text);
+  outline: none;
+}
+.menu-edit-price:focus { border-color: var(--primary); }
+.menu-edit-cat {
+  padding: 6px 8px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-size: 0.82rem; font-family: inherit; color: var(--text);
+  cursor: pointer; outline: none;
+}
+.menu-edit-cat:focus { border-color: var(--primary); }
+.btn-edit-save {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-xs);
+  background: var(--green); border: none; color: #fff;
+  cursor: pointer; flex-shrink: 0; transition: opacity 0.15s;
+}
+.btn-edit-save:hover { opacity: 0.85; }
+.btn-edit-save .material-symbols-outlined { font-size: 1rem; }
+.btn-edit-cancel {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-xs);
+  background: var(--surface-low); border: 1.5px solid var(--border);
+  color: var(--text-muted); cursor: pointer; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.btn-edit-cancel:hover { border-color: var(--red); color: var(--red); }
+.btn-edit-cancel .material-symbols-outlined { font-size: 1rem; }
+
 /* ══════════════════════════════════════════
    Today Settlement Section
 ══════════════════════════════════════════ */
