@@ -863,8 +863,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
-  margin-top: 14px;
-  padding-top: 14px;
+  padding: 16px 20px 20px;
   border-top: 1px solid var(--border-faint);
 }
 .paid-tables-grid .table-card {
