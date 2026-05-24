@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hearth &amp; Stone | Table Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .sidebar-active-gradient {
+            background: linear-gradient(90deg, rgba(152, 66, 21, 0.15) 0%, rgba(152, 66, 21, 0) 100%);
+        }
+        body {
+            background-color: #faf9f6;
+            color: #1a1c1a;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#e6ded9",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#e9e1dc",
+                    "background": "#faf9f6",
+                    "on-primary-fixed": "#360f00",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f4f3f0",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e3e2df",
+                    "surface-bright": "#faf9f6",
+                    "surface": "#faf9f6",
+                    "tertiary-fixed": "#c7ecc6",
+                    "primary": "#984215",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#ffb596",
+                    "on-tertiary-container": "#f7fff2",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#2f312f",
+                    "on-secondary-fixed-variant": "#4b4642",
+                    "on-surface-variant": "#56433b",
+                    "secondary-fixed-dim": "#cdc5c0",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e9e8e5",
+                    "outline-variant": "#dcc1b6",
+                    "tertiary-fixed-dim": "#acd0ab",
+                    "outline": "#897269",
+                    "surface-container": "#efeeeb",
+                    "primary-container": "#b85a2b",
+                    "on-tertiary-fixed-variant": "#2f4e32",
+                    "on-background": "#1a1c1a",
+                    "inverse-on-surface": "#f2f1ee",
+                    "on-secondary-fixed": "#1e1b18",
+                    "primary-fixed": "#ffdbcd",
+                    "secondary": "#635d5a",
+                    "primary-fixed-dim": "#ffb596",
+                    "tertiary": "#446345",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#fffbff",
+                    "surface-tint": "#9b4417",
+                    "on-tertiary-fixed": "#022109",
+                    "tertiary-container": "#5c7d5d",
+                    "on-secondary-container": "#67625e",
+                    "on-primary-fixed-variant": "#7c2e00",
+                    "on-surface": "#1a1c1a",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#dbdad7",
+                    "surface-variant": "#e3e2df"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "8px",
+                    "lg": "40px",
+                    "sidebar-width": "280px",
+                    "xl": "64px",
+                    "md": "24px",
+                    "gutter": "24px",
+                    "base": "4px",
+                    "sm": "16px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Manrope"],
+                    "label-bold": ["Hanken Grotesk"],
+                    "data-tabular": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-xl": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "data-tabular": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 bottom-0 z-50 overflow-y-auto bg-on-background shadow-md h-screen w-sidebar-width flex flex-col">
+<div class="px-md py-lg">
+<div class="flex items-center gap-sm mb-xl">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-secondary-fixed text-white">Hearth &amp; Stone</h1>
+<p class="font-body-sm text-body-sm text-on-secondary-fixed-variant opacity-70 text-secondary-fixed">Premium Management</p>
+</div>
+</div>
+<nav class="space-y-xs">
+<!-- Active Item -->
+<a class="flex items-center gap-sm bg-primary/10 text-primary border-l-4 border-primary px-sm py-xs font-body-md text-body-md hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span>Table Overview</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs font-body-md text-body-md hover:bg-primary/5 transition-colors text-secondary-fixed" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span>Menu Management</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs font-body-md text-body-md hover:bg-primary/5 transition-colors text-secondary-fixed" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>Orders</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs font-body-md text-body-md hover:bg-primary/5 transition-colors text-secondary-fixed" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto px-md py-lg">
+<button class="w-full bg-primary text-on-primary font-label-bold text-label-bold py-sm px-md rounded-xl shadow-lg active:scale-95 transition-all duration-200">
+                New Reservation
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-sidebar-width min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-sidebar-width z-40 flex justify-between items-center px-gutter h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-sm">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="pl-10 pr-sm py-xs bg-surface-container-low border-none rounded-full w-64 font-body-sm text-body-sm focus:ring-2 focus:ring-primary/20" placeholder="Search tables, orders..." type="text"/>
+</div>
+<span class="text-on-surface-variant font-headline-md text-headline-md font-bold ml-sm">Management Suite</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="chat_bubble">chat_bubble</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="help">help</button>
+</div>
+<div class="w-px h-8 bg-outline-variant/30"></div>
+<div class="flex items-center gap-sm">
+<div class="text-right">
+<p class="font-label-bold text-label-bold">Julian Rossi</p>
+<p class="font-body-sm text-body-sm opacity-60">Floor Manager</p>
+</div>
+<img alt="Manager" class="w-10 h-10 rounded-full border-2 border-primary/20" data-alt="A professional headshot of a sophisticated floor manager in a premium hospitality setting. He is wearing a sharp, dark tailored suit. The lighting is warm and cinematic, reflecting the premium Amber Hearth brand colors. The background is a soft-focus interior of a modern, upscale restaurant with wood and stone elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMjUWT4fIvw6MfDXsmxtqywP8UVMzUWJYfy9JlUJ-x-wLJ_AmQeoaYj2lUBPphKlb_I5BQQGwZZilnuRpR749AWNa_ePcTc6xvKdt1nzcMexR6SkLjH1iu-N6pyGwXnffio29JBL7FrRogmHzyifQWm3_SAMxun2Z6qVTEcQYZSzXHjbiM3_8CVMmBX4s4tM31zKb8_ClfVXVB-uTfzFyb4cSaPPV97aDIz3RclJn2GksDv5JaTilxquGKj98TiHtEbSNsRzDOW2Sd"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="pt-24 px-gutter pb-xl max-w-[1440px] mx-auto">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Table Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Live floor status for Dining Room A</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex bg-surface-container rounded-lg p-1">
+<button class="px-md py-xs bg-white shadow-sm rounded-md font-label-bold text-label-bold text-primary">Map View</button>
+<button class="px-md py-xs font-label-bold text-label-bold text-on-surface-variant hover:text-primary transition-colors">List View</button>
+</div>
+<button class="flex items-center gap-xs bg-primary text-on-primary font-label-bold text-label-bold px-md py-xs rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                        Add Table
+                    </button>
+</div>
+</div>
+<!-- Stats Bar -->
+<div class="grid grid-cols-4 gap-gutter mb-lg">
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/10 flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="table_restaurant">table_restaurant</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Total Tables</p>
+<p class="font-headline-md text-headline-md">24</p>
+</div>
+</div>
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/10 flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Available</p>
+<p class="font-headline-md text-headline-md">8</p>
+</div>
+</div>
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/10 flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="timer">timer</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Occupied</p>
+<p class="font-headline-md text-headline-md">14</p>
+</div>
+</div>
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/10 flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-error" data-icon="cleaning_services">cleaning_services</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">In Cleaning</p>
+<p class="font-headline-md text-headline-md">2</p>
+</div>
+</div>
+</div>
+<!-- Table Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Table Card: In-Use -->
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">01</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-primary-container text-white">IN-USE</span>
+</div>
+<div class="p-md">
+<div class="mb-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Active Order</p>
+<div class="space-y-1">
+<div class="flex justify-between font-body-sm text-body-sm">
+<span>2x Wood-Fired Pizza</span>
+<span class="text-on-surface-variant">Ready</span>
+</div>
+<div class="flex justify-between font-body-sm text-body-sm">
+<span>1x Aged Ribeye</span>
+<span class="text-primary animate-pulse">Cooking</span>
+</div>
+<div class="flex justify-between font-body-sm text-body-sm">
+<span>3x Old Fashioned</span>
+<span class="text-on-surface-variant">Served</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/10">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TOTAL</p>
+<p class="font-data-tabular text-data-tabular text-primary">$142.50</p>
+</div>
+<button class="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary/5">
+<span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Table Card: Available -->
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">02</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-tertiary/10 text-tertiary">AVAILABLE</span>
+</div>
+<div class="p-md h-[180px] flex flex-col items-center justify-center text-center opacity-40 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-4xl mb-sm" data-icon="event_seat">event_seat</span>
+<p class="font-body-sm text-body-sm">Ready for seating</p>
+<button class="mt-md text-primary font-label-bold text-label-bold border-b border-primary/20 hover:border-primary transition-all">Open New Check</button>
+</div>
+</div>
+<!-- Table Card: In-Use (Bento style highlight) -->
+<div class="bg-white rounded-xl shadow-md border-2 border-primary/20 overflow-hidden group hover:shadow-lg transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-primary/5">
+<div>
+<span class="font-label-bold text-label-bold text-primary">TABLE</span>
+<h3 class="font-headline-md text-headline-md">04</h3>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-primary text-white">PAYING</span>
+<p class="font-body-sm text-[10px] text-on-surface-variant">Check requested 2m ago</p>
+</div>
+</div>
+<div class="p-md">
+<div class="mb-md">
+<div class="bg-surface-container-low p-sm rounded-lg mb-sm">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-bold text-[10px]">RESERVATION</span>
+<span class="text-[10px] text-on-surface-variant">VIP Guest</span>
+</div>
+<p class="font-body-md text-body-md font-bold">Mr. Henderson (4p)</p>
+</div>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/10">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TOTAL</p>
+<p class="font-data-tabular text-data-tabular text-primary">$384.20</p>
+</div>
+<button class="bg-primary text-on-primary font-label-bold text-[10px] px-md py-1.5 rounded-full shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                                PRINT CHECK
+                            </button>
+</div>
+</div>
+</div>
+<!-- Table Card: Cleaning -->
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">05</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-error/10 text-error">CLEANING</span>
+</div>
+<div class="p-md h-[180px] flex flex-col items-center justify-center text-center">
+<div class="relative mb-sm">
+<span class="material-symbols-outlined text-4xl text-error animate-spin duration-[3000ms]" data-icon="progress_activity">progress_activity</span>
+<span class="material-symbols-outlined text-xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-error" data-icon="cleaning_services">cleaning_services</span>
+</div>
+<p class="font-body-sm text-body-sm">Est. finish: 4 mins</p>
+<button class="mt-md font-label-bold text-label-bold text-on-surface-variant opacity-60">Mark as Ready</button>
+</div>
+</div>
+<!-- Table Card: Reserved -->
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">08</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-secondary-fixed text-secondary">RESERVED</span>
+</div>
+<div class="p-md">
+<div class="mb-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Coming Next</p>
+<div class="p-sm bg-surface-container-low rounded-lg border-l-4 border-secondary">
+<p class="font-body-md text-body-md font-bold">Party of 6</p>
+<p class="font-body-sm text-body-sm opacity-60">19:30 • Sarah J.</p>
+</div>
+</div>
+<div class="pt-md border-t border-outline-variant/10">
+<button class="w-full bg-secondary-container text-on-secondary-container font-label-bold text-label-bold py-2 rounded-lg hover:bg-secondary-container/80 transition-all">
+                                VIEW RESERVATION
+                            </button>
+</div>
+</div>
+</div>
+<!-- Additional In-Use Tables -->
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">12</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-primary-container text-white">IN-USE</span>
+</div>
+<div class="p-md">
+<div class="mb-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Active Order</p>
+<div class="space-y-1">
+<div class="flex justify-between font-body-sm text-body-sm">
+<span>4x Cocktails</span>
+<span class="text-on-surface-variant">Served</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/10">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TOTAL</p>
+<p class="font-data-tabular text-data-tabular text-primary">$64.00</p>
+</div>
+<button class="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary/5">
+<span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">15</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-primary-container text-white">IN-USE</span>
+</div>
+<div class="p-md">
+<div class="mb-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Active Order</p>
+<div class="space-y-1">
+<div class="flex justify-between font-body-sm text-body-sm">
+<span>Chef's Tasting Menu</span>
+<span class="text-primary">Course 3/7</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-md border-t border-outline-variant/10">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TOTAL</p>
+<p class="font-data-tabular text-data-tabular text-primary">$290.00</p>
+</div>
+<button class="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-primary/5">
+<span class="material-symbols-outlined text-[18px]" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Another Available Table -->
+<div class="bg-white rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden group hover:shadow-md transition-all">
+<div class="p-md flex justify-between items-start border-b border-outline-variant/10 bg-surface-container-lowest">
+<div>
+<span class="font-label-bold text-label-bold text-on-surface-variant opacity-60">TABLE</span>
+<h3 class="font-headline-md text-headline-md">21</h3>
+</div>
+<span class="px-sm py-1 rounded-full font-label-bold text-[10px] bg-tertiary/10 text-tertiary">AVAILABLE</span>
+</div>
+<div class="p-md h-[180px] flex flex-col items-center justify-center text-center opacity-40 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-4xl mb-sm" data-icon="event_seat">event_seat</span>
+<p class="font-body-sm text-body-sm">Ready for seating</p>
+<button class="mt-md text-primary font-label-bold text-label-bold border-b border-primary/20 hover:border-primary transition-all">Open New Check</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction script -->
+<script>
+        // Simple scale effect for cards on hover
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hearth &amp; Stone | Menu Management</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#e6ded9",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#e9e1dc",
+                    "background": "#faf9f6",
+                    "on-primary-fixed": "#360f00",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f4f3f0",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e3e2df",
+                    "surface-bright": "#faf9f6",
+                    "surface": "#faf9f6",
+                    "tertiary-fixed": "#c7ecc6",
+                    "primary": "#984215",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#ffb596",
+                    "on-tertiary-container": "#f7fff2",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#2f312f",
+                    "on-secondary-fixed-variant": "#4b4642",
+                    "on-surface-variant": "#56433b",
+                    "secondary-fixed-dim": "#cdc5c0",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e9e8e5",
+                    "outline-variant": "#dcc1b6",
+                    "tertiary-fixed-dim": "#acd0ab",
+                    "outline": "#897269",
+                    "surface-container": "#efeeeb",
+                    "primary-container": "#b85a2b",
+                    "on-tertiary-fixed-variant": "#2f4e32",
+                    "on-background": "#1a1c1a",
+                    "inverse-on-surface": "#f2f1ee",
+                    "on-secondary-fixed": "#1e1b18",
+                    "primary-fixed": "#ffdbcd",
+                    "secondary": "#635d5a",
+                    "primary-fixed-dim": "#ffb596",
+                    "tertiary": "#446345",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#fffbff",
+                    "surface-tint": "#9b4417",
+                    "on-tertiary-fixed": "#022109",
+                    "tertiary-container": "#5c7d5d",
+                    "on-secondary-container": "#67625e",
+                    "on-primary-fixed-variant": "#7c2e00",
+                    "on-surface": "#1a1c1a",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#dbdad7",
+                    "surface-variant": "#e3e2df"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "8px",
+                    "lg": "40px",
+                    "sidebar-width": "280px",
+                    "xl": "64px",
+                    "md": "24px",
+                    "gutter": "24px",
+                    "base": "4px",
+                    "sm": "16px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Manrope"],
+                    "label-bold": ["Hanken Grotesk"],
+                    "data-tabular": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-xl": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "data-tabular": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #faf9f6;
+            color: #1a1c1a;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(220, 193, 182, 0.3);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .service-card {
+            box-shadow: 0px 4px 20px rgba(45, 41, 38, 0.04);
+            transition: all 0.2s ease-in-out;
+        }
+        .service-card:hover {
+            box-shadow: 0px 8px 30px rgba(45, 41, 38, 0.08);
+            transform: translateY(-2px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #dcc1b6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 bottom-0 z-50 overflow-y-auto h-screen w-sidebar-width flex flex-col bg-secondary-fixed dark:bg-on-background shadow-md">
+<div class="p-md flex items-center gap-sm">
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-secondary-fixed leading-none">Hearth &amp; Stone</h1>
+<p class="font-body-sm text-body-sm text-on-secondary-fixed-variant opacity-80">Premium Management</p>
+</div>
+</div>
+<nav class="flex-1 px-sm mt-md space-y-xs">
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs hover:bg-primary/5 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">grid_view</span>
+<span class="font-body-md text-body-md">Table Overview</span>
+</a>
+<!-- Active State: Menu Management -->
+<a class="flex items-center gap-sm bg-primary/10 text-primary border-l-4 border-primary px-sm py-xs rounded-r-lg transition-all active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span class="font-body-md text-body-md font-bold">Menu Management</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs hover:bg-primary/5 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">receipt_long</span>
+<span class="font-body-md text-body-md">Orders</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs hover:bg-primary/5 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="p-md mt-auto">
+<button class="w-full py-sm bg-primary text-on-primary font-bold rounded-xl shadow-lg active:scale-95 transition-all">
+                New Reservation
+            </button>
+<div class="mt-md flex items-center gap-sm p-xs bg-white/10 rounded-lg">
+<img alt="Manager Avatar" class="w-8 h-8 rounded-full object-cover" data-alt="A professional headshot of a restaurant manager in a refined culinary environment. The lighting is warm and cinematic, suggesting a high-end hospitality setting. He is dressed in a crisp, modern charcoal apron over a tailored shirt. The background is softly blurred, showing hints of a stone hearth and premium kitchen equipment, maintaining a consistent brand aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLG1RtAjywz7oO4R6yUO0S7If2QgdTkTYq_UZjPyCd9qhHGUdRRLcQ8SKYLwU5izc_xB0P2_zogIFG5k6opiznMNqlE0kfWmGQYil9Xvr5xq7cRu0Uy24-mnZNBP5YgYdRUxoMLg5vDhrtgUxUSvEqvDk5LG2bjG3os8ghn2EjbkZC-3MA_18CczrZXOQaCI-XSxd_G-_QrWYejbyQVJf00ZLgUuL1I9pKRpVHsC_nmGRCOlpRoZ-grWBOnZ5kqytme1FU89hl9X2v"/>
+<div class="overflow-hidden">
+<p class="font-label-bold text-label-bold truncate text-on-secondary-fixed">Julian Rossi</p>
+<p class="text-[10px] text-on-secondary-fixed-variant opacity-70 uppercase tracking-widest">Executive Mgr</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-sidebar-width min-h-screen flex flex-col">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-lg h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-md text-headline-md font-bold text-primary">Management Suite</h2>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-xl pr-md py-xs bg-surface-container-low border-none rounded-full w-80 font-body-sm text-body-sm focus:ring-2 focus:ring-primary/20" placeholder="Search menu items..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-xs"></div>
+<img alt="Profile" class="w-10 h-10 rounded-full border-2 border-primary/20" data-alt="A detailed, professional profile portrait of a female chef or restaurant administrator. She is smiling confidently in a modern, brightly lit office space with warm stone walls. The lighting is soft and natural, emphasizing a premium corporate hospitality vibe. The color palette is composed of warm whites, soft ambers, and charcoal tones, ensuring visual harmony with the brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD15uVK2uVRtOdYSRQvZJAa8mhO9fW7BZcmO26o295b9xZ4kS6VevcV04zpoNuctSym2Wo21iXp5a6A6Sk--hR8v8zWpuUdkR-Y8116WTvcs8Q8kswhfJ4OuodbOSXJX6DzGcygbie2iUVV9z8CzkAs9L5SvkEhxMx5BlY1V6pu4uTejA0xmueV20ZL9K8EQ8_z5ChICCfA8P468qrVtsVb_yvUj3yNDaEAmZcx58rEBCdHynMGeyNxXOCGClSbRNDYgL0ensG1h5E5"/>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-lg flex flex-col gap-lg">
+<!-- Quick Add / Header Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-end">
+<div class="md:col-span-8">
+<p class="font-label-bold text-label-bold text-primary uppercase mb-xs tracking-widest">Inventory Management</p>
+<h1 class="font-headline-xl text-headline-xl text-on-surface mb-xs">Live Menu Catalog</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Refine your culinary offerings, adjust seasonal pricing, and curate the guest experience across all Hearth &amp; Stone locations.</p>
+</div>
+<div class="md:col-span-4 flex justify-end">
+<button class="flex items-center gap-xs px-md py-sm bg-primary text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Create New Entry</span>
+</button>
+</div>
+</section>
+<!-- Main Layout Split -->
+<div class="grid grid-cols-12 gap-gutter items-start">
+<!-- Left: Category Navigation -->
+<aside class="col-span-3 space-y-sm sticky top-24">
+<div class="bg-surface-container-low p-sm rounded-xl">
+<h3 class="font-label-bold text-label-bold text-outline uppercase mb-sm px-xs">Categories</h3>
+<nav class="space-y-xs">
+<button class="w-full flex items-center justify-between px-md py-sm rounded-lg bg-white shadow-sm border-l-4 border-primary text-primary font-bold transition-all">
+<span class="flex items-center gap-sm">
+<span class="material-symbols-outlined">coffee</span>
+                                    Coffee &amp; Tea
+                                </span>
+<span class="text-xs font-data-tabular bg-primary/10 px-2 py-0.5 rounded-full">24</span>
+</button>
+<button class="w-full flex items-center justify-between px-md py-sm rounded-lg hover:bg-white/60 text-on-surface-variant font-medium transition-all group">
+<span class="flex items-center gap-sm">
+<span class="material-symbols-outlined group-hover:text-primary">bakery_dining</span>
+                                    Desserts
+                                </span>
+<span class="text-xs font-data-tabular bg-outline-variant/20 px-2 py-0.5 rounded-full">12</span>
+</button>
+<button class="w-full flex items-center justify-between px-md py-sm rounded-lg hover:bg-white/60 text-on-surface-variant font-medium transition-all group">
+<span class="flex items-center gap-sm">
+<span class="material-symbols-outlined group-hover:text-primary">lunch_dining</span>
+                                    Light Meals
+                                </span>
+<span class="text-xs font-data-tabular bg-outline-variant/20 px-2 py-0.5 rounded-full">18</span>
+</button>
+<button class="w-full flex items-center justify-between px-md py-sm rounded-lg hover:bg-white/60 text-on-surface-variant font-medium transition-all group">
+<span class="flex items-center gap-sm">
+<span class="material-symbols-outlined group-hover:text-primary">wine_bar</span>
+                                    Beverages
+                                </span>
+<span class="text-xs font-data-tabular bg-outline-variant/20 px-2 py-0.5 rounded-full">31</span>
+</button>
+</nav>
+<div class="mt-lg pt-md border-t border-outline-variant/20 px-xs">
+<div class="bg-primary/5 p-md rounded-xl">
+<span class="material-symbols-outlined text-primary mb-xs">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Changes to the <span class="font-bold">Happy Hour</span> menu go live in 2 hours automatically.
+                                </p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Right: Item List & Details -->
+<div class="col-span-9 flex flex-col gap-md">
+<!-- Search & Filter Bar -->
+<div class="glass-panel p-sm rounded-2xl flex items-center justify-between gap-md">
+<div class="flex items-center gap-sm">
+<span class="font-headline-md text-headline-md text-on-surface">Coffee &amp; Tea</span>
+<span class="text-outline-variant px-xs">|</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Displaying all active house blends</span>
+</div>
+<div class="flex items-center gap-xs">
+<button class="px-md py-xs border border-outline-variant/50 rounded-lg font-label-bold text-label-bold hover:bg-surface-container-high transition-colors">SORT: PRICE</button>
+<button class="w-10 h-10 flex items-center justify-center border border-outline-variant/50 rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Item Rows -->
+<div class="flex flex-col gap-sm">
+<!-- Item 1 -->
+<div class="service-card bg-white p-md rounded-2xl flex items-center gap-md group">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Roasted Mocha" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A premium close-up shot of a steaming hot mocha with intricate latte art on top. The cup is a rustic ceramic in earthy brown tones, sitting on a weathered stone surface. The lighting is soft and moody, with warm amber glows highlighting the creamy texture of the foam. The aesthetic is sophisticated and high-end, capturing the essence of a luxury artisan cafe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCilCWDFGJMnndpyBckfG1fLXc2L8v5zrfyR6jiXo3ViQV6wUD-_RokvWP_Nt_VoGuGwAKEKkn2HpykhBhV21SQegIZD_pnHbF9bhtEB6vQnJgQgk-Hk1zqR4cPRII4-01a_JS_-mGeAynRU21PRyDcNY1jfZfQXjCedIk87Mtv_MgCQEy7UBCooWn9wRFqv2_faHlVD4dBACrcjDtliuDr-Fc8LBqetLdF-cYqXRj_7-J9_S-l1uUuX85BxyZxvexb351CpMcrWCms"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Best Seller</span>
+<span class="text-outline text-xs font-medium">SKU: HS-C01</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Single Origin Roasted Mocha</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Ethically sourced beans from Ethiopia, double-shot espresso, organic cocoa.</p>
+</div>
+<div class="text-right px-lg border-r border-outline-variant/30">
+<p class="font-label-bold text-label-bold text-outline-variant uppercase">Price</p>
+<p class="font-data-tabular text-headline-md text-primary">$6.50</p>
+</div>
+<div class="flex items-center gap-xs pl-md">
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-error-container hover:text-error transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="service-card bg-white p-md rounded-2xl flex items-center gap-md group">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Stone Ground Matcha" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A vibrant green stone-ground matcha latte in a minimalist glass cup, showing distinct layers of milk and green tea. The scene is bright and airy, with soft morning sunlight filtering through a nearby window. The background features clean, warm-toned stone textures and a hint of fresh sage leaves, embodying a refined and healthy culinary lifestyle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLWBHNG9gDUjD761iBmHdatLCnH5EWIeA-wUb-wws5RnJKvh1UOaEdCWR-Pj_OvlzcIyG8JWvNuMNNztZjz-imaeYcWK2kc54QoX-OCEpLZyrTquIvOtPon0jKD4DMkef5tW7xNhzX107QxrhVZTRcBz_XiW3QkM-433afgPklz5hHb6YPyH2wRgaDCf8A2i2BT9XK_C-Ob90F0onMmaHIaNaGJZjeQKyPJ4eB6JoPTAD5h29D8oNis4Vcq3sNPCCN3jxEWxQavdsJ"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Vegetarian</span>
+<span class="text-outline text-xs font-medium">SKU: HS-C12</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">Stone Ground Matcha Latte</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Ceremonial grade Uji matcha whisked with bamboo and topped with oat milk.</p>
+</div>
+<div class="text-right px-lg border-r border-outline-variant/30">
+<p class="font-label-bold text-label-bold text-outline-variant uppercase">Price</p>
+<p class="font-data-tabular text-headline-md text-primary">$7.25</p>
+</div>
+<div class="flex items-center gap-xs pl-md">
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-error-container hover:text-error transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="service-card bg-white p-md rounded-2xl flex items-center gap-md group opacity-60">
+<div class="w-20 h-20 rounded-xl overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Cold Brew" class="w-full h-full object-cover grayscale" data-alt="A tall glass of cold brew coffee with large clear ice cubes, condensation glistening on the side. The lighting is crisp and cool-toned, with high contrast shadows. The setting is a minimalist professional bar counter made of dark charcoal oak. The image has a sophisticated, high-end editorial feel with a monochromatic focus punctuated by the deep amber of the coffee." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_10wMJ_MDHsEBXpNPSaueqIoQwpJF7s-KciPclnv_v9nqqHu8q8GMZbXBWWKNWvAePmhNOIVPs85d2cOQCtlRmd19DEr-FEx8d--2hkUxvdM-glF_ophBv1bTOuxtAHKOYha71RNcSZ0hQpcDxXQrUtz8CweYnGwZOcD1bONk2T7brY1OiC4LgHzAu2PmgFxzovLWGKgaztuPp08sNASYpWDKHpC4kSDB6bo3-L0RS5ZfTqbl3xCb2Dj9poitDVfwHDm7br4dC5AF"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<span class="bg-error-container text-on-error-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Out of Stock</span>
+<span class="text-outline text-xs font-medium">SKU: HS-C08</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-1">24hr Steeped Cold Brew</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Slow-steeped signature house blend served over artisanal ice blocks.</p>
+</div>
+<div class="text-right px-lg border-r border-outline-variant/30">
+<p class="font-label-bold text-label-bold text-outline-variant uppercase">Price</p>
+<p class="font-data-tabular text-headline-md text-primary">$5.75</p>
+</div>
+<div class="flex items-center gap-xs pl-md">
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container-low text-on-surface-variant hover:bg-error-container hover:text-error transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="mt-md p-md border-t border-outline-variant/20 flex items-center justify-between">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Showing 1-12 of 24 coffee items</p>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Modal Placeholder: Add New Item (Overlay) -->
+<div class="hidden fixed inset-0 z-[60] flex items-center justify-center p-md" id="addModal">
+<div class="absolute inset-0 bg-on-background/40 backdrop-blur-sm" onclick="toggleModal()"></div>
+<div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden glass-panel">
+<div class="p-lg bg-primary text-on-primary flex items-center justify-between">
+<div>
+<h2 class="font-headline-lg text-headline-lg">Add Menu Item</h2>
+<p class="font-body-sm text-body-sm opacity-80">Populate catalog for the Autumn/Winter season</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors" onclick="toggleModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-lg grid grid-cols-2 gap-md">
+<div class="col-span-2 space-y-xs">
+<label class="font-label-bold text-label-bold text-outline-variant uppercase">Item Name</label>
+<input class="w-full px-md py-sm rounded-xl border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md" placeholder="e.g. Spiced Chai Latte" type="text"/>
+</div>
+<div class="space-y-xs">
+<label class="font-label-bold text-label-bold text-outline-variant uppercase">Category</label>
+<select class="w-full px-md py-sm rounded-xl border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md bg-transparent">
+<option>Coffee &amp; Tea</option>
+<option>Desserts</option>
+<option>Light Meals</option>
+</select>
+</div>
+<div class="space-y-xs">
+<label class="font-label-bold text-label-bold text-outline-variant uppercase">Price ($)</label>
+<input class="w-full px-md py-sm rounded-xl border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md" placeholder="0.00" step="0.01" type="number"/>
+</div>
+<div class="col-span-2 space-y-xs">
+<label class="font-label-bold text-label-bold text-outline-variant uppercase">Description</label>
+<textarea class="w-full px-md py-sm rounded-xl border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none font-body-md" placeholder="Detailed ingredients and prep notes..." rows="3"></textarea>
+</div>
+<div class="col-span-2 pt-md flex justify-end gap-sm">
+<button class="px-lg py-sm border border-outline-variant text-on-surface font-bold rounded-xl hover:bg-surface-container transition-colors" onclick="toggleModal()">Discard</button>
+<button class="px-lg py-sm bg-primary text-on-primary font-bold rounded-xl shadow-lg hover:bg-primary-container transition-colors">Save Item</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+        function toggleModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Logic for "Create New Entry" button
+        document.querySelector('button.bg-primary.text-on-primary.rounded-xl').addEventListener('click', toggleModal);
+    </script>
+</body></html>

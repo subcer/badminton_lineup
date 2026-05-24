@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#e6ded9",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#e9e1dc",
+                        "background": "#faf9f6",
+                        "on-primary-fixed": "#360f00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f4f3f0",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e3e2df",
+                        "surface-bright": "#faf9f6",
+                        "surface": "#faf9f6",
+                        "tertiary-fixed": "#c7ecc6",
+                        "primary": "#984215",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#ffb596",
+                        "on-tertiary-container": "#f7fff2",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2f312f",
+                        "on-secondary-fixed-variant": "#4b4642",
+                        "on-surface-variant": "#56433b",
+                        "secondary-fixed-dim": "#cdc5c0",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e9e8e5",
+                        "outline-variant": "#dcc1b6",
+                        "tertiary-fixed-dim": "#acd0ab",
+                        "outline": "#897269",
+                        "surface-container": "#efeeeb",
+                        "primary-container": "#b85a2b",
+                        "on-tertiary-fixed-variant": "#2f4e32",
+                        "on-background": "#1a1c1a",
+                        "inverse-on-surface": "#f2f1ee",
+                        "on-secondary-fixed": "#1e1b18",
+                        "primary-fixed": "#ffdbcd",
+                        "secondary": "#635d5a",
+                        "primary-fixed-dim": "#ffb596",
+                        "tertiary": "#446345",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fffbff",
+                        "surface-tint": "#9b4417",
+                        "on-tertiary-fixed": "#022109",
+                        "tertiary-container": "#5c7d5d",
+                        "on-secondary-container": "#67625e",
+                        "on-primary-fixed-variant": "#7c2e00",
+                        "on-surface": "#1a1c1a",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#dbdad7",
+                        "surface-variant": "#e3e2df"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "lg": "40px",
+                        "sidebar-width": "280px",
+                        "xl": "64px",
+                        "md": "24px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "sm": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Manrope"],
+                        "label-bold": ["Hanken Grotesk"],
+                        "data-tabular": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-xl": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "data-tabular": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .mic-pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.15); opacity: 0.1; }
+            100% { transform: scale(1); opacity: 0.3; }
+        }
+        .waveform-bar {
+            width: 3px;
+            background: #984215;
+            border-radius: 99px;
+            animation: wave 1.2s infinite ease-in-out;
+        }
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 24px; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 bottom-0 z-50 overflow-y-auto h-screen w-sidebar-width flex flex-col bg-secondary-fixed dark:bg-on-background shadow-md">
+<div class="p-md flex items-center gap-sm">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-secondary-fixed leading-none">Hearth &amp; Stone</h1>
+<p class="text-on-secondary-fixed-variant text-sm mt-1">Premium Management</p>
+</div>
+</div>
+<nav class="mt-md px-sm space-y-xs flex-grow">
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs hover:bg-primary/5 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span>Table Overview</span>
+</a>
+<a class="flex items-center gap-sm bg-primary/10 text-primary border-l-4 border-primary px-sm py-xs rounded-r-lg" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span>Menu Management</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs hover:bg-primary/5 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span>Orders</span>
+</a>
+<a class="flex items-center gap-sm text-on-secondary-fixed-variant px-sm py-xs hover:bg-primary/5 transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="p-md mt-auto">
+<button class="w-full bg-primary text-on-primary font-headline-md text-body-md py-sm rounded-xl shadow-lg hover:brightness-110 active:scale-[0.98] transition-all">
+                New Reservation
+            </button>
+</div>
+</aside>
+<!-- Top Navigation -->
+<header class="fixed top-0 right-0 left-sidebar-width z-40 flex justify-between items-center px-gutter h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">Management Suite</span>
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-sm focus:ring-2 focus:ring-primary focus:outline-none transition-all" placeholder="Search orders, tables, or staff..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-2"></div>
+<img alt="Manager Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-primary-container" data-alt="A professional portrait of a restaurant manager in a smart-casual blazer, looking confident and friendly. The background is a blurred high-end restaurant dining area with warm amber lighting and stone walls, consistent with a premium hospitality brand aesthetic. The lighting is soft and flattering, highlighting the professional atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaRJaZO8547zhWD-qy7sEEU7mronF45TqdSzY9qyv4luYcf4qreEz1LiMp21dHzEm4MuZRC895MK1-QjWVWww0z-t-TjCF51KHeWZeXwJh6MCJGIZTSOUvJWpvQaIO6DdHiMNgUwO-SATU90YW-9rL5gmOeET6Xdl52ldNlw7fUmWtrZeIQtSe4G6tP_pkdNlfN_VxVeRDG8f3185W0Hr0HAI4Y8GbDZeghRkdnMtXCgJwQ_Gt4ldbn9s8X6oN2cMJ3EwncNx_8T9o"/>
+</div>
+</header>
+<!-- Main Content (Voice Ordering Overlay) -->
+<main class="ml-sidebar-width pt-16 min-h-screen relative overflow-hidden">
+<!-- Background "Table Management" View (Blurred) -->
+<div class="p-lg filter blur-md pointer-events-none opacity-40">
+<div class="grid grid-cols-4 gap-md">
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant">
+<div class="flex justify-between items-center mb-sm">
+<span class="text-label-bold text-on-surface-variant uppercase">Table 12</span>
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary rounded text-xs font-bold uppercase">Occupied</span>
+</div>
+<div class="h-32 bg-surface-container rounded-lg"></div>
+</div>
+<!-- Repeat cards to fill background -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant"></div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant"></div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant"></div>
+</div>
+</div>
+<!-- Voice Ordering Modal Container -->
+<div class="absolute inset-0 z-50 flex items-center justify-center p-xl">
+<div class="glass-panel w-full max-w-6xl h-[819px] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-white/50">
+<!-- Modal Header -->
+<div class="px-lg py-md border-b border-outline-variant/20 flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">mic</span>
+</div>
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Voice Ordering</h2>
+<p class="text-on-surface-variant font-body-sm">Table 14 • 4 Guests • Sever: Julian M.</p>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex flex-grow overflow-hidden">
+<!-- Left Panel: Interaction Area -->
+<div class="w-2/3 flex flex-col p-lg border-r border-outline-variant/20">
+<!-- Microphone Interaction Area -->
+<div class="flex-grow flex flex-col items-center justify-center space-y-lg relative">
+<!-- Subtle Pulsing Animation -->
+<div class="absolute inset-0 flex items-center justify-center -z-10">
+<div class="mic-pulse w-64 h-64 rounded-full bg-primary/20"></div>
+<div class="mic-pulse w-96 h-96 rounded-full bg-primary/10" style="animation-delay: 0.5s;"></div>
+</div>
+<button class="w-32 h-32 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all group" id="mic-trigger">
+<span class="material-symbols-outlined text-[48px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+<!-- Waveform feedback -->
+<div class="flex items-end gap-1 h-12">
+<div class="waveform-bar" style="animation-delay: 0.1s"></div>
+<div class="waveform-bar" style="animation-delay: 0.3s"></div>
+<div class="waveform-bar" style="animation-delay: 0.2s"></div>
+<div class="waveform-bar" style="animation-delay: 0.4s"></div>
+<div class="waveform-bar" style="animation-delay: 0.1s"></div>
+<div class="waveform-bar" style="animation-delay: 0.5s"></div>
+<div class="waveform-bar" style="animation-delay: 0.2s"></div>
+<div class="waveform-bar" style="animation-delay: 0.3s"></div>
+</div>
+<p class="text-headline-md font-headline-md text-primary text-center max-w-md">
+                                Listening...
+                            </p>
+</div>
+<!-- Real-time Transcript -->
+<div class="bg-surface-container-low p-md rounded-2xl border border-outline-variant/40 mt-auto">
+<span class="text-label-bold text-primary uppercase mb-2 block">Live Transcript</span>
+<p class="text-body-lg text-on-surface-variant italic">
+                                "...two Wood-Fired Ribeyes medium rare, one Caesar salad no croutons, and a bottle of the 2018 Cabernet..."
+                            </p>
+</div>
+</div>
+<!-- Right Panel: Detected Items & Confirmation -->
+<div class="w-1/3 flex flex-col bg-surface-container-lowest/50">
+<div class="p-lg flex-grow flex flex-col">
+<div class="flex justify-between items-end mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Review Order</h3>
+<span class="text-body-sm text-on-surface-variant">3 Items Detected</span>
+</div>
+<!-- Item List -->
+<div class="space-y-sm overflow-y-auto pr-2">
+<!-- Item 1 -->
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/30 flex justify-between items-start group hover:border-primary/50 transition-colors">
+<div class="flex gap-sm">
+<div class="w-12 h-12 bg-surface-container rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Ribeye Steak" class="w-full h-full object-cover" data-alt="A close-up shot of a perfectly seared, juicy Wood-Fired Ribeye steak on a rustic stone plate. Garnished with a sprig of rosemary and sea salt, the steak shows beautiful marbling and a rich amber crust. The lighting is low and warm, creating an intimate, premium restaurant feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-X9CZK68VAtBbfQ6U0SYtaoWSQvrBYLw3uRM7a0SSQrNVwXTRykF4a_L7QC-YCINMZ40oPE9hUDgUE7vxGUosblBCHc39wOuBhe1SOyZShGpvZthloUOiUOtZMMCkpoW71FuTW28gqjZmZAkunMgp7jON_iWNx3HN45JF2KtavrfI6Y6do1UNDqDqBT6l6xpcXKq28f0EiXSGb6TYXck15IcWuCmmsJ49EZF2_oC5l1MoTEHKLH1jHJZaD5p_FYCxU4F9kzu8swY9"/>
+</div>
+<div>
+<div class="flex items-center gap-xs">
+<span class="font-data-tabular text-primary">2×</span>
+<h4 class="font-bold text-on-surface">Wood-Fired Ribeye</h4>
+</div>
+<p class="text-body-sm text-on-surface-variant">Medium Rare • Peppercorn Sauce</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/30 flex justify-between items-start group hover:border-primary/50 transition-colors">
+<div class="flex gap-sm">
+<div class="w-12 h-12 bg-surface-container rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Caesar Salad" class="w-full h-full object-cover" data-alt="A fresh, crisp Caesar salad in a modern ceramic bowl. Vibrant green romaine lettuce leaves are lightly coated in dressing, topped with thin shavings of Parmesan cheese. The salad looks light and elegant, with soft natural light highlighting the fresh textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcQpfRWjMrvP2AUKeRAADWU_G0C0GgHsK9OXwN2LU2ZQbxCU2r7bvygCAjChK28hNtpuDyOT8FXczupzvzil8G6rGOzOZFZI-s0aOPcPqQGZSL647J_jS7v9JNxuTCPCgU6DeNpRoN5k-3Q_AQ4R9O54vRyHQ1WniYcASg2rJOKI-hoEUfW14ktP99kKHWIkMJDve27NpyVG1tEFEQv-_qH3QHq0WGjnxIJYGwJeeBUpZvifpRGj7eZJrMtLwh5MsLMdojwRNESLPg"/>
+</div>
+<div>
+<div class="flex items-center gap-xs">
+<span class="font-data-tabular text-primary">1×</span>
+<h4 class="font-bold text-on-surface">Caesar Salad</h4>
+</div>
+<p class="text-body-sm text-on-surface-variant">No Croutons</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<!-- Item 3 -->
+<div class="bg-white p-sm rounded-xl shadow-sm border border-outline-variant/30 flex justify-between items-start group hover:border-primary/50 transition-colors">
+<div class="flex gap-sm">
+<div class="w-12 h-12 bg-surface-container rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Cabernet Wine" class="w-full h-full object-cover" data-alt="A bottle of premium red Cabernet wine sitting on a dark wooden table next to a partially filled glass. The label is sophisticated and minimalist. Deep crimson liquid reflects the ambient warm lighting of the cellar-style dining room." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_Xn1Zw57vHY_6bqfEnSPNZRKZA00F3fSHP5-9HZrEu9HeQR_yMjec4McVsWaevV2sCL4v5DJShGWgLNxuw9BH0tw8UJlvyeJJb5fQ-SJBTixOw-CojUQ23zOUxwZ1dcRafeWz1a_srtROGWEKN1T4tcAqVJ1SLNybIki5aknKgAOlLrO2WGFyxtnMLzDC61VfGBC_GTL5LKTQUQZmA9uhmAwFSiRgJR8aiT2qsOA_IOvniTf0kDg-Il34WvVijdG5Txoep7i7c9G0"/>
+</div>
+<div>
+<div class="flex items-center gap-xs">
+<span class="font-data-tabular text-primary">1×</span>
+<h4 class="font-bold text-on-surface">Cabernet Sauvignon</h4>
+</div>
+<p class="text-body-sm text-on-surface-variant">Vintage 2018 • Bottle</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+</div>
+<!-- Menu Quick Select (Secondary Input) -->
+<div class="mt-lg pt-lg border-t border-outline-variant/20">
+<h4 class="text-label-bold text-on-surface-variant uppercase mb-sm">Menu Quick Select</h4>
+<div class="flex flex-wrap gap-xs">
+<button class="px-sm py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold hover:bg-primary hover:text-on-primary transition-all">+ Sparkling Water</button>
+<button class="px-sm py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold hover:bg-primary hover:text-on-primary transition-all">+ Bread Service</button>
+<button class="px-sm py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold hover:bg-primary hover:text-on-primary transition-all">+ Oysters (6)</button>
+<button class="px-sm py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold hover:bg-primary hover:text-on-primary transition-all">+ Extra Dressing</button>
+</div>
+</div>
+</div>
+<!-- Add to Order CTA -->
+<div class="p-lg bg-surface-container shadow-[0_-8px_24px_rgba(0,0,0,0.05)]">
+<div class="flex justify-between items-center mb-md">
+<span class="text-on-surface-variant">Estimated Total</span>
+<span class="font-headline-md text-headline-md text-on-surface">$184.50</span>
+</div>
+<button class="w-full bg-primary text-on-primary font-headline-md text-body-md py-md rounded-xl shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-sm">
+<span>Confirm &amp; Add to Order</span>
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for the mic button
+        const micBtn = document.getElementById('mic-trigger');
+        let isListening = true;
+
+        micBtn.addEventListener('click', () => {
+            isListening = !isListening;
+            const bars = document.querySelectorAll('.waveform-bar');
+            const pulses = document.querySelectorAll('.mic-pulse');
+            const statusText = micBtn.nextElementSibling.nextElementSibling;
+            
+            if (isListening) {
+                micBtn.classList.remove('bg-on-surface-variant');
+                micBtn.classList.add('bg-primary');
+                statusText.innerText = "Listening...";
+                statusText.classList.remove('text-on-surface-variant');
+                statusText.classList.add('text-primary');
+                bars.forEach(bar => bar.style.animationPlayState = 'running');
+                pulses.forEach(p => p.style.display = 'block');
+            } else {
+                micBtn.classList.add('bg-on-surface-variant');
+                micBtn.classList.remove('bg-primary');
+                statusText.innerText = "Paused";
+                statusText.classList.add('text-on-surface-variant');
+                statusText.classList.remove('text-primary');
+                bars.forEach(bar => bar.style.animationPlayState = 'paused');
+                pulses.forEach(p => p.style.display = 'none');
+            }
+        });
+
+        // Simple scale effect on hover for order items
+        document.querySelectorAll('.group').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.transform = 'translateY(-2px)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>
