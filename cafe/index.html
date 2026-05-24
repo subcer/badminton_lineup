@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>咖啡廳點餐系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <i class="fa-solid fa-mug-hot" style="color:#fff;font-size:1.3rem;"></i>
+    <h1>點餐管理</h1>
+    <span class="header-subtitle" id="tableCount">0 桌</span>
+    <button class="btn-icon" id="btnHeaderAdd" title="新增餐桌">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="section-title">餐桌狀況</div>
+    <div class="tables-grid" id="tablesGrid">
+      <!-- rendered by JS -->
+    </div>
+  </main>
+
+  <!-- ── Table Detail Modal ── -->
+  <div class="modal-overlay" id="tableModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">桌號</span>
+        <button class="modal-close" id="btnCloseModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Status progress -->
+      <div class="status-flow">
+        <div class="status-dot" title="空桌"></div>
+        <div class="status-dot" title="點餐中"></div>
+        <div class="status-dot" title="已出餐"></div>
+        <div class="status-dot" title="已結帳"></div>
+      </div>
+
+      <!-- Voice hint placeholder (Typeless 之後接這裡) -->
+      <div class="voice-hint">
+        <i class="fa-solid fa-microphone-slash"></i>
+        <span>語音點餐功能即將推出 — 說話自動轉文字</span>
+      </div>
+
+      <!-- Order List -->
+      <div class="order-list" id="orderList">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Add item form -->
+      <div class="add-item-form">
+        <div class="add-item-row">
+          <input type="text" id="inputItemName" placeholder="品項名稱（例：拿鐵）" autocomplete="off">
+          <input type="number" id="inputItemQty" class="qty-input" value="1" min="1" max="99">
+          <button class="btn-add-item" id="btnAddItem">加入</button>
+        </div>
+        <input type="text" id="inputItemNote" class="note-input" placeholder="備註（例：少糖、去冰）" autocomplete="off" style="border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;background:#fff;outline:none;">
+
+        <!-- Preset chips -->
+        <div class="preset-chips" id="menuChips">
+          <span class="menu-chip chip" data-name="美式咖啡">美式</span>
+          <span class="menu-chip chip" data-name="拿鐵">拿鐵</span>
+          <span class="menu-chip chip" data-name="卡布奇諾">卡布</span>
+          <span class="menu-chip chip" data-name="抹茶拿鐵">抹茶拿鐵</span>
+          <span class="menu-chip chip" data-name="柳橙汁">柳橙汁</span>
+          <span class="menu-chip chip" data-name="蛋糕">蛋糕</span>
+          <span class="menu-chip chip" data-name="鬆餅">鬆餅</span>
+          <span class="menu-chip chip" data-name="三明治">三明治</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button class="btn btn-served" id="btnMarkServed">
+          <i class="fa-solid fa-bell-concierge"></i> 已出餐
+        </button>
+        <button class="btn btn-paid" id="btnMarkPaid">
+          <i class="fa-solid fa-circle-check"></i> 已結帳
+        </button>
+        <button class="btn btn-delete" id="btnDeleteTable">
+          <i class="fa-solid fa-trash"></i> 刪除桌
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Add Table Modal ── -->
+  <div class="modal-overlay" id="addTableModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">新增餐桌</span>
+        <button class="modal-close" id="btnCloseAddModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="add-table-form">
+        <div>
+          <label class="form-label">桌號 / 名稱</label>
+          <input type="text" class="form-input" id="inputTableName" placeholder="例：桌1、吧台、戶外A" autocomplete="off">
+        </div>
+
+        <div>
+          <label class="form-label">快速選擇</label>
+          <div class="preset-chips">
+            <span class="chip table-preset" data-name="桌1">桌1</span>
+            <span class="chip table-preset" data-name="桌2">桌2</span>
+            <span class="chip table-preset" data-name="桌3">桌3</span>
+            <span class="chip table-preset" data-name="桌4">桌4</span>
+            <span class="chip table-preset" data-name="桌5">桌5</span>
+            <span class="chip table-preset" data-name="吧台">吧台</span>
+            <span class="chip table-preset" data-name="戶外A">戶外A</span>
+            <span class="chip table-preset" data-name="外帶">外帶</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btnAddTable">
+          <i class="fa-solid fa-plus"></i> 新增餐桌
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+  <script>
+    // Update table count in header
+    const dbRef = firebase.database().ref('cafe_orders');
+    dbRef.on('value', snap => {
+      const count = snap.val() ? Object.keys(snap.val()).length : 0;
+      document.getElementById('tableCount').textContent = `${count} 桌`;
+    });
+  </script>
+</body>
+</html>
