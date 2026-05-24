@@ -153,15 +153,79 @@ body {
 .status-dot.active   { background: var(--primary); }
 .status-dot.done-dot { background: var(--green); }
 
-/* ── Voice hint ── */
-.voice-hint {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--orange-light); border: 1.5px dashed var(--orange);
-  border-radius: var(--radius-sm); padding: 9px 14px;
-  font-size: 0.8rem; color: var(--orange); font-weight: 600;
-  margin-bottom: 14px;
+/* ── Voice Section ── */
+.voice-section {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
 }
-.voice-hint i { font-size: 1rem; }
+
+.voice-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--primary); color: #fff;
+  border: none; border-radius: 24px;
+  padding: 9px 18px; font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+}
+.voice-btn:hover { background: var(--primary-dark); transform: scale(1.03); }
+.voice-btn.recording {
+  background: var(--red);
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(198,40,40,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(198,40,40,0); }
+}
+
+.voice-status { font-size: 0.82rem; color: var(--red); font-weight: 700; }
+
+/* ── Voice Result Card ── */
+.voice-result {
+  background: #fff8f5; border: 1.5px solid rgba(192,98,47,0.25);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;
+}
+
+.voice-result-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; color: var(--muted);
+}
+.voice-result-header i { color: var(--primary); font-size: 0.9rem; flex-shrink:0; }
+.voice-result-text { flex: 1; font-weight: 600; color: var(--text); font-size: 0.88rem; }
+.voice-result-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 0.9rem; padding: 2px 4px;
+  border-radius: 4px; line-height: 1;
+}
+.voice-result-close:hover { color: var(--red); }
+
+/* ── Voice Parsed Items ── */
+.voice-parsed-list { display: flex; flex-direction: column; gap: 6px; }
+
+.voice-parsed-item {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+}
+.vpi-info  { flex: 1; min-width: 0; }
+.vpi-name  { font-size: 0.9rem; font-weight: 700; display: block; }
+.vpi-note  { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 1px; }
+.vpi-qty   { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.vpi-price { font-size: 0.9rem; color: var(--primary); font-weight: 800; min-width: 44px; text-align: right; }
+
+.voice-no-match {
+  font-size: 0.82rem; color: var(--orange); font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.btn-voice-confirm {
+  background: var(--green); color: #fff; border: none;
+  border-radius: var(--radius-sm); padding: 10px 16px;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.2s;
+}
+.btn-voice-confirm:hover { opacity: 0.88; }
 
 /* ── Order List ── */
 .order-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }

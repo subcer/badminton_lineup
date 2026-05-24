@@ -6,8 +6,8 @@ const dbOrders = firebase.database().ref('cafe_orders');
 const dbMenu   = firebase.database().ref('cafe_menu');
 
 // ── State ──
-let tables    = {};  // { tableId: { name, status, order, items: { itemId: {name,qty,note,done,price} } } }
-let menuItems = {};  // { menuItemId: { name, price, category, order } }
+let tables    = {};
+let menuItems = {};
 let activeTableId = null;
 
 const STATUS       = { empty: '空桌', ordering: '點餐中', served: '已出餐', paid: '已結帳' };
@@ -32,10 +32,6 @@ function calcTotal(table) {
   return Object.values(table.items || {}).reduce((sum, item) => {
     return sum + (Number(item.price) || 0) * (Number(item.qty) || 1);
   }, 0);
-}
-
-function fmtPrice(n) {
-  return n > 0 ? `$${n}` : '—';
 }
 
 function updateHeaderCount() {
@@ -92,6 +88,7 @@ function buildTableCard(id, table) {
 // ── Table Modal ──
 function openTableModal(tableId) {
   activeTableId = tableId;
+  clearVoiceResult();
   document.getElementById('tableModal').classList.add('open');
   updateModalContent(tableId);
 }
@@ -102,7 +99,6 @@ function updateModalContent(tableId) {
 
   document.getElementById('modalTitle').textContent = table.name;
 
-  // Status dots
   const dots = document.querySelectorAll('.status-dot');
   const idx = STATUS_ORDER.indexOf(table.status);
   dots.forEach((dot, i) => {
@@ -123,7 +119,7 @@ function renderOrderItems(table) {
   const items = Object.entries(table.items || {});
 
   if (items.length === 0) {
-    list.innerHTML = `<div class="order-empty">尚未點餐，請從菜單快選或輸入品項</div>`;
+    list.innerHTML = `<div class="order-empty">尚未點餐，請用語音或手動輸入品項</div>`;
     return;
   }
 
@@ -178,7 +174,7 @@ function deleteItem(itemId) {
   dbOrders.child(activeTableId).set(table);
 }
 
-// ── Add Item ──
+// ── Add Item (manual) ──
 document.getElementById('btnAddItem').addEventListener('click', addItem);
 document.getElementById('inputItemName').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
 
@@ -208,7 +204,7 @@ function addItem() {
   showToast(`已加入「${name}」${price > 0 ? ' $' + price : ''}`);
 }
 
-// ── Menu Picker (inside table modal) ──
+// ── Menu Picker ──
 function renderMenuPicker() {
   const picker = document.getElementById('menuPicker');
   const sorted = Object.entries(menuItems).sort((a, b) => a[1].order - b[1].order);
@@ -231,6 +227,192 @@ function renderMenuPicker() {
     picker.appendChild(chip);
   });
 }
+
+// ══════════════════════════════════════════════════
+//  語音點餐
+// ══════════════════════════════════════════════════
+
+const CN_NUM_MAP = { '零':0,'一':1,'兩':2,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10 };
+// 量詞、動詞填充詞，辨識後去除
+const FILLER_RE  = /[要來給我想幫各份杯個碗盤支罐瓶袋盒碟]/g;
+
+let recognition      = null;
+let voiceParsedItems = [];
+
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    // 不支援時隱藏語音按鈕
+    document.getElementById('btnVoice').style.display = 'none';
+    return;
+  }
+  recognition = new SR();
+  recognition.lang            = 'zh-TW';
+  recognition.continuous      = false;
+  recognition.interimResults  = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    document.getElementById('btnVoice').classList.add('recording');
+    document.getElementById('voiceStatus').textContent = '🔴 聆聽中…';
+  };
+
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    handleVoiceResult(text);
+  };
+
+  recognition.onerror = e => {
+    stopRecording();
+    if (e.error !== 'no-speech') showToast('語音辨識失敗：' + e.error);
+  };
+
+  recognition.onend = stopRecording;
+}
+
+function stopRecording() {
+  document.getElementById('btnVoice').classList.remove('recording');
+  document.getElementById('voiceStatus').textContent = '';
+}
+
+document.getElementById('btnVoice').addEventListener('click', () => {
+  if (!recognition) { showToast('此瀏覽器不支援語音，請用 Chrome'); return; }
+  try { recognition.start(); } catch(e) { /* already started */ }
+});
+
+// ── 解析語音文字 ──
+function extractNum(str) {
+  const arabic = str.match(/\d+/);
+  if (arabic) return parseInt(arabic[0]);
+  for (const [ch, val] of Object.entries(CN_NUM_MAP)) {
+    if (str.includes(ch)) return val;
+  }
+  return null;
+}
+
+function parseVoiceText(rawText) {
+  const results = [];
+  if (Object.keys(menuItems).length === 0) return results;
+
+  // 名字長的先比對，避免「抹茶拿鐵」先被「拿鐵」截走
+  const sortedMenu = Object.values(menuItems).sort((a, b) => b.name.length - a.name.length);
+
+  let workText = rawText;
+
+  for (const menuItem of sortedMenu) {
+    const idx = workText.indexOf(menuItem.name);
+    if (idx === -1) continue;
+
+    const nameLen  = menuItem.name.length;
+    const winStart = Math.max(0, idx - 6);
+    const winEnd   = Math.min(workText.length, idx + nameLen + 8);
+
+    const before = workText.slice(winStart, idx);
+    const after  = workText.slice(idx + nameLen, winEnd);
+
+    // 數量：優先取品名前面的數字
+    let qty = 1;
+    const numBefore = extractNum(before);
+    const numAfter  = extractNum(after);
+    if (numBefore !== null && numBefore > 0) qty = numBefore;
+    else if (numAfter !== null && numAfter > 0) qty = numAfter;
+
+    // 備註：去掉數字、填充詞後剩下的字
+    const noteRaw = (before + after)
+      .replace(/\d+/g, '')
+      .replace(new RegExp(Object.keys(CN_NUM_MAP).join('|'), 'g'), '')
+      .replace(FILLER_RE, '')
+      .replace(/[，,。、！!？?\s]/g, '')
+      .trim();
+
+    results.push({ name: menuItem.name, qty, note: noteRaw, price: menuItem.price || 0 });
+
+    // 把已比對區段遮蔽，避免重複
+    workText = workText.slice(0, winStart) + '　'.repeat(winEnd - winStart) + workText.slice(winEnd);
+  }
+
+  return results;
+}
+
+// ── 顯示語音解析結果 ──
+function handleVoiceResult(text) {
+  document.getElementById('voiceResultText').textContent = `「${text}」`;
+  voiceParsedItems = parseVoiceText(text);
+  renderVoiceParsedList();
+  document.getElementById('voiceResult').style.display = '';
+}
+
+function renderVoiceParsedList() {
+  const list    = document.getElementById('voiceParsedList');
+  const noMatch = document.getElementById('voiceNoMatch');
+  const confirm = document.getElementById('btnVoiceConfirm');
+
+  list.innerHTML = '';
+
+  if (voiceParsedItems.length === 0) {
+    noMatch.style.display  = '';
+    confirm.style.display  = 'none';
+    return;
+  }
+
+  noMatch.style.display = 'none';
+  confirm.style.display = '';
+
+  voiceParsedItems.forEach((item, idx) => {
+    const lineTotal = (item.price || 0) * item.qty;
+    const el = document.createElement('div');
+    el.className = 'voice-parsed-item';
+    el.innerHTML = `
+      <div class="vpi-info">
+        <span class="vpi-name">${item.name}</span>
+        ${item.note ? `<span class="vpi-note">${item.note}</span>` : ''}
+      </div>
+      <span class="vpi-qty">×${item.qty}</span>
+      <span class="vpi-price">${lineTotal > 0 ? '$' + lineTotal : '—'}</span>
+      <button class="btn-del-item" onclick="removeVoiceParsedItem(${idx})">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    `;
+    list.appendChild(el);
+  });
+}
+
+function removeVoiceParsedItem(idx) {
+  voiceParsedItems.splice(idx, 1);
+  renderVoiceParsedList();
+  if (voiceParsedItems.length === 0) {
+    document.getElementById('voiceNoMatch').style.display = '';
+    document.getElementById('btnVoiceConfirm').style.display = 'none';
+  }
+}
+
+function clearVoiceResult() {
+  voiceParsedItems = [];
+  document.getElementById('voiceResult').style.display = 'none';
+}
+
+document.getElementById('btnClearVoice').addEventListener('click', clearVoiceResult);
+
+document.getElementById('btnVoiceConfirm').addEventListener('click', () => {
+  if (!activeTableId || voiceParsedItems.length === 0) return;
+
+  const table = tables[activeTableId];
+  if (!table.items) table.items = {};
+
+  voiceParsedItems.forEach(item => {
+    const itemId = 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    table.items[itemId] = { name: item.name, qty: item.qty, note: item.note, done: false, price: item.price };
+  });
+
+  if (table.status === 'empty') table.status = 'ordering';
+
+  dbOrders.child(activeTableId).set(table);
+  showToast(`已加入 ${voiceParsedItems.length} 項品項`);
+  clearVoiceResult();
+});
+
+// 初始化語音辨識
+initSpeechRecognition();
 
 // ── Status Actions ──
 document.getElementById('btnMarkServed').addEventListener('click', () => {
@@ -310,16 +492,13 @@ function addMenuItem() {
   const name     = document.getElementById('inputMenuName').value.trim();
   const price    = parseFloat(document.getElementById('inputMenuPrice').value) || 0;
   const category = document.getElementById('inputMenuCategory').value;
-
   if (!name) return;
-
   const id = 'menu_' + Date.now();
   dbMenu.child(id).set({ name, price, category, order: Date.now() });
-
   document.getElementById('inputMenuName').value  = '';
   document.getElementById('inputMenuPrice').value = '';
   document.getElementById('inputMenuName').focus();
-  showToast(`已新增菜單品項「${name}」`);
+  showToast(`已新增「${name}」`);
 }
 
 function deleteMenuItem(id) {
@@ -337,7 +516,6 @@ function renderMenuItemsList() {
     return;
   }
 
-  // Group by category
   const groups = {};
   sorted.forEach(([id, item]) => {
     if (!groups[item.category]) groups[item.category] = [];

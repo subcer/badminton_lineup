@@ -51,10 +51,31 @@
         <div class="status-dot" title="已結帳"></div>
       </div>
 
-      <!-- Voice hint placeholder -->
-      <div class="voice-hint">
-        <i class="fa-solid fa-microphone-slash"></i>
-        <span>語音點餐功能即將推出 — 說話自動轉文字</span>
+      <!-- Voice Section -->
+      <div class="voice-section">
+        <button class="voice-btn" id="btnVoice">
+          <i class="fa-solid fa-microphone"></i>
+          <span>語音點餐</span>
+        </button>
+        <span class="voice-status" id="voiceStatus"></span>
+      </div>
+
+      <!-- Voice Result (hidden until recognition) -->
+      <div class="voice-result" id="voiceResult" style="display:none">
+        <div class="voice-result-header">
+          <i class="fa-solid fa-waveform-lines"></i>
+          <span class="voice-result-text" id="voiceResultText"></span>
+          <button class="voice-result-close" id="btnClearVoice">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="voice-parsed-list" id="voiceParsedList"></div>
+        <div class="voice-no-match" id="voiceNoMatch" style="display:none">
+          <i class="fa-solid fa-circle-exclamation"></i> 找不到菜單品項，請先到「菜單管理」新增品項，或手動輸入
+        </div>
+        <button class="btn-voice-confirm" id="btnVoiceConfirm" style="display:none">
+          <i class="fa-solid fa-check"></i> 全部加入訂單
+        </button>
       </div>
 
       <!-- Order List -->
